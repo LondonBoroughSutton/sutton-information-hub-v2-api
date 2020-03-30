@@ -82,6 +82,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(AdminUrlGenerator::class, function () {
             return new AdminUrlGenerator(config('hlp.backend_uri'));
         });
+
+        $this->app->singleton(RoleManagerInterface::class, RoleManager::class);
     }
 
     /**
