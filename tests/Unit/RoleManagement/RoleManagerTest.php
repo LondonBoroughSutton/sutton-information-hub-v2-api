@@ -24,7 +24,6 @@ class RoleManagerTest extends TestCase
 
         $roleManager->updateRoles([
             new UserRole([
-                'user_id' => $user->id,
                 'role_id' => Role::serviceWorker()->id,
                 'service_id' => $service->id,
             ])
@@ -50,7 +49,6 @@ class RoleManagerTest extends TestCase
 
         $roleManager->updateRoles([
             new UserRole([
-                'user_id' => $user->id,
                 'role_id' => Role::serviceAdmin()->id,
                 'service_id' => $service->id,
             ])
@@ -76,7 +74,6 @@ class RoleManagerTest extends TestCase
 
         $roleManager->updateRoles([
             new UserRole([
-                'user_id' => $user->id,
                 'role_id' => Role::organisationAdmin()->id,
                 'organisation_id' => $service->organisation->id,
             ])
@@ -102,7 +99,6 @@ class RoleManagerTest extends TestCase
 
         $roleManager->updateRoles([
             new UserRole([
-                'user_id' => $user->id,
                 'role_id' => Role::globalAdmin()->id,
             ])
         ]);
@@ -126,7 +122,6 @@ class RoleManagerTest extends TestCase
 
         $roleManager->updateRoles([
             new UserRole([
-                'user_id' => $user->id,
                 'role_id' => Role::superAdmin()->id,
             ])
         ]);
@@ -153,12 +148,10 @@ class RoleManagerTest extends TestCase
 
         $roleManager->updateRoles([
             new UserRole([
-                'user_id' => $user->id,
                 'role_id' => Role::organisationAdmin()->id,
                 'organisation_id' => $organisation->id,
             ]),
             new UserRole([
-                'user_id' => $user->id,
                 'role_id' => Role::serviceAdmin()->id,
                 'service_id' => $service->id,
             ]),
@@ -197,7 +190,6 @@ class RoleManagerTest extends TestCase
 
         $roleManager->updateRoles([
             new UserRole([
-                'user_id' => $user->id,
                 'role_id' => Role::serviceWorker()->id,
                 'service_id' => $service->id,
             ])

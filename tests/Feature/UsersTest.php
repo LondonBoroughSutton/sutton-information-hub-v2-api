@@ -234,8 +234,6 @@ class UsersTest extends TestCase
             ],
         ]));
 
-        dd($response);
-
         $response->assertStatus(Response::HTTP_CREATED);
         $createdUserId = json_decode($response->getContent(), true)['data']['id'];
         $createdUser = User::findOrFail($createdUserId);
