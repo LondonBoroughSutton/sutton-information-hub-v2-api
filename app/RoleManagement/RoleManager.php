@@ -19,17 +19,19 @@ class RoleManager implements RoleManagerInterface
     protected $user;
 
     /**
-     * @var \App\Models\UserRole[]
+     * @inheritDoc
      */
-    protected $userRoles;
+    public function __construct(User $user)
+    {
+        $this->user = $user;
+    }
 
     /**
      * @inheritDoc
      */
-    public function updateRoles(User $user, array $userRoles): User
+    public function updateRoles(array $userRoles): User
     {
-        $this->user = $user;
-        $this->userRoles = $userRoles;
+        $userRoles = $this->uniqueRoles($userRoles);
 
         $this->deleteExistingRoles();
 
@@ -96,6 +98,23 @@ class RoleManager implements RoleManagerInterface
         );
 
         return $this->user;
+    }
+
+    /**
+     * @param \App\Models\UserRole[] $userRoles
+     * @return \App\Models\UserRole[]
+     */
+    protected function uniqueRoles(array $userRoles): array
+    {
+        return collect($userRoles)
+            ->unique(function (UserRole $userRole): array {
+                return [
+                    'role_id' => $userRole['role_id'],
+                    'service_id' => $userRole['service_id'] ?? null,
+                    'organisation_id' => $userRole['organisation_id'] ?? null,
+                ];
+            })
+            ->all();
     }
 
     protected function deleteExistingRoles(): void
@@ -359,32 +378,7 @@ class RoleManager implements RoleManagerInterface
      */
     protected function getUserRolesForSuperAdmin(): array
     {
-        $organisations = Organisation::all('id');
-        $services = Service::all('id');
-
-        $organisationAdminRoles = $organisations->map(
-            function (Organisation $organisation): array {
-                return $this->getOrganisationAdminRole($organisation);
-            }
-        )->all();
-        $serviceAdminRoles = $services->map(
-            function (Service $service): array {
-                return $this->getServiceAdminRole($service);
-            }
-        )->all();
-        $serviceWorkerRoles = $services->map(
-            function (Service $service): array {
-                return $this->getServiceWorkerRole($service);
-            }
-        )->all();
-
-        return Arr::flatten([
-            [$this->getSuperAdminRole()],
-            [$this->getGlobalAdminRole()],
-            $organisationAdminRoles,
-            $serviceAdminRoles,
-            $serviceWorkerRoles,
-        ], 1);
+        return [$this->getSuperAdminRole()];
     }
 
     /**
@@ -392,31 +386,7 @@ class RoleManager implements RoleManagerInterface
      */
     protected function getUserRolesForGlobalAdmin(): array
     {
-        $organisations = Organisation::all('id');
-        $services = Service::all('id');
-
-        $organisationAdminRoles = $organisations->map(
-            function (Organisation $organisation): array {
-                return $this->getOrganisationAdminRole($organisation);
-            }
-        )->all();
-        $serviceAdminRoles = $services->map(
-            function (Service $service): array {
-                return $this->getServiceAdminRole($service);
-            }
-        )->all();
-        $serviceWorkerRoles = $services->map(
-            function (Service $service): array {
-                return $this->getServiceWorkerRole($service);
-            }
-        )->all();
-
-        return Arr::flatten([
-            [$this->getGlobalAdminRole()],
-            $organisationAdminRoles,
-            $serviceAdminRoles,
-            $serviceWorkerRoles,
-        ], 1);
+        return [$this->getGlobalAdminRole()];
     }
 
     /**
@@ -433,31 +403,12 @@ class RoleManager implements RoleManagerInterface
         $organisations = Organisation::query()
             ->whereIn('id', $organisationIds)
             ->get('id');
-        $services = Service::query()
-            ->whereIn('organisation_id', $organisationIds)
-            ->get('id');
 
-        $organisationAdminRoles = $organisations->map(
+        return $organisations->map(
             function (Organisation $organisation): array {
                 return $this->getOrganisationAdminRole($organisation);
             }
         )->all();
-        $serviceAdminRoles = $services->map(
-            function (Service $service): array {
-                return $this->getServiceAdminRole($service);
-            }
-        )->all();
-        $serviceWorkerRoles = $services->map(
-            function (Service $service): array {
-                return $this->getServiceWorkerRole($service);
-            }
-        )->all();
-
-        return Arr::flatten([
-            $organisationAdminRoles,
-            $serviceAdminRoles,
-            $serviceWorkerRoles,
-        ], 1);
     }
 
     /**
@@ -475,21 +426,11 @@ class RoleManager implements RoleManagerInterface
             ->whereIn('id', $serviceIds)
             ->get('id');
 
-        $serviceAdminRoles = $services->map(
+        return $services->map(
             function (Service $service): array {
                 return $this->getServiceAdminRole($service);
             }
         )->all();
-        $serviceWorkerRoles = $services->map(
-            function (Service $service): array {
-                return $this->getServiceWorkerRole($service);
-            }
-        )->all();
-
-        return Arr::flatten([
-            $serviceAdminRoles,
-            $serviceWorkerRoles,
-        ], 1);
     }
 
     /**

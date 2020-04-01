@@ -32,23 +32,6 @@ class CreateUserCommand extends Command
     protected $description = 'Creates a new user with Super Admin privileges';
 
     /**
-     * @var \App\RoleManagement\RoleManagerInterface
-     */
-    protected $roleManager;
-
-    /**
-     * CreateUserCommand constructor.
-     *
-     * @param \App\RoleManagement\RoleManagerInterface $roleManager
-     */
-    public function __construct(RoleManagerInterface $roleManager)
-    {
-        parent::__construct();
-
-        $this->roleManager = $roleManager;
-    }
-
-    /**
      * Execute the console command.
      *
      * @throws \Throwable
@@ -93,7 +76,12 @@ class CreateUserCommand extends Command
      */
     protected function makeSuperAdmin(User $user): User
     {
-        return $this->roleManager->updateRoles($user, [
+        /** @var \App\RoleManagement\RoleManagerInterface $roleManager */
+        $roleManager = app()->make(RoleManagerInterface::class, [
+            'user' => $user,
+        ]);
+
+        return $roleManager->updateRoles([
             new UserRole(['role_id' => Role::superAdmin()->id]),
         ]);
     }
