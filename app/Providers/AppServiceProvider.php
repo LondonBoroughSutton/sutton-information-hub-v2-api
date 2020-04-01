@@ -2,9 +2,10 @@
 
 namespace App\Providers;
 
-use App\Contracts\VariableSubstituter;
-use App\Generators\AdminUrlGenerator;
-use App\VariableSubstitution\DoubleParenthesisVariableSubstituter;
+use App\RoleManagement\RoleAuthorizer;
+use App\RoleManagement\RoleAuthorizerInterface;
+use App\RoleManagement\RoleManager;
+use App\RoleManagement\RoleManagerInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\ServiceProvider;
@@ -84,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(RoleManagerInterface::class, RoleManager::class);
+        $this->app->singleton(RoleAuthorizerInterface::class, RoleAuthorizer::class);
     }
 
     /**
