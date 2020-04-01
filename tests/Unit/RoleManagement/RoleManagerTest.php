@@ -185,7 +185,7 @@ class RoleManagerTest extends TestCase
         /** @var \App\Models\Service $service */
         $service = factory(Service::class)->create();
 
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
 
         $this->assertCount(1, UserRole::all());
         $this->assertDatabaseHas(table(UserRole::class), [
@@ -217,7 +217,7 @@ class RoleManagerTest extends TestCase
         $user = factory(User::class)->create();
         factory(Service::class)->create();
 
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
 
         $this->assertCount(1, UserRole::all());
         $this->assertDatabaseHas(table(UserRole::class), [

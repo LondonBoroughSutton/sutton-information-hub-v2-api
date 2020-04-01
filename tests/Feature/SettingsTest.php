@@ -170,9 +170,7 @@ class SettingsTest extends TestCase
     public function test_service_worker_cannot_update_them()
     {
         Passport::actingAs(
-            factory(User::class)->create()->makeServiceWorker(
-                factory(Service::class)->create()
-            )
+            $user = $this->makeServiceWorker(factory(User::class)->create(), factory(Service::class)->create())
         );
 
         $response = $this->putJson('/core/v1/settings');
@@ -196,9 +194,7 @@ class SettingsTest extends TestCase
     public function test_organisation_admin_update_them()
     {
         Passport::actingAs(
-            factory(User::class)->create()->makeOrganisationAdmin(
-                factory(Organisation::class)->create()
-            )
+            $user = $this->makeOrganisationAdmin(factory(User::class)->create(), factory(Organisation::class)->create())
         );
 
         $response = $this->putJson('/core/v1/settings');
@@ -209,7 +205,7 @@ class SettingsTest extends TestCase
     public function test_global_admin_can_update_them()
     {
         Passport::actingAs(
-            factory(User::class)->create()->makeGlobalAdmin()
+            $user = $this->makeGlobalAdmin(factory(User::class)->create())
         );
 
         $response = $this->putJson('/core/v1/settings', [
@@ -271,7 +267,7 @@ class SettingsTest extends TestCase
     public function test_structure_correct_when_updated()
     {
         Passport::actingAs(
-            factory(User::class)->create()->makeGlobalAdmin()
+            $user = $this->makeGlobalAdmin(factory(User::class)->create())
         );
 
         $response = $this->putJson('/core/v1/settings', [
@@ -386,7 +382,7 @@ class SettingsTest extends TestCase
     public function test_values_correct_when_updated()
     {
         Passport::actingAs(
-            factory(User::class)->create()->makeGlobalAdmin()
+            $user = $this->makeGlobalAdmin(factory(User::class)->create())
         );
 
         $response = $this->putJson('/core/v1/settings', [
@@ -503,7 +499,7 @@ class SettingsTest extends TestCase
         $this->fakeEvents();
 
         Passport::actingAs(
-            factory(User::class)->create()->makeGlobalAdmin()
+            $user = $this->makeGlobalAdmin(factory(User::class)->create())
         );
 
         $response = $this->putJson('/core/v1/settings', [
