@@ -31,7 +31,7 @@ class StoreRequest extends FormRequest
     {
         $canAssignRoleToUserRule = new CanAssignRoleToUser(
             app()->make(RoleAuthorizerInterface::class, [
-                'invokingUserRoles' => $this->user()->userRoles->all(),
+                'invokingUserRoles' => $this->user('api')->userRoles()->get()->all(),
             ])
         );
 
