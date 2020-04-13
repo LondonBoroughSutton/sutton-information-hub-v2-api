@@ -107,7 +107,8 @@ queue_worker_task_definition_resource = create_queue_worker_task_definition_reso
                                                                                   docker_repository_resource,
                                                                                   queue_worker_log_group_resource,
                                                                                   default_queue_name_variable,
-                                                                                  notifications_queue_name_variable)
+                                                                                  notifications_queue_name_variable,
+                                                                                  search_queue_name_variable)
 scheduler_task_definition_resource = create_scheduler_task_definition_resource(template,
                                                                             scheduler_task_definition_family_variable,
                                                                             docker_repository_name_variable,

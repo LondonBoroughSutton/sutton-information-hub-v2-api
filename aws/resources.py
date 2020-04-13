@@ -343,7 +343,8 @@ def create_api_task_definition_resource(template, api_task_definition_family_var
 
 def create_queue_worker_task_definition_resource(template, queue_worker_task_definition_family_variable,
                                               docker_repository_resource, queue_worker_log_group_resource,
-                                              default_queue_name_variable, notifications_queue_name_variable):
+                                              default_queue_name_variable, notifications_queue_name_variable,
+                                              search_queue_name_variable):
     return template.add_resource(
         ecs.TaskDefinition(
             'QueueWorkerTaskDefinition',
@@ -376,7 +377,7 @@ def create_queue_worker_task_definition_resource(template, queue_worker_task_def
                     'artisan',
                     'queue:work',
                     '--tries=1',
-                    Join('=', ['--queue', Join(',', [default_queue_name_variable, notifications_queue_name_variable])])
+                    Join('=', ['--queue', Join(',', [default_queue_name_variable, notifications_queue_name_variable, search_queue_name_variable])])
                 ],
                 WorkingDirectory='/var/www/html',
                 HealthCheck=ecs.HealthCheck(
