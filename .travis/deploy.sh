@@ -26,6 +26,6 @@ export ENV_SECRET_ID=".env.api.${ENVIRONMENT}"
 ./docker/build.sh
 
 # Deploy the update to the services.
-SERVICE="api" ./docker/deploy
-SERVICE="scheduler" ./docker/deploy
-SERVICE="queue-worker" ./docker/deploy
+SERVICE="api" ./docker/deploy.sh
+SERVICE="scheduler" ./docker/deploy.sh
+SERVICE="queue-worker" ./docker/deploy.sh
