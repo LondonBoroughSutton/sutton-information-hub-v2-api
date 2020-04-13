@@ -4,8 +4,6 @@
 # $TRAVIS_BRANCH = The name of the git branch that the build is running on.
 # $REPO_URI = The URI of the ECR repo to push to.
 # $CLUSTER = The name of the ECS cluster to deploy to.
-# $BLACKFIRE_SERVER_ID = The Blackfire server ID.
-# $BLACKFIRE_SERVER_TOKEN = The Blackfire server token.
 
 # Bail out on first error.
 set -e
@@ -25,9 +23,7 @@ echo "Setting deployment configuration for ${DEPLOYMENT}..."
 export ENV_SECRET_ID=".env.api.${ENVIRONMENT}"
 
 # Build the image.
-./docker/build.sh \
-  --build-arg BLACKFIRE_SERVER_ID=$BLACKFIRE_SERVER_ID \
-  --build-arg BLACKFIRE_SERVER_TOKEN=$BLACKFIRE_SERVER_TOKEN
+./docker/build.sh
 
 # Deploy the update to the services.
 SERVICE="api" ./docker/deploy
