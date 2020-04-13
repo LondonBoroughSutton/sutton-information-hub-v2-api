@@ -132,9 +132,9 @@ autoscaling_group_resource = create_autoscaling_group_resource(template, api_ins
 api_user_resource = create_api_user_resource(template, api_user_name_variable, uploads_bucket_resource,
                                           default_queue_resource, notifications_queue_resource, search_queue_resource)
 ci_user_resource = create_ci_user_resource(template, ci_user_name_variable)
-elasticsearch_resource = create_elasticsearch_resource(template, api_user_resource, elasticsearch_domain_name_variable,
-                                                    elasticsearch_instance_count_parameter,
-                                                    elasticsearch_instance_class_parameter)
+elasticsearch_resource = create_elasticsearch_resource(template, elasticsearch_domain_name_variable,
+                                                       elasticsearch_instance_count_parameter,
+                                                       elasticsearch_instance_class_parameter)
 
 # Outputs.
 create_database_name_output(template, database_username_variable)

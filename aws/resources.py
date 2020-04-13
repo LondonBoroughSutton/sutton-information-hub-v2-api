@@ -713,7 +713,7 @@ def create_ci_user_resource(template, ci_user_name_variable):
     )
 
 
-def create_elasticsearch_resource(template, api_user_resource, elasticsearch_domain_name_variable,
+def create_elasticsearch_resource(template, elasticsearch_domain_name_variable,
                                elasticsearch_instance_count_parameter, elasticsearch_instance_class_parameter):
     return template.add_resource(
         elasticsearch.Domain(
@@ -724,7 +724,7 @@ def create_elasticsearch_resource(template, api_user_resource, elasticsearch_dom
                     {
                         'Effect': 'Allow',
                         'Principal': {
-                            'AWS': GetAtt(api_user_resource, 'Arn')
+                            'AWS': '*'
                         },
                         'Action': 'es:*',
                         'Resource': Sub('arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}/*',
