@@ -377,7 +377,7 @@ def create_queue_worker_task_definition_resource(template, queue_worker_task_def
                     'artisan',
                     'queue:work',
                     '--tries=1',
-                    Join('=', ['--queue', Join(',', [default_queue_name_variable, notifications_queue_name_variable, search_queue_name_variable])])
+                    '--queue=default,notifications,search'
                 ],
                 WorkingDirectory='/var/www/html',
                 HealthCheck=ecs.HealthCheck(
