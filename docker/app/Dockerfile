@@ -51,8 +51,12 @@ COPY etc/nginx/sites-available/default /etc/nginx/sites-available/default
 COPY etc/php/7.2/fpm/php-fpm.conf /etc/php/7.2/fpm/php-fpm.conf
 COPY etc/supervisor/conf.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Copy the bootstrap script over and make executable.
+# Copy the bootstrap script over.
 COPY usr/local/bin/start-container.sh /usr/local/bin/start-container.sh
+
+# Copy the packaged app (only used when deploying).
+COPY packaged /var/www/html
+RUN chown -R www-data: /var/www/html
 
 # Expose port 80 for HTTP access.
 EXPOSE 80
