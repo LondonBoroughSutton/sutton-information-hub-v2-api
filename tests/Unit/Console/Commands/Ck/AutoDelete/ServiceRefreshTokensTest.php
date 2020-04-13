@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck;
 
-use App\Console\Commands\Ck\AutoDelete\ServiceRefreshTokensCommand;
+use App\Console\Commands\Hlp\AutoDelete\ServiceRefreshTokensCommand;
 use App\Models\ServiceRefreshToken;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;

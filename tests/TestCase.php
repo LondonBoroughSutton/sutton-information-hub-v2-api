@@ -136,7 +136,7 @@ abstract class TestCase extends BaseTestCase
         }
 
         if (!static::$elasticsearchInitialised) {
-            $this->artisan('ck:reindex-elasticsearch');
+            $this->artisan('hlp:reindex-elasticsearch');
             static::$elasticsearchInitialised = true;
         }
     }

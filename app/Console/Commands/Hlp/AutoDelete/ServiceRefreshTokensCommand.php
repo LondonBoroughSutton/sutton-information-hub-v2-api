@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck\AutoDelete;
+namespace App\Console\Commands\Hlp\AutoDelete;
 
 use App\Models\ServiceRefreshToken;
 use Illuminate\Console\Command;
@@ -12,7 +12,7 @@ class ServiceRefreshTokensCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:auto-delete:service-refresh-tokens';
+    protected $signature = 'hlp:auto-delete:service-refresh-tokens';
 
     /**
      * The console command description.

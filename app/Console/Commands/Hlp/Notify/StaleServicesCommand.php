@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck\Notify;
+namespace App\Console\Commands\Hlp\Notify;
 
 use App\Emails\ServiceUpdatePrompt\NotifyGlobalAdminEmail;
 use App\Emails\ServiceUpdatePrompt\NotifyServiceAdminEmail;
@@ -21,7 +21,7 @@ class StaleServicesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:notify:stale-services';
+    protected $signature = 'hlp:notify:stale-services';
 
     /**
      * The console command description.
@@ -125,7 +125,7 @@ class StaleServicesCommand extends Command
 
         try {
             Notification::sendEmail(
-                new NotifyGlobalAdminEmail(config('ck.global_admin.email'), [
+                new NotifyGlobalAdminEmail(config('hlp.global_admin.email'), [
                     'SERVICE_NAME' => $service->name,
                     'SERVICE_URL' => backend_uri("/services/{$service->id}"),
                     'SERVICE_ADMIN_NAMES' => $service->users->implode(', ', 'full_name'),

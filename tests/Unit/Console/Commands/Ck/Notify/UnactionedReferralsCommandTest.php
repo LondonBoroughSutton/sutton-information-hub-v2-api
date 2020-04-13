@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck\Notify;
 
-use App\Console\Commands\Ck\Notify\UnactionedReferralsCommand;
+use App\Console\Commands\Hlp\Notify\UnactionedReferralsCommand;
 use App\Emails\ReferralUnactioned\NotifyServiceEmail;
 use App\Models\Referral;
 use App\Models\Service;

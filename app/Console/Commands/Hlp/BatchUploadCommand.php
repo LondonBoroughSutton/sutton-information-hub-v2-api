@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck;
+namespace App\Console\Commands\Hlp;
 
 use App\BatchUpload\BatchUploader;
 use Illuminate\Console\Command;
@@ -12,7 +12,7 @@ class BatchUploadCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:batch-upload {path : The path to the spreadsheet to upload}';
+    protected $signature = 'hlp:batch-upload {path : The path to the spreadsheet to upload}';
 
     /**
      * The console command description.

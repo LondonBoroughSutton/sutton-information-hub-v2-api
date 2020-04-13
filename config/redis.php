@@ -25,7 +25,7 @@ $redis = [
     ],
 
     'options' => [
-        'cluster' => env('REDIS_CLUSTER', false),
+        'cluster' => env('REDIS_CLUSTER', 'redis'),
 
         'parameters' => [
             'scheme' => env('REDIS_SCHEME', 'tcp'),

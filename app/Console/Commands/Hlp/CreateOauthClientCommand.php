@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck;
+namespace App\Console\Commands\Hlp;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -14,7 +14,7 @@ class CreateOauthClientCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:create-oauth-client
+    protected $signature = 'hlp:create-oauth-client
                             {name : The name of the client}
                             {redirect-uri : The URI to redirect to}
                             {--first-party : Flag that indicates this is a first party client}';

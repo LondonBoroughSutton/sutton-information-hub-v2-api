@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck;
 
-use App\Console\Commands\Ck\CreateScheduledReportsCommand;
+use App\Console\Commands\Hlp\CreateScheduledReportsCommand;
 use App\Emails\ScheduledReportGenerated\NotifyGlobalAdminEmail;
 use App\Models\Report;
 use App\Models\ReportSchedule;

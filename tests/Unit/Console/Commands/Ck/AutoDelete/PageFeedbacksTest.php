@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck;
 
-use App\Console\Commands\Ck\AutoDelete\PageFeedbacksCommand;
+use App\Console\Commands\Hlp\AutoDelete\PageFeedbacksCommand;
 use App\Models\PageFeedback;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck;
+namespace App\Console\Commands\Hlp;
 
 use App\Models\IndexConfigurators\ServicesIndexConfigurator;
 use App\Models\Service;
@@ -14,7 +14,7 @@ class ReindexElasticsearchCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:reindex-elasticsearch';
+    protected $signature = 'hlp:reindex-elasticsearch';
 
     /**
      * The console command description.
@@ -43,6 +43,6 @@ class ReindexElasticsearchCommand extends Command
         $this->call('elastic:update-mapping', ['model' => Service::class]);
 
         $this->line('Importing models...');
-        $this->call('ck:scout-import', ['model' => Service::class]);
+        $this->call('hlp:scout-import', ['model' => Service::class]);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck\AutoDelete;
+namespace App\Console\Commands\Hlp\AutoDelete;
 
 use App\Models\Referral;
 use Illuminate\Console\Command;
@@ -12,7 +12,7 @@ class ReferralsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:auto-delete:referrals';
+    protected $signature = 'hlp:auto-delete:referrals';
 
     /**
      * The console command description.

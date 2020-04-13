@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck\Notify;
 
-use App\Console\Commands\Ck\Notify\StillUnactionedReferralsCommand;
+use App\Console\Commands\Hlp\Notify\StillUnactionedReferralsCommand;
 use App\Emails\ReferralStillUnactioned\NotifyGlobalAdminEmail;
 use App\Models\Referral;
 use Illuminate\Support\Facades\Artisan;

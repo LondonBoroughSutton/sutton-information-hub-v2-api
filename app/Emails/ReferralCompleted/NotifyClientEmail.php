@@ -11,7 +11,7 @@ class NotifyClientEmail extends Email
      */
     protected function getTemplateId(): string
     {
-        return config('ck.notifications_template_ids.referral_completed.notify_client.email');
+        return config('hlp.notifications_template_ids.referral_completed.notify_client.email');
     }
 
     /**

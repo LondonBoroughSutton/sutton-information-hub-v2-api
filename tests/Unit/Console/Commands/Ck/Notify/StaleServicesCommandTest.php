@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck\Notify;
 
-use App\Console\Commands\Ck\Notify\StaleServicesCommand;
+use App\Console\Commands\Hlp\Notify\StaleServicesCommand;
 use App\Emails\ServiceUpdatePrompt\NotifyGlobalAdminEmail;
 use App\Emails\ServiceUpdatePrompt\NotifyServiceAdminEmail;
 use App\Models\Service;

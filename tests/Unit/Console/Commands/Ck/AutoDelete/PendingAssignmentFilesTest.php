@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck;
 
-use App\Console\Commands\Ck\AutoDelete\PendingAssignmentFilesCommand;
+use App\Console\Commands\Hlp\AutoDelete\PendingAssignmentFilesCommand;
 use App\Models\File;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;

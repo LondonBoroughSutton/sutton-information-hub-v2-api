@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck;
+namespace App\Console\Commands\Hlp;
 
 use App\Emails\ScheduledReportGenerated\NotifyGlobalAdminEmail;
 use App\Models\Report;
@@ -22,7 +22,7 @@ class CreateScheduledReportsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:create-scheduled-reports';
+    protected $signature = 'hlp:create-scheduled-reports';
 
     /**
      * The console command description.
@@ -113,7 +113,7 @@ class CreateScheduledReportsCommand extends Command
             );
 
             // Send a notification.
-            $this->dispatch(new NotifyGlobalAdminEmail(config('ck.global_admin.email'), [
+            $this->dispatch(new NotifyGlobalAdminEmail(config('hlp.global_admin.email'), [
                 'REPORT_FREQUENCY' => 'weekly',
                 'REPORT_TYPE' => $report->reportType->name,
             ]));
@@ -154,7 +154,7 @@ class CreateScheduledReportsCommand extends Command
             );
 
             // Send a notification.
-            $this->dispatch(new NotifyGlobalAdminEmail(config('ck.global_admin.email'), [
+            $this->dispatch(new NotifyGlobalAdminEmail(config('hlp.global_admin.email'), [
                 'REPORT_FREQUENCY' => 'monthly',
                 'REPORT_TYPE' => $report->reportType->name,
             ]));

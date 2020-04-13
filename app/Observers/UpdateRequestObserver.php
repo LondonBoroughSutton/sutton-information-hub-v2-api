@@ -123,7 +123,7 @@ class UpdateRequestObserver
         // Send notification to the global admins.
         Notification::sendEmail(
             new \App\Emails\UpdateRequestReceived\NotifyGlobalAdminEmail(
-                config('ck.global_admin.email'),
+                config('hlp.global_admin.email'),
                 [
                     'RESOURCE_NAME' => $resourceName,
                     'RESOURCE_TYPE' => $resourceType,
@@ -155,7 +155,7 @@ class UpdateRequestObserver
             // Send notification to the global admins.
             Notification::sendEmail(
                 new \App\Emails\OrganisationSignUpFormReceived\NotifyGlobalAdminEmail(
-                    config('ck.global_admin.email'),
+                    config('hlp.global_admin.email'),
                     [
                         'ORGANISATION_NAME' => Arr::get($updateRequest->data, 'organisation.name'),
                         'REQUEST_URL' => backend_uri("/update-requests/{$updateRequest->id}"),

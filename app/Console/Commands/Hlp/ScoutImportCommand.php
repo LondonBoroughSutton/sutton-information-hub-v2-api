@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck;
+namespace App\Console\Commands\Hlp;
 
 use Laravel\Scout\Console\ImportCommand;
 
@@ -11,5 +11,5 @@ class ScoutImportCommand extends ImportCommand
      *
      * @var string
      */
-    protected $signature = 'ck:scout-import {model}';
+    protected $signature = 'hlp:scout-import {model}';
 }

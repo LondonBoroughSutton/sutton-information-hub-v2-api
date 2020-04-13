@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck;
+namespace App\Console\Commands\Hlp;
 
 use Illuminate\Console\Command;
 
@@ -11,7 +11,7 @@ class RunSchedulerCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:run-scheduler {--sleep=60 : The number of seconds to sleep between each run}';
+    protected $signature = 'hlp:run-scheduler {--sleep=60 : The number of seconds to sleep between each run}';
 
     /**
      * The console command description.

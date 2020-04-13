@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck\AutoDelete;
+namespace App\Console\Commands\Hlp\AutoDelete;
 
 use App\Models\Audit;
 use Illuminate\Console\Command;
@@ -12,7 +12,7 @@ class AuditsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:auto-delete:audits';
+    protected $signature = 'hlp:auto-delete:audits';
 
     /**
      * The console command description.

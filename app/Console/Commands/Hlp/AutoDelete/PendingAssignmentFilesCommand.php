@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck\AutoDelete;
+namespace App\Console\Commands\Hlp\AutoDelete;
 
 use App\Models\File;
 use Illuminate\Console\Command;
@@ -12,7 +12,7 @@ class PendingAssignmentFilesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:auto-delete:pending-assignment-files';
+    protected $signature = 'hlp:auto-delete:pending-assignment-files';
 
     /**
      * The console command description.

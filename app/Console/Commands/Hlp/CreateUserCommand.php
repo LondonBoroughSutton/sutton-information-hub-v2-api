@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck;
+namespace App\Console\Commands\Hlp;
 
 use App\Models\User;
 use Illuminate\Console\Command;
@@ -14,7 +14,7 @@ class CreateUserCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:create-user 
+    protected $signature = 'hlp:create-user 
         {first_name : The user\'s first name} 
         {last_name : The user\' last name} 
         {email : The user\'s email} 

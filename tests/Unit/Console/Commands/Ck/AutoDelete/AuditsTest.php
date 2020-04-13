@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck;
 
-use App\Console\Commands\Ck\AutoDelete\AuditsCommand;
+use App\Console\Commands\Hlp\AutoDelete\AuditsCommand;
 use App\Models\Audit;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;

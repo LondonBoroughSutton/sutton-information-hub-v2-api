@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck\Notify;
+namespace App\Console\Commands\Hlp\Notify;
 
 use App\Emails\ReferralStillUnactioned\NotifyGlobalAdminEmail;
 use App\Models\Notification;
@@ -18,7 +18,7 @@ class StillUnactionedReferralsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:notify:still-unactioned-referrals
+    protected $signature = 'hlp:notify:still-unactioned-referrals
                             {--working-days=9 : The number of working days to wait for}';
 
     /**
@@ -83,7 +83,7 @@ class StillUnactionedReferralsCommand extends Command
                 });
 
             Notification::sendEmail(
-                new NotifyGlobalAdminEmail(config('ck.global_admin.email'), [
+                new NotifyGlobalAdminEmail(config('hlp.global_admin.email'), [
                     'REFERRAL_SERVICE_NAME' => $referral->service->name,
                     'REFERRAL_CREATED_AT' => $referral->created_at->format('j/n/Y'),
                     'REFERRAL_TYPE' => $referral->isSelfReferral() ? 'Self referral' : 'Champion referral',

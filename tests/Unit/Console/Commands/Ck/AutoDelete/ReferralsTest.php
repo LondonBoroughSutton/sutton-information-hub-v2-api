@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Console\Commands\Ck;
 
-use App\Console\Commands\Ck\AutoDelete\ReferralsCommand;
+use App\Console\Commands\Hlp\AutoDelete\ReferralsCommand;
 use App\Models\Referral;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;

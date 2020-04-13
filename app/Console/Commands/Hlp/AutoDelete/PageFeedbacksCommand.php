@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Ck\AutoDelete;
+namespace App\Console\Commands\Hlp\AutoDelete;
 
 use App\Models\PageFeedback;
 use Illuminate\Console\Command;
@@ -12,7 +12,7 @@ class PageFeedbacksCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ck:auto-delete:page-feedbacks';
+    protected $signature = 'hlp:auto-delete:page-feedbacks';
 
     /**
      * The console command description.
