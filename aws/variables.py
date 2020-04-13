@@ -2,15 +2,15 @@ from troposphere import Join, Ref
 
 
 def create_default_queue_name_variable(environment_parameter, uuid_parameter):
-    return Join('-', ['default', Ref(environment_parameter), Ref(uuid_parameter)])
+    return Join('-', [Ref(environment_parameter), Ref(uuid_parameter), 'default'])
 
 
 def create_notifications_queue_name_variable(environment_parameter, uuid_parameter):
-    return Join('-', ['notifications', Ref(environment_parameter), Ref(uuid_parameter)])
+    return Join('-', [Ref(environment_parameter), Ref(uuid_parameter), 'notifications'])
 
 
 def create_search_queue_name_variable(environment_parameter, uuid_parameter):
-    return Join('-', ['search', Ref(environment_parameter), Ref(uuid_parameter)])
+    return Join('-', [Ref(environment_parameter), Ref(uuid_parameter), 'search'])
 
 
 def create_uploads_bucket_name_variable(environment_parameter, uuid_parameter):
