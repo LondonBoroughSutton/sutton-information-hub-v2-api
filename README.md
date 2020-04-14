@@ -1,9 +1,9 @@
-# Connected Kingston
+# Connected Together
 
-A scheme run by RBK to help residents take control of their own health 
-by connecting them with services and events in their local area. This 
-system forms the online aspect of this scheme, by providing an API as 
-well a frontend and backend web app.
+A scheme run by Healthy London Partnership to help residents take control of 
+their own health by connecting them with services and events in their local 
+area. This system forms the online aspect of this scheme, by providing an API 
+which can be complimented with a frontend and backend web app.
 
 ## Getting Started
 
