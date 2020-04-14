@@ -180,6 +180,7 @@ return [
         App\Providers\QueueServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\TestingServiceProvider::class,
+        App\Providers\TwilioServiceProvider::class,
 
     ],
 

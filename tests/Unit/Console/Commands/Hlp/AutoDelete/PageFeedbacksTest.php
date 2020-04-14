@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Console\Commands\Ck;
+namespace Tests\Unit\Console\Commands\Hlp\AutoDelete;
 
 use App\Console\Commands\Hlp\AutoDelete\PageFeedbacksCommand;
 use App\Models\PageFeedback;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Console\Commands\Ck\Notify;
+namespace Tests\Unit\Console\Commands\Hlp\Notify;
 
 use App\Console\Commands\Hlp\Notify\UnactionedReferralsCommand;
 use App\Emails\ReferralUnactioned\NotifyServiceEmail;

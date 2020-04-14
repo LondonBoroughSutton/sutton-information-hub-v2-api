@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Console\Commands\Ck;
+namespace Tests\Unit\Console\Commands\Hlp\AutoDelete;
 
 use App\Console\Commands\Hlp\AutoDelete\ServiceRefreshTokensCommand;
 use App\Models\ServiceRefreshToken;

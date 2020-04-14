@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Console\Commands\Ck;
+namespace Tests\Unit\Console\Commands\Hlp;
 
 use App\Console\Commands\Hlp\CreateScheduledReportsCommand;
 use App\Emails\ScheduledReportGenerated\NotifyGlobalAdminEmail;
