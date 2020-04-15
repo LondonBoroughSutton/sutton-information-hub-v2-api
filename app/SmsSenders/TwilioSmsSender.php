@@ -25,15 +25,27 @@ class TwilioSmsSender implements SmsSender
         /** @var \Twilio\Rest\Client $client */
         $client = resolve(Client::class);
 
-        $message = $client->messages->create($sms->to, [
-            'from' => config('hlp.twilio.from'),
-            'body' => $content,
-        ]);
+        $message = $client->messages->create(
+            $this->parsePhoneNumber($sms->to),
+            [
+                'from' => config('hlp.twilio.from'),
+                'body' => $content,
+            ]
+        );
 
         $sms->notification->update(['message' => $content]);
 
         if (config('app.debug')) {
             logger()->debug('SMS sent', $message->toArray());
         }
+    }
+
+    /**
+     * @param string $to
+     * @return string
+     */
+    protected function parsePhoneNumber(string $to): string
+    {
+        return '+44' . substr($to, 1);
     }
 }
