@@ -46,6 +46,6 @@ class TwilioSmsSender implements SmsSender
      */
     protected function parsePhoneNumber(string $to): string
     {
-        return '+44' . substr($to, 1);
+        return '+44' . mb_substr($to, 1);
     }
 }
