@@ -15,26 +15,24 @@ class NotifyGlobalAdminEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hello,
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+A ((REPORT_FREQUENCY)) ((REPORT_TYPE)) report has been generated.
+
+Please login to the admin system to view the report.
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Scheduled report generated';
     }
 }

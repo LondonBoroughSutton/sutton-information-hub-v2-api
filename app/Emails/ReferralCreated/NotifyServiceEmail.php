@@ -15,26 +15,40 @@ class NotifyServiceEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hello,
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+You’ve received a referral to your service!
+
+Referral ID: ((REFERRAL_ID))
+Service: ((REFERRAL_SERVICE_NAME))
+Client initials: ((REFERRAL_INITIALS))
+Contact via: ((CONTACT_INFO))
+
+This is a ((REFERRAL_TYPE))
+
+Please contact the client via ((REFERRAL_CONTACT_METHOD)) within the next 10 working days.
+
+You can see further details of the referral, and mark as completed:
+http://admin.connectedtogether.org.uk/referrals
+
+If you have any questions, please contact us at info@connectedtogether.org.uk.
+
+Many thanks,
+
+The Connected Together team
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'New Referral Received';
     }
 }

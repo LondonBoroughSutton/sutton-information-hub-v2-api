@@ -15,26 +15,20 @@ class NotifyGlobalAdminEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
-
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+        return <<<'EOT'
+((SERVICE_NAME)) on Connected Together has been marked as disabled after not being updated for over a year.
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Disabled ((SERVICE_NAME)) page on Connected Together';
     }
 }

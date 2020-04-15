@@ -15,26 +15,28 @@ class NotifySubmitterEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hi ((SUBMITTER_NAME)),
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+Your update request for the ((RESOURCE_NAME)) (((RESOURCE_TYPE))) on ((REQUEST_DATE)) has been approved.
+
+If you have any questions, please contact us at info@connectedtogether.org.uk.
+
+Many thanks,
+
+The Connected Together team
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Update Request Approved';
     }
 }

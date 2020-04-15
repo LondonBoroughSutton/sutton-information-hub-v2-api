@@ -15,26 +15,32 @@ class NotifySubmitterEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hi ((SUBMITTER_NAME)),
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+Thank you for submitting your request to have ((ORGANISATION_NAME)) listed on Connected Together.
+
+Unfortunately, your request to list ((ORGANISATION_NAME)) on Connected Together on ((REQUEST_DATE)) has been rejected. This is due to the organisation/service not meeting the terms and conditions of being listed on Connected Together.
+
+You can read more about our terms and conditions: https://www.connectedtogether.org.uk/terms-and-conditions
+
+If you have any questions, please contact us at info@connectedtogether.org.uk.
+
+Many thanks,
+
+The Connected Together team
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Connected Together – New Organisation not approved';
     }
 }

@@ -15,26 +15,27 @@ class NotifyGlobalAdminEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hello,
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+A site feedback form has been submitted for the page:
+((FEEDBACK_URL))
+
+Here are the details:
+
+”((FEEDBACK_CONTENT))”
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Feedback received on the site';
     }
 }

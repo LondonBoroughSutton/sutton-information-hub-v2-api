@@ -15,26 +15,31 @@ class NotifyUserEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hi ((NAME)),
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+An account has been created for you using this email address. You can log in to the Connected Together admin portal at:
+http://admin.connectedtogether.org.uk
+
+Permissions:
+((PERMISSIONS))
+
+If you have any questions, you can email us at info@connectedtogether.org.uk
+
+Many thanks,
+The Connected Together team
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Account Created';
     }
 }

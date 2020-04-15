@@ -15,26 +15,34 @@ class NotifyUserEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hi ((NAME)),
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+Your account has had its permissions updated.
+
+Old permissions:
+((OLD_PERMISSIONS))
+
+New permissions:
+((PERMISSIONS))
+
+If you have any questions, please contact us at info@connectedtogether.org.uk.
+
+Many thanks,
+
+The Connected Together team.
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Permissions Updated';
     }
 }

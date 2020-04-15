@@ -175,6 +175,7 @@ return [
         App\Providers\DatabaseServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\GovNotifyServiceProvider::class,
+        App\Providers\MailgunServiceProvider::class,
         App\Providers\MigrationServiceProvider::class,
         App\Providers\ModelServiceProvider::class,
         App\Providers\QueueServiceProvider::class,

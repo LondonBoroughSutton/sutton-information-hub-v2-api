@@ -15,26 +15,34 @@ class NotifySubmitterEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+((ORGANISATION_NAME)) is on Connected Together!
+Hi ((SUBMITTER_NAME)),
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+Your request to register ((ORGANISATION_NAME)) on Connected Together on ((REQUEST_DATE)) has been approved.
+
+Your service may not be visible on the site immediately due to the time it takes for our administration team to process new organisations.
+
+If you have any questions, please contact us at info@connectedtogether.org.uk.
+
+Many thanks,
+
+The Connected Together team
+
+You can now log on to the administration portal to update your page or add new services
+You will find more options to customise your page than were available on the completed form. You can access the administration portal at: admin.connectedtogether.org.uk
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Organisation Sign Up Form Approved';
     }
 }

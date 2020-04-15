@@ -15,26 +15,28 @@ class NotifySubmitterEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hi ((SUBMITTER_NAME)),
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+Your request to register ((ORGANISATION_NAME)) on Connected Together has been submitted and received. A member of the admin team will review it shortly.
+
+If you have any questions, please get in touch at info@connectedtogether.org.uk.
+
+Many thanks,
+
+The Connected Together team
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Connected Together – Organisation Sign Up Form Submitted';
     }
 }

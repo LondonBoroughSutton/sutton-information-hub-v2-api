@@ -15,26 +15,35 @@ class NotifyClientEmail extends Email
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    protected function getReference(): ?string
+    public function getContent(): string
     {
-        return null;
-    }
+        return <<<'EOT'
+Hello,
 
-    /**
-     * @return string|null
-     */
-    protected function getReplyTo(): ?string
-    {
-        return null;
+Referral ID: ((REFERRAL_ID))
+
+Your referral to ((SERVICE_NAME)) has been marked as incomplete with the following message:
+
+“((REFERRAL_STATUS))“.
+
+If you believe the service did not try to contact you, or you have any other feedback regarding the connection, please contact us at info@connectedtogether.org.uk.
+
+Alternatively, you can complete our feedback form:
+https://docs.google.com/forms/d/e/1FAIpQLSe38Oe0vsqLRQbcBjYrGzMooBJKkYqFWAlHy4dcgwJnMFg9dQ/viewform?usp=pp_url&entry.400427747=((REFERRAL_ID))
+
+Many thanks,
+
+The Connected Together team.
+EOT;
     }
 
     /**
      * @return string
      */
-    public function getContent(): string
+    public function getSubject(): string
     {
-        return 'Pending to be sent. Content will be filled once sent.';
+        return 'Referral Incompleted';
     }
 }
