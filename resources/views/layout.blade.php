@@ -21,11 +21,6 @@
         <div class="govuk-header__container govuk-width-container">
 
             <div class="govuk-header__logo">
-                <a href="{{ route('home') }}" class="govuk-header__link govuk-header__link--homepage">
-                    <span class="govuk-header__logotype">
-                      <img src="{{ asset('/img/logo-white.png') }}" class="govuk-header__logotype-crown" alt="{{ config('app.name') }} logo" title="{{ config('app.name') }}">
-                    </span>
-                </a>
             </div>
 
             <div class="govuk-header__content">
