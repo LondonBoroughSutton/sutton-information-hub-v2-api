@@ -43,7 +43,7 @@ return [
     'twilio' => [
         'sid' => env('TWILIO_SID'),
         'token' => env('TWILIO_TOKEN'),
-        'from' => env('TWILIO_FROM', 'Healthy LDN'),
+        'from' => env('TWILIO_FROM', 'NHS Connect'),
     ],
 
     /*
