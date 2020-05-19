@@ -30,7 +30,10 @@ class ServiceSchema extends Schema
                         Service::TYPE_SERVICE,
                         Service::TYPE_ACTIVITY,
                         Service::TYPE_CLUB,
-                        Service::TYPE_GROUP
+                        Service::TYPE_GROUP,
+                        Service::TYPE_HELPLINE,
+                        Service::TYPE_INFORMATION,
+                        Service::TYPE_APP
                     ),
                 Schema::string('status')
                     ->enum(Service::STATUS_ACTIVE, Service::STATUS_INACTIVE),

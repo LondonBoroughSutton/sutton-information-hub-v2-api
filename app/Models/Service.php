@@ -38,6 +38,9 @@ class Service extends Model implements AppliesUpdateRequests, Notifiable
     const TYPE_ACTIVITY = 'activity';
     const TYPE_CLUB = 'club';
     const TYPE_GROUP = 'group';
+    const TYPE_HELPLINE = 'helpline';
+    const TYPE_INFORMATION = 'information';
+    const TYPE_APP = 'app';
 
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';
