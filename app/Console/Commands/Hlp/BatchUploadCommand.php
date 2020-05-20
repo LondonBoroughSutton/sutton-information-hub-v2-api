@@ -3,7 +3,9 @@
 namespace App\Console\Commands\Hlp;
 
 use App\BatchUpload\BatchUploader;
+use App\Models\Taxonomy;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class BatchUploadCommand extends Command
 {
@@ -12,7 +14,7 @@ class BatchUploadCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'hlp:batch-upload {path : The path to the spreadsheet to upload}';
+    protected $signature = 'hlp:batch-upload {filename : The name of the spreadsheet to upload}';
 
     /**
      * The console command description.
@@ -22,33 +24,46 @@ class BatchUploadCommand extends Command
     protected $description = 'Uploads an xlsx spreadsheet to the database';
 
     /**
-     * @var \App\BatchUpload\BatchUploader
-     */
-    protected $batchUploader;
-
-    /**
-     * Create a new command instance.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->batchUploader = new BatchUploader();
-    }
-
-    /**
      * Execute the console command.
      *
-     * @throws \Exception
+     * @param \App\BatchUpload\BatchUploader $batchUploader
      * @return mixed
      */
-    public function handle()
+    public function handle(BatchUploader $batchUploader)
     {
         $this->line('Uploading file...');
 
-        $path = storage_path($this->argument('path'));
-        $this->batchUploader->upload($path);
+        $path = storage_path('app/batch-upload/' . $this->argument('filename'));
+
+        DB::transaction(function () use ($batchUploader, $path): void {
+            $this->truncateCategoryTaxonomies();
+            $this->uploadImport($batchUploader, $path);
+        });
 
         $this->info('Spreadsheet uploaded');
+    }
+
+    protected function truncateCategoryTaxonomies(): void
+    {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('service_taxonomies')->delete();
+        DB::table('collection_taxonomies')->delete();
+        DB::table('taxonomies')
+            ->where('id', '!=', Taxonomy::category()->id)
+            ->where('id', '!=', Taxonomy::organisation()->id)
+            ->where('parent_id', '!=', Taxonomy::organisation()->id)
+            ->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+    }
+
+    /**
+     * @param \App\BatchUpload\BatchUploader $batchUploader
+     * @param string $path
+     */
+    protected function uploadImport(
+        BatchUploader $batchUploader,
+        string $path
+    ): void {
+        $batchUploader->upload($path);
     }
 }
