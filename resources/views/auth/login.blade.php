@@ -34,11 +34,7 @@
             </div>
 
             <button type="submit" class="govuk-button">
-                @if(config('hlp.otp_enabled'))
-                    Send code
-                @else
-                    Login
-                @endif
+                Login
             </button>
 
         </form>

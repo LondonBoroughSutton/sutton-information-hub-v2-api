@@ -21,7 +21,8 @@ class UpdateUserSchema extends Schema
                 Schema::string('first_name'),
                 Schema::string('last_name'),
                 Schema::string('email'),
-                Schema::string('phone'),
+                Schema::string('phone')
+                    ->nullable(),
                 Schema::array('roles')
                     ->items(
                         RoleSchema::create()

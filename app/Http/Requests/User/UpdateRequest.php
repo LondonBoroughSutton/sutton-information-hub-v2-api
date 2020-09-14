@@ -152,7 +152,7 @@ class UpdateRequest extends FormRequest
             'first_name' => ['required', 'string', 'min:1', 'max:255'],
             'last_name' => ['required', 'string', 'min:1', 'max:255'],
             'email' => ['required', 'email', 'max:255', new UserEmailNotTaken($this->user)],
-            'phone' => ['required', 'string', 'min:1', 'max:255', new UkPhoneNumber()],
+            'phone' => ['present', 'nullable', 'string', 'min:1', 'max:255', new UkPhoneNumber()],
             'password' => ['string', 'min:8', 'max:255', new Password()],
 
             'roles' => ['required', 'array'],

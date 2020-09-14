@@ -16,7 +16,10 @@ class LoginTest extends TestCase
 
         Queue::fake();
 
-        $user = factory(User::class)->create(['password' => bcrypt('password')]);
+        $user = factory(User::class)->create([
+            'phone' => '07700000000',
+            'password' => bcrypt('password'),
+        ]);
 
         $this->post(route('login'), [
             'email' => $user->email,
@@ -28,5 +31,39 @@ class LoginTest extends TestCase
             $this->assertArrayHasKey('OTP_CODE', $sms->values);
             return true;
         });
+    }
+
+    public function test_2fa_used_for_user_with_phone()
+    {
+        Config::set('hlp.otp_enabled', true);
+
+        $user = factory(User::class)->create([
+            'phone' => '07700000000',
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->post(route('login'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect('/login/code');
+    }
+
+    public function test_2fa_skipped_for_user_with_no_phone()
+    {
+        Config::set('hlp.otp_enabled', true);
+
+        $user = factory(User::class)->create([
+            'phone' => null,
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->post(route('login'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect('/');
     }
 }

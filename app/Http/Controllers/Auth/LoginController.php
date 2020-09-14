@@ -56,6 +56,11 @@ class LoginController extends Controller
             return;
         }
 
+        // If the user has no phone then skip this method.
+        if ($user->phone === null) {
+            return;
+        }
+
         // Log user out.
         $this->guard()->logout();
 
