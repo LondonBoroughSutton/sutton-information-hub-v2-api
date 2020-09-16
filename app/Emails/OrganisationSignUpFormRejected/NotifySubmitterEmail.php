@@ -26,13 +26,13 @@ Thank you for submitting your request to have ((ORGANISATION_NAME)) listed on Co
 
 Unfortunately, your request to list ((ORGANISATION_NAME)) on Connected Together on ((REQUEST_DATE)) has been rejected. This is due to the organisation/service not meeting the terms and conditions of being listed on Connected Together.
 
-You can read more about our terms and conditions: https://www.connectedtogether.org.uk/terms-and-conditions
+You can read more about our terms and conditions: https://connect.nhs.uk/terms-and-conditions
 
-If you have any questions, please contact us at info@connectedtogether.org.uk.
+If you have any questions, please contact us at hlp.admin.connect@nhs.net.
 
 Many thanks,
 
-The Connected Together team
+NHS Connect Team 
 EOT;
     }
 

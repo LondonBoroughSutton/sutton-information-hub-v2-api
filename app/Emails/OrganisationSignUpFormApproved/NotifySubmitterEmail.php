@@ -27,14 +27,14 @@ Your request to register ((ORGANISATION_NAME)) on Connected Together on ((REQUES
 
 Your service may not be visible on the site immediately due to the time it takes for our administration team to process new organisations.
 
-If you have any questions, please contact us at info@connectedtogether.org.uk.
+If you have any questions, please contact us at hlp.admin.connect@nhs.net.
 
 Many thanks,
 
-The Connected Together team
+NHS Connect Team 
 
 You can now log on to the administration portal to update your page or add new services
-You will find more options to customise your page than were available on the completed form. You can access the administration portal at: admin.connectedtogether.org.uk
+You will find more options to customise your page than were available on the completed form. You can access the administration portal at: https://admin.connect.nhs.uk
 EOT;
     }
 

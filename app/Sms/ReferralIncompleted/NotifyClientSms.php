@@ -24,9 +24,9 @@ Connected Together: Hi ((CLIENT_INITIALS)),
 
 Your referral (ID: ((REFERRAL_ID))) has been marked as incomplete. This means the service tried to contact you but couldn't.
 
-For details: info@connectedtogether.org.uk
+For details: hlp.admin.connect@nhs.net
 
-The Connected Together team
+NHS Connect Team 
 EOT;
     }
 }

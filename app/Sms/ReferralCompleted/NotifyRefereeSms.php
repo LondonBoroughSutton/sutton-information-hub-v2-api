@@ -27,7 +27,7 @@ The referral you made to ((SERVICE_NAME)) has been marked as complete. ID: ((REF
 Your client should have been contacted by now, but if they haven't then please contact them on ((SERVICE_PHONE)) or by email at ((SERVICE_EMAIL)).
 
 Regards,
-Connected Together.
+NHS Connect Team 
 EOT;
     }
 }

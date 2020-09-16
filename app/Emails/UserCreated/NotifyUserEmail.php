@@ -22,16 +22,16 @@ class NotifyUserEmail extends Email
         return <<<'EOT'
 Hi ((NAME)),
 
-An account has been created for you using this email address. You can log in to the Connected Together admin portal at:
-http://admin.connectedtogether.org.uk
+An account has been created for you using this email address. You can log in to the NHS Connect admin portal at:
+http://admin.connect.nhs.uk
 
 Permissions:
 ((PERMISSIONS))
 
-If you have any questions, you can email us at info@connectedtogether.org.uk
+If you have any questions, you can email us at hlp.admin.connect@nhs.net
 
 Many thanks,
-The Connected Together team
+NHS Connect Team 
 EOT;
     }
 

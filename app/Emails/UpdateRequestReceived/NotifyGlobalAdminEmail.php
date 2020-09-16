@@ -28,7 +28,7 @@ Please review the request below before approving/rejecting:
 ((REQUEST_URL))
 
 Regards,
-Connected Together.
+NHS Connect Team 
 EOT;
     }
 
