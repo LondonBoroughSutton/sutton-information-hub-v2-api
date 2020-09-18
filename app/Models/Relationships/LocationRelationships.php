@@ -3,6 +3,7 @@
 namespace App\Models\Relationships;
 
 use App\Models\File;
+use App\Models\Organisation;
 use App\Models\Service;
 use App\Models\ServiceLocation;
 
@@ -30,5 +31,13 @@ trait LocationRelationships
     public function imageFile()
     {
         return $this->belongsTo(File::class, 'image_file_id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\hasOne
+     */
+    public function organisation()
+    {
+        return $this->hasOne(Organisation::class);
     }
 }

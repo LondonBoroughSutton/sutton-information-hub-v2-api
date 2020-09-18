@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Location;
+use App\Models\Organisation;
 use Faker\Generator as Faker;
 
 $factory->define(Location::class, function (Faker $faker) {
@@ -15,4 +16,11 @@ $factory->define(Location::class, function (Faker $faker) {
         'lat' => mt_rand(-90, 90),
         'lon' => mt_rand(-180, 180),
     ];
+});
+
+$factory->state(Location::class, 'organisation', []);
+$factory->afterCreatingState(Location::class, 'organisation', function (Location $location, Faker $faker) {
+    factory(Organisation::class)->create([
+        'location_id' => $location->id,
+    ]);
 });

@@ -61,9 +61,23 @@ class Organisation extends Model implements AppliesUpdateRequests
             'email' => $data['email'] ?? $this->email,
             'phone' => $data['phone'] ?? $this->phone,
             'logo_file_id' => array_key_exists('logo_file_id', $data)
-                ? $data['logo_file_id']
-                : $this->logo_file_id,
+            ? $data['logo_file_id']
+            : $this->logo_file_id,
+            'location_id' => array_key_exists('location_id', $data)
+            ? $data['location_id']
+            : $this->location_id,
         ]);
+
+        // Update the social media records.
+        if (array_key_exists('social_medias', $data)) {
+            $this->socialMedias()->delete();
+            foreach ($data['social_medias'] as $socialMedia) {
+                $this->socialMedias()->create([
+                    'type' => $socialMedia['type'],
+                    'url' => $socialMedia['url'],
+                ]);
+            }
+        }
 
         return $updateRequest;
     }

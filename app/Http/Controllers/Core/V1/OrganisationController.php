@@ -47,6 +47,7 @@ class OrganisationController extends Controller
             ])
             ->allowedSorts('name')
             ->defaultSort('name')
+            ->with(['location', 'socialMedias'])
             ->paginate(per_page($request->per_page));
 
         event(EndpointHit::onRead($request, 'Viewed all organisations'));
@@ -72,6 +73,7 @@ class OrganisationController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'logo_file_id' => $request->logo_file_id,
+                'location_id' => $request->location_id,
             ]);
 
             if ($request->filled('logo_file_id')) {
@@ -82,6 +84,18 @@ class OrganisationController extends Controller
                 foreach (config('hlp.cached_image_dimensions') as $maxDimension) {
                     $file->resizedVersion($maxDimension);
                 }
+            }
+
+            if ($request->filled('social_medias')) {
+                // Create the social media records.
+                $social = [];
+                foreach ($request->social_medias as $socialMedia) {
+                    $social[] = [
+                        'type' => $socialMedia['type'],
+                        'url' => $socialMedia['url'],
+                    ];
+                }
+                $organisation->socialMedias()->createMany($social);
             }
 
             event(EndpointHit::onCreate($request, "Created organisation [{$organisation->id}]", $organisation));
@@ -105,6 +119,8 @@ class OrganisationController extends Controller
         $organisation = QueryBuilder::for($baseQuery)
             ->firstOrFail();
 
+        $organisation->load('location', 'socialMedias');
+
         event(EndpointHit::onRead($request, "Viewed organisation [{$organisation->id}]", $organisation));
 
         return new OrganisationResource($organisation);
@@ -120,20 +136,31 @@ class OrganisationController extends Controller
     public function update(UpdateRequest $request, Organisation $organisation)
     {
         return DB::transaction(function () use ($request, $organisation) {
+            $data = array_filter_missing([
+                'slug' => $request->missing('slug'),
+                'name' => $request->missing('name'),
+                'description' => $request->missing('description', function ($description) {
+                    return sanitize_markdown($description);
+                }),
+                'url' => $request->missing('url'),
+                'email' => $request->missing('email'),
+                'phone' => $request->missing('phone'),
+                'logo_file_id' => $request->missing('logo_file_id'),
+                'location_id' => $request->missing('location_id'),
+            ]);
+
+            // Loop through each social media.
+            foreach ($request->input('social_medias', []) as $socialMedia) {
+                $data['social_medias'][] = [
+                    'type' => $socialMedia['type'],
+                    'url' => $socialMedia['url'],
+                ];
+            }
+
             /** @var \App\Models\UpdateRequest $updateRequest */
             $updateRequest = $organisation->updateRequests()->create([
                 'user_id' => $request->user()->id,
-                'data' => array_filter_missing([
-                    'slug' => $request->missing('slug'),
-                    'name' => $request->missing('name'),
-                    'description' => $request->missing('description', function ($description) {
-                        return sanitize_markdown($description);
-                    }),
-                    'url' => $request->missing('url'),
-                    'email' => $request->missing('email'),
-                    'phone' => $request->missing('phone'),
-                    'logo_file_id' => $request->missing('logo_file_id'),
-                ]),
+                'data' => $data,
             ]);
 
             if ($request->filled('logo_file_id')) {

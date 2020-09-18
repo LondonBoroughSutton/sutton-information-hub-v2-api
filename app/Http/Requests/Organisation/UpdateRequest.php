@@ -5,9 +5,9 @@ namespace App\Http\Requests\Organisation;
 use App\Http\Requests\HasMissingValues;
 use App\Models\File;
 use App\Models\Organisation;
+use App\Models\SocialMedia;
 use App\Rules\FileIsMimeType;
 use App\Rules\FileIsPendingAssignment;
-use App\Rules\NullableIf;
 use App\Rules\Slug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -48,18 +48,14 @@ class UpdateRequest extends FormRequest
             ],
             'name' => ['string', 'min:1', 'max:255'],
             'description' => ['string', 'min:1', 'max:10000'],
-            'url' => ['url', 'max:255'],
+            'url' => ['nullable', 'url', 'max:255'],
             'email' => [
-                new NullableIf(function () {
-                    return $this->input('phone', $this->organisation->phone) !== null;
-                }),
+                'nullable',
                 'email',
                 'max:255',
             ],
             'phone' => [
-                new NullableIf(function () {
-                    return $this->input('email', $this->organisation->email) !== null;
-                }),
+                'nullable',
                 'string',
                 'min:1',
                 'max:255',
@@ -70,6 +66,20 @@ class UpdateRequest extends FormRequest
                 new FileIsMimeType(File::MIME_TYPE_PNG),
                 new FileIsPendingAssignment(),
             ],
+            'social_medias' => ['array'],
+            'social_medias.*' => ['array'],
+            'social_medias.*.type' => [
+                'required_with:social_medias.*',
+                Rule::in([
+                    SocialMedia::TYPE_TWITTER,
+                    SocialMedia::TYPE_FACEBOOK,
+                    SocialMedia::TYPE_INSTAGRAM,
+                    SocialMedia::TYPE_YOUTUBE,
+                    SocialMedia::TYPE_OTHER,
+                ]),
+            ],
+            'social_medias.*.url' => ['required_with:social_medias.*', 'url', 'max:255'],
+            'location_id' => ['nullable', 'exists:locations,id'],
         ];
     }
 }

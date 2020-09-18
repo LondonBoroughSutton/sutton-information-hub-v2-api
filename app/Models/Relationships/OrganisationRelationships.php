@@ -3,8 +3,10 @@
 namespace App\Models\Relationships;
 
 use App\Models\File;
+use App\Models\Location;
 use App\Models\Role;
 use App\Models\Service;
+use App\Models\SocialMedia;
 use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Database\Eloquent\Builder;
@@ -53,5 +55,21 @@ trait OrganisationRelationships
             ->whereDoesntHave('userRoles', function (Builder $query) {
                 $query->whereIn('user_roles.role_id', [Role::superAdmin()->id, Role::globalAdmin()->id]);
             });
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function socialMedias()
+    {
+        return $this->morphMany(SocialMedia::class, 'sociable');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 }
