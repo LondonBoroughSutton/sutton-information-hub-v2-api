@@ -4,6 +4,8 @@ namespace App\Models\Relationships;
 
 use App\Models\File;
 use App\Models\Location;
+use App\Models\OrganisationAdminInvite;
+use App\Models\PendingOrganisationAdmin;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\SocialMedia;
@@ -55,6 +57,22 @@ trait OrganisationRelationships
             ->whereDoesntHave('userRoles', function (Builder $query) {
                 $query->whereIn('user_roles.role_id', [Role::superAdmin()->id, Role::globalAdmin()->id]);
             });
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function organisationAdminInvites()
+    {
+        return $this->hasMany(OrganisationAdminInvite::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function pendingOrganisationAdmins()
+    {
+        return $this->hasMany(PendingOrganisationAdmin::class);
     }
 
     /**

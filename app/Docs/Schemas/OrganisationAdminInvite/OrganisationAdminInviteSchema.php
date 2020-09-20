@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Docs\Schemas\User;
+namespace App\Docs\Schemas\OrganisationAdminInvite;
 
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 
-class UserSchema extends Schema
+class OrganisationAdminInviteSchema extends Schema
 {
     /**
      * @param string|null $objectId
@@ -18,13 +18,10 @@ class UserSchema extends Schema
             ->properties(
                 Schema::string('id')
                     ->format(Schema::FORMAT_UUID),
-                Schema::string('first_name'),
-                Schema::string('last_name'),
-                Schema::string('email'),
-                Schema::string('phone')
+                Schema::string('organisation_id')
+                    ->format(Schema::FORMAT_UUID),
+                Schema::string('email')
                     ->nullable(),
-                Schema::array('roles')
-                    ->items(RoleSchema::create()),
                 Schema::string('created_at')
                     ->format(Schema::FORMAT_DATE_TIME)
                     ->nullable(),

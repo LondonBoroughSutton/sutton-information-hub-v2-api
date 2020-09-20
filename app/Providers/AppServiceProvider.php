@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\VariableSubstituter;
+use App\Generators\AdminUrlGenerator;
 use App\VariableSubstitution\DoubleParenthesisVariableSubstituter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -76,6 +77,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Variable substitution.
         $this->app->bind(VariableSubstituter::class, DoubleParenthesisVariableSubstituter::class);
+
+        // Admin URL generator.
+        $this->app->singleton(AdminUrlGenerator::class, function () {
+            return new AdminUrlGenerator(config('hlp.backend_uri'));
+        });
     }
 
     /**

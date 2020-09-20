@@ -208,6 +208,26 @@ return [
                 'email' => '6575fea8-5517-41fa-b78d-0c77cdc5d533',
             ],
         ],
+        'organisation_admin_invite_initial' => [
+            'notify_invitee' => [
+                'email' => '',
+            ],
+        ],
+        'organisation_admin_invite_first_follow_ups' => [
+            'notify_invitee' => [
+                'email' => '',
+            ],
+        ],
+        'organisation_admin_invite_second_follow_ups' => [
+            'notify_invitee' => [
+                'email' => '',
+            ],
+        ],
+        'pending_organisation_admin_confirmation' => [
+            'notify_pending_organisation_admin' => [
+                'email' => '',
+            ],
+        ],
     ],
 
 ];

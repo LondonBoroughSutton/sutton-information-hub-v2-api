@@ -46,6 +46,12 @@ class Kernel extends ConsoleKernel
 
         $schedule->command(Commands\Hlp\AutoDelete\ServiceRefreshTokensCommand::class)
             ->daily();
+
+        $schedule->command(Commands\Hlp\Notify\OrganisationAdminInvitee\FirstFollowUpsCommand::class)
+            ->dailyAt('13:30');
+
+        $schedule->command(Commands\Hlp\Notify\OrganisationAdminInvitee\SecondFollowUpsCommand::class)
+            ->dailyAt('13:30');
     }
 
     /**

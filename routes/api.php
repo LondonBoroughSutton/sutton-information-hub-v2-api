@@ -66,6 +66,12 @@ Route::prefix('core/v1')
             Route::apiResource('/notifications', 'NotificationController')
                 ->only('index', 'show');
 
+            // Organisation Admin Invites.
+            Route::apiResource('/organisation-admin-invites', 'OrganisationAdminInviteController')
+                ->only('store', 'show');
+            Route::post('/organisation-admin-invites/{organisation_admin_invite}/submit', 'OrganisationAdminInvite\\SubmitController@store')
+                ->name('organisation-admin-invites.submit');
+
             // Organisations.
             Route::match(['GET', 'POST'], '/organisations/index', 'OrganisationController@index');
             Route::apiResource('/organisations', 'OrganisationController');
@@ -80,6 +86,10 @@ Route::prefix('core/v1')
             Route::match(['GET', 'POST'], '/page-feedbacks/index', 'PageFeedbackController@index');
             Route::apiResource('/page-feedbacks', 'PageFeedbackController')
                 ->only('index', 'store', 'show');
+
+            // Pending Organisation Admins.
+            Route::post('/pending-organisation-admins/{pending_organisation_admin}/confirm', 'PendingOrganisationAdmin\\ConfirmController@store')
+                ->name('pending-organisation-admins.confirm');
 
             // Referrals.
             Route::match(['GET', 'POST'], '/referrals/index', 'ReferralController@index');
