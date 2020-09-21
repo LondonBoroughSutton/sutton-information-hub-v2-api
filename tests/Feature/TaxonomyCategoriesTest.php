@@ -40,6 +40,7 @@ class TaxonomyCategoriesTest extends TestCase
             [
                 'id' => $randomTaxonomy->id,
                 'parent_id' => $randomTaxonomy->parent_id,
+                'slug' => $randomTaxonomy->slug,
                 'name' => $randomTaxonomy->name,
                 'order' => $randomTaxonomy->order,
                 'children' => [],
@@ -278,6 +279,36 @@ class TaxonomyCategoriesTest extends TestCase
             [
                 'id' => $randomTaxonomy->id,
                 'parent_id' => $randomTaxonomy->parent_id,
+                'slug' => $randomTaxonomy->slug,
+                'name' => $randomTaxonomy->name,
+                'order' => $randomTaxonomy->order,
+                'children' => [],
+                'created_at' => $randomTaxonomy->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => $randomTaxonomy->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ]);
+    }
+
+    public function test_guest_can_view_one_by_slug()
+    {
+        $randomTaxonomy = null;
+        Taxonomy::chunk(200, function (Collection $taxonomies) use (&$randomTaxonomy) {
+            foreach ($taxonomies as $taxonomy) {
+                if ($taxonomy->children()->count() === 0) {
+                    $randomTaxonomy = $taxonomy;
+                    return false;
+                }
+            }
+        });
+
+        $response = $this->json('GET', "/core/v1/taxonomies/categories/{$randomTaxonomy->slug}");
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            [
+                'id' => $randomTaxonomy->id,
+                'parent_id' => $randomTaxonomy->parent_id,
+                'slug' => $randomTaxonomy->slug,
                 'name' => $randomTaxonomy->name,
                 'order' => $randomTaxonomy->order,
                 'children' => [],
@@ -381,9 +412,21 @@ class TaxonomyCategoriesTest extends TestCase
         Passport::actingAs($user);
 
         $parentCategory = $this->createTopLevelCategory();
-        $categoryOne = $parentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $categoryTwo = $parentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $categoryThree = $parentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $categoryOne = $parentCategory->children()->create([
+            'slug' => 'one',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $categoryTwo = $parentCategory->children()->create([
+            'slug' => 'two',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $categoryThree = $parentCategory->children()->create([
+            'slug' => 'three',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
         $response = $this->json('PUT', "/core/v1/taxonomies/categories/{$categoryTwo->id}", [
             'parent_id' => $categoryTwo->parent_id,
@@ -403,9 +446,21 @@ class TaxonomyCategoriesTest extends TestCase
         Passport::actingAs($user);
 
         $parentCategory = $this->createTopLevelCategory();
-        $categoryOne = $parentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $categoryTwo = $parentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $categoryThree = $parentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $categoryOne = $parentCategory->children()->create([
+            'slug' => 'one',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $categoryTwo = $parentCategory->children()->create([
+            'slug' => 'two',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $categoryThree = $parentCategory->children()->create([
+            'slug' => 'three',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
         $response = $this->json('PUT', "/core/v1/taxonomies/categories/{$categoryOne->id}", [
             'parent_id' => $categoryOne->parent_id,
@@ -425,9 +480,21 @@ class TaxonomyCategoriesTest extends TestCase
         Passport::actingAs($user);
 
         $parentCategory = $this->createTopLevelCategory();
-        $categoryOne = $parentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $categoryTwo = $parentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $categoryThree = $parentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $categoryOne = $parentCategory->children()->create([
+            'slug' => 'one',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $categoryTwo = $parentCategory->children()->create([
+            'slug' => 'two',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $categoryThree = $parentCategory->children()->create([
+            'slug' => 'three',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
         $response = $this->json('PUT', "/core/v1/taxonomies/categories/{$categoryTwo->id}", [
             'parent_id' => $categoryTwo->parent_id,
@@ -447,14 +514,38 @@ class TaxonomyCategoriesTest extends TestCase
         Passport::actingAs($user);
 
         $oldParentCategory = $this->createTopLevelCategory();
-        $oldCategoryOne = $oldParentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $oldCategoryTwo = $oldParentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $oldCategoryThree = $oldParentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $oldCategoryOne = $oldParentCategory->children()->create([
+            'slug' => 'one',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $oldCategoryTwo = $oldParentCategory->children()->create([
+            'slug' => 'two',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $oldCategoryThree = $oldParentCategory->children()->create([
+            'slug' => 'three',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
-        $newParentCategory = $this->createTopLevelCategory();
-        $newCategoryOne = $newParentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $newCategoryTwo = $newParentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $newCategoryThree = $newParentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $newParentCategory = $this->createTopLevelCategory(1);
+        $newCategoryOne = $newParentCategory->children()->create([
+            'slug' => 'one-1',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $newCategoryTwo = $newParentCategory->children()->create([
+            'slug' => 'two-1',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $newCategoryThree = $newParentCategory->children()->create([
+            'slug' => 'three-1',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
         $response = $this->json('PUT', "/core/v1/taxonomies/categories/{$oldCategoryTwo->id}", [
             'parent_id' => $newParentCategory->id,
@@ -509,14 +600,38 @@ class TaxonomyCategoriesTest extends TestCase
         Passport::actingAs($user);
 
         $oldParentCategory = $this->createTopLevelCategory();
-        $oldCategoryOne = $oldParentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $oldCategoryTwo = $oldParentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $oldCategoryThree = $oldParentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $oldCategoryOne = $oldParentCategory->children()->create([
+            'slug' => 'one',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $oldCategoryTwo = $oldParentCategory->children()->create([
+            'slug' => 'two',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $oldCategoryThree = $oldParentCategory->children()->create([
+            'slug' => 'three',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
-        $newParentCategory = $this->createTopLevelCategory();
-        $newCategoryOne = $newParentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $newCategoryTwo = $newParentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $newCategoryThree = $newParentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $newParentCategory = $this->createTopLevelCategory(1);
+        $newCategoryOne = $newParentCategory->children()->create([
+            'slug' => 'one-1',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $newCategoryTwo = $newParentCategory->children()->create([
+            'slug' => 'two-1',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $newCategoryThree = $newParentCategory->children()->create([
+            'slug' => 'three-1',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
         $response = $this->json('PUT', "/core/v1/taxonomies/categories/{$oldCategoryOne->id}", [
             'parent_id' => $newParentCategory->id,
@@ -571,14 +686,38 @@ class TaxonomyCategoriesTest extends TestCase
         Passport::actingAs($user);
 
         $oldParentCategory = $this->createTopLevelCategory();
-        $oldCategoryOne = $oldParentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $oldCategoryTwo = $oldParentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $oldCategoryThree = $oldParentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $oldCategoryOne = $oldParentCategory->children()->create([
+            'slug' => 'one',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $oldCategoryTwo = $oldParentCategory->children()->create([
+            'slug' => 'two',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $oldCategoryThree = $oldParentCategory->children()->create([
+            'slug' => 'three',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
-        $newParentCategory = $this->createTopLevelCategory();
-        $newCategoryOne = $newParentCategory->children()->create(['name' => 'One', 'order' => 1]);
-        $newCategoryTwo = $newParentCategory->children()->create(['name' => 'Two', 'order' => 2]);
-        $newCategoryThree = $newParentCategory->children()->create(['name' => 'Three', 'order' => 3]);
+        $newParentCategory = $this->createTopLevelCategory(1);
+        $newCategoryOne = $newParentCategory->children()->create([
+            'slug' => 'one-1',
+            'name' => 'One',
+            'order' => 1,
+        ]);
+        $newCategoryTwo = $newParentCategory->children()->create([
+            'slug' => 'two-1',
+            'name' => 'Two',
+            'order' => 2,
+        ]);
+        $newCategoryThree = $newParentCategory->children()->create([
+            'slug' => 'three-1',
+            'name' => 'Three',
+            'order' => 3,
+        ]);
 
         $response = $this->json('PUT', "/core/v1/taxonomies/categories/{$oldCategoryTwo->id}", [
             'parent_id' => $newParentCategory->id,
@@ -802,13 +941,15 @@ class TaxonomyCategoriesTest extends TestCase
     }
 
     /**
+     * @param int|null $index
      * @return \App\Models\Taxonomy
      */
-    protected function createTopLevelCategory(): Taxonomy
+    protected function createTopLevelCategory(int $index = null): Taxonomy
     {
         $topLevelCount = Taxonomy::category()->children()->count();
 
         return Taxonomy::category()->children()->create([
+            'slug' => $index === null ? 'phpunit-category' : "phpunit-category={$index}",
             'name' => 'PHPUnit Category',
             'order' => $topLevelCount + 1,
         ]);

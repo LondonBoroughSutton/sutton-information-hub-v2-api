@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Core\V1;
 
 use App\Events\EndpointHit;
+use App\Generators\UniqueSlugGenerator;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TaxonomyCategory\DestroyRequest;
 use App\Http\Requests\TaxonomyCategory\IndexRequest;
@@ -50,13 +51,15 @@ class TaxonomyCategoryController extends Controller
      * Store a newly created resource in storage.
      *
      * @param \App\Http\Requests\TaxonomyCategory\StoreRequest $request
+     * @param \App\Generators\UniqueSlugGenerator $slugGenerator
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreRequest $request)
+    public function store(StoreRequest $request, UniqueSlugGenerator $slugGenerator)
     {
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request, $slugGenerator) {
             $category = Taxonomy::create([
                 'parent_id' => $request->parent_id ?? Taxonomy::category()->id,
+                'slug' => $slugGenerator->generate($request->name, table(Taxonomy::class)),
                 'name' => $request->name,
                 'order' => $request->order,
             ]);
@@ -91,14 +94,18 @@ class TaxonomyCategoryController extends Controller
      * Update the specified resource in storage.
      *
      * @param \App\Http\Requests\TaxonomyCategory\UpdateRequest $request
+     * @param \App\Generators\UniqueSlugGenerator $slugGenerator
      * @param \App\Models\Taxonomy $taxonomy
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateRequest $request, Taxonomy $taxonomy)
+    public function update(UpdateRequest $request, UniqueSlugGenerator $slugGenerator, Taxonomy $taxonomy)
     {
-        return DB::transaction(function () use ($request, $taxonomy) {
+        return DB::transaction(function () use ($request, $slugGenerator, $taxonomy) {
             $taxonomy->update([
                 'parent_id' => $request->parent_id ?? Taxonomy::category()->id,
+                'slug' => $slugGenerator->compareEquals($request->name, $taxonomy->slug)
+                    ? $taxonomy->slug
+                    : $slugGenerator->generate($request->name, table(Taxonomy::class)),
                 'name' => $request->name,
                 'order' => $request->order,
             ]);
