@@ -23,6 +23,15 @@ class StoreSearchSchema extends Schema
                 Schema::integer('per_page')
                     ->default(config('hlp.pagination_results')),
                 Schema::string('query'),
+                Schema::string('type')->enum(
+                    Service::TYPE_SERVICE,
+                    Service::TYPE_ACTIVITY,
+                    Service::TYPE_CLUB,
+                    Service::TYPE_GROUP,
+                    Service::TYPE_HELPLINE,
+                    Service::TYPE_INFORMATION,
+                    Service::TYPE_APP
+                ),
                 Schema::string('category'),
                 Schema::string('persona'),
                 Schema::string('wait_time')

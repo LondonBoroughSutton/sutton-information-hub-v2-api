@@ -17,6 +17,12 @@ interface Search
     public function applyQuery(string $term): Search;
 
     /**
+     * @param string $type
+     * @return \App\Contracts\Search
+     */
+    public function applyType(string $type): Search;
+
+    /**
      * @param string $category
      * @return \App\Contracts\Search
      */

@@ -21,6 +21,11 @@ class SearchController extends Controller
             $search->applyQuery($request->input('query'));
         }
 
+        // Apply filter on `type` field.
+        if ($request->has('type')) {
+            $search->applyType($request->input('type'));
+        }
+
         if ($request->has('category')) {
             // If category given then filter by category.
             $search->applyCategory($request->category);

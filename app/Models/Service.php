@@ -98,6 +98,7 @@ class Service extends Model implements AppliesUpdateRequests, Notifiable
                     'keyword' => ['type' => 'keyword'],
                 ],
             ],
+            'type' => ['type' => 'keyword'],
             'intro' => ['type' => 'text'],
             'description' => ['type' => 'text'],
             'wait_time' => ['type' => 'keyword'],
@@ -145,6 +146,7 @@ class Service extends Model implements AppliesUpdateRequests, Notifiable
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'type' => $this->type,
             'intro' => $this->intro,
             'description' => $this->description,
             'wait_time' => $this->wait_time,

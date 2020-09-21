@@ -171,6 +171,24 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $response->assertJsonFragment(['id' => $service->id]);
     }
 
+    public function test_filter_by_type_works()
+    {
+        $service = factory(Service::class)->create([
+            'type' => Service::TYPE_SERVICE,
+        ]);
+        factory(Service::class)->create([
+            'type' => Service::TYPE_APP,
+        ]);
+
+        $response = $this->json('POST', '/core/v1/search', [
+            'type' => Service::TYPE_SERVICE,
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $service->id]);
+    }
+
     public function test_filter_by_category_works()
     {
         $service = factory(Service::class)->create();

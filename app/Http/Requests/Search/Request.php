@@ -27,22 +27,74 @@ class Request extends FormRequest
     public function rules()
     {
         return [
-            'query' => ['required_without_all:category,persona,wait_time,is_free,location', 'string', 'min:3', 'max:255'],
-            'category' => ['required_without_all:query,persona,wait_time,is_free,location', 'string', 'min:1', 'max:255'],
-            'persona' => ['required_without_all:query,category,wait_time,is_free,location', 'string', 'min:1', 'max:255'],
-            'wait_time' => ['required_without_all:query,category,is_free,persona,location', Rule::in([
-                Service::WAIT_TIME_ONE_WEEK,
-                Service::WAIT_TIME_TWO_WEEKS,
-                Service::WAIT_TIME_THREE_WEEKS,
-                Service::WAIT_TIME_MONTH,
-                Service::WAIT_TIME_LONGER,
-            ])],
-            'is_free' => ['required_without_all:query,category,persona,wait_time,location', 'boolean'],
-            'order' => [Rule::in([Search::ORDER_RELEVANCE, Search::ORDER_DISTANCE])],
-            'location' => ['required_without_all:query,category,persona,wait_time,is_free', 'required_if:order,distance', 'array'],
-            'location.lat' => ['required_with:location', 'numeric', 'min:-90', 'max:90'],
-            'location.lon' => ['required_with:location', 'numeric', 'min:-180', 'max:180'],
-            'distance' => ['integer', 'min:0'],
+            'query' => [
+                'required_without_all:category,type,persona,wait_time,is_free,location',
+                'string',
+                'min:3',
+                'max:255',
+            ],
+            'type' => [
+                'required_without_all:query,category,persona,wait_time,is_free,location',
+                Rule::in([
+                    Service::TYPE_SERVICE,
+                    Service::TYPE_ACTIVITY,
+                    Service::TYPE_CLUB,
+                    Service::TYPE_GROUP,
+                    Service::TYPE_HELPLINE,
+                    Service::TYPE_INFORMATION,
+                    Service::TYPE_APP,
+                ]),
+            ],
+            'category' => [
+                'required_without_all:query,type,persona,wait_time,is_free,location',
+                'string',
+                'min:1',
+                'max:255',
+            ],
+            'persona' => [
+                'required_without_all:query,type,category,wait_time,is_free,location',
+                'string',
+                'min:1',
+                'max:255',
+            ],
+            'wait_time' => [
+                'required_without_all:query,type,category,is_free,persona,location',
+                Rule::in([
+                    Service::WAIT_TIME_ONE_WEEK,
+                    Service::WAIT_TIME_TWO_WEEKS,
+                    Service::WAIT_TIME_THREE_WEEKS,
+                    Service::WAIT_TIME_MONTH,
+                    Service::WAIT_TIME_LONGER,
+                ]),
+            ],
+            'is_free' => [
+                'required_without_all:query,type,category,persona,wait_time,location',
+                'boolean',
+            ],
+            'order' => [
+                Rule::in([Search::ORDER_RELEVANCE, Search::ORDER_DISTANCE]),
+            ],
+            'location' => [
+                'required_without_all:query,type,category,persona,wait_time,is_free',
+                'required_if:order,distance',
+                'array',
+            ],
+            'location.lat' => [
+                'required_with:location',
+                'numeric',
+                'min:-90',
+                'max:90',
+            ],
+            'location.lon' => [
+                'required_with:location',
+                'numeric',
+                'min:-180',
+                'max:180',
+            ],
+            'distance' => [
+                'integer',
+                'min:0',
+            ],
         ];
     }
 }
