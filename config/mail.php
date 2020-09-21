@@ -56,7 +56,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hlp.admin.connect@nhs.net'),
+        'address' => env('MAIL_FROM_ADDRESS', 'noreply@connectedtogether.org.uk'),
         'name' => env('MAIL_FROM_NAME', 'Connected Together'),
     ],
 
