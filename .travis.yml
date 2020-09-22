@@ -52,8 +52,13 @@ deploy:
   # Tagged releases
   - provider: script
     script: >
-      bash .travis/deploy.sh production ${REPO_URI_PRODUCTION} ${CLUSTER_PRODUCTION}
-      ${AWS_ACCESS_KEY_ID_PRODUCTION} ${AWS_SECRET_ACCESS_KEY_PRODUCTION} ${AWS_DEFAULT_REGION_PRODUCTION}
+      ENVIRONMENT=production
+      REPO_URI=$REPO_URI_PRODUCTION
+      CLUSTER=$CLUSTER_PRODUCTION
+      AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_PRODUCTION
+      AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_PRODUCTION
+      AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION_PRODUCTION
+      bash .travis/deploy.sh
     skip_cleanup: true
     on:
       all_branches: true
@@ -61,8 +66,13 @@ deploy:
   # Release branches
   - provider: script
     script: >
-      bash .travis/deploy.sh release ${REPO_URI_RELEASE} ${CLUSTER_RELEASE}
-      ${AWS_ACCESS_KEY_ID_RELEASE} ${AWS_SECRET_ACCESS_KEY_RELEASE} ${AWS_DEFAULT_REGION_RELEASE}
+      ENVIRONMENT=release
+      REPO_URI=$REPO_URI_RELEASE
+      CLUSTER=$CLUSTER_RELEASE
+      AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_RELEASE
+      AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_RELEASE
+      AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION_RELEASE
+      bash .travis/deploy.sh
     skip_cleanup: true
     on:
       all_branches: true
@@ -70,8 +80,13 @@ deploy:
   # Develop
   - provider: script
     script: >
-      bash .travis/deploy.sh staging ${REPO_URI_STAGING} ${CLUSTER_STAGING}
-      ${AWS_ACCESS_KEY_ID_STAGING} ${AWS_SECRET_ACCESS_KEY_STAGING} ${AWS_DEFAULT_REGION_STAGING}
+      ENVIRONMENT=production
+      REPO_URI=$REPO_URI_STAGING
+      CLUSTER=$CLUSTER_STAGING
+      AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_STAGING
+      AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_STAGING
+      AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION_STAGING
+      bash .travis/deploy.sh
     skip_cleanup: true
     on:
       branch: develop
