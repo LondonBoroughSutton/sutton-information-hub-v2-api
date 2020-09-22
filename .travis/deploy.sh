@@ -13,11 +13,11 @@ set -e
 
 # Set environment variables.
 export ENV_SECRET_ID=".env.api.${1}"
-export REPO_URI="${2}"
-export CLUSTER="${3}"
-export AWS_ACCESS_KEY_ID="${4}"
-export AWS_SECRET_ACCESS_KEY="${5}"
-export AWS_DEFAULT_REGION="${6}"
+export REPO_URI=${2}
+export CLUSTER=${3}
+export AWS_ACCESS_KEY_ID=${4}
+export AWS_SECRET_ACCESS_KEY=${5}
+export AWS_DEFAULT_REGION=${6}
 
 # Build the image.
 ./docker/build.sh
