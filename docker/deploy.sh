@@ -4,6 +4,9 @@
 # $REPO_URI = The URI of the Docker repo to push to.
 # $CLUSTER = The name of the ECS cluster.
 # $SERVICE = The name of the ECS service.
+# $AWS_ACCESS_KEY_ID = The AWS access key.
+# $AWS_SECRET_ACCESS_KEY = The AWS secret access key.
+# $AWS_DEFAULT_REGION = The AWS region.
 
 # Bail out on first error.
 set -e
