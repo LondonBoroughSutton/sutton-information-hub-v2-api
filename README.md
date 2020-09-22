@@ -91,6 +91,14 @@ To run only the code style tests:
 Deployment is fully automated by pushing a commit to `develop` or 
 `master`. More information on this process can be [found in the wiki](https://github.com/RoyalBoroughKingston/ck-api/wiki/Branching-and-Release-Strategy#continuous-delivery).
 
+Before deploying the CloudFormation stack, a service linked role must manually 
+be created by running the following command (this only needs to ran once per AWS 
+account):
+
+```bash
+aws iam create-service-linked-role --aws-service-name es.amazonaws.com
+```
+
 ## Built with
 
 * [Laravel](https://laravel.com/docs/) - The Web Framework Used

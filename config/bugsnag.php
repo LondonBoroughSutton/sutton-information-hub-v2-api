@@ -181,7 +181,7 @@ return [
     |
     */
 
-    'notify_release_stages' => ['local', 'staging', 'production'],
+    'notify_release_stages' => ['staging', 'release', 'production'],
 
     /*
     |--------------------------------------------------------------------------
