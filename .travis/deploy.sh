@@ -1,25 +1,20 @@
 #!/usr/bin/env bash
 
 # Requires the following environment variables:
-# $TRAVIS_BRANCH = The name of the git branch that the build is running on.
+# $ENVIRONMENT = The environment (production/release/staging).
 # $REPO_URI = The URI of the ECR repo to push to.
 # $CLUSTER = The name of the ECS cluster to deploy to.
+# $AWS_ACCESS_KEY_ID = The AWS access key.
+# $AWS_SECRET_ACCESS_KEY = The AWS secret access key.
+# $AWS_DEFAULT_REGION = The AWS region.
+# $TRAVIS_BUILD_DIR = The directory of the project.
+# $TRAVIS_COMMIT = The commit hash of the build.
 
 # Bail out on first error.
 set -e
 
-# Get the environment from the branch.
-case ${TRAVIS_BRANCH} in
-    master )
-        ENVIRONMENT=production
-        ;;
-    develop )
-        ENVIRONMENT=staging
-        ;;
-esac
-
-# Declare the configuration variables for the deployment.
-echo "Setting deployment configuration for ${DEPLOYMENT}..."
+# Set environment variables.
+echo "Setting deployment configuration for ${ENVIRONMENT}..."
 export ENV_SECRET_ID=".env.api.${ENVIRONMENT}"
 
 # Build the image.

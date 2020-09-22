@@ -1,4 +1,4 @@
-from troposphere import GetAtt, Ref, Base64, Join, Sub
+from troposphere import GetAtt, Ref, Base64, Join, Sub, Select
 import troposphere.ec2 as ec2
 import troposphere.rds as rds
 import troposphere.elasticache as elasticache
@@ -182,6 +182,7 @@ def create_uploads_bucket_resource(template, uploads_bucket_name_variable):
             AccessControl='Private'
         )
     )
+
 
 
 def create_ecs_cluster_role_resource(template):
@@ -714,8 +715,27 @@ def create_ci_user_resource(template, ci_user_name_variable):
     )
 
 
+def create_elasticsearch_security_group_resource(template, api_security_group_resource):
+    return template.add_resource(
+        ec2.SecurityGroup(
+            'ElasticsearchSecurityGroup',
+            GroupDescription='For connecting to the Elasticsearch service',
+            SecurityGroupIngress=[
+                ec2.SecurityGroupRule(
+                    Description='HTTPS access from the API containers',
+                    IpProtocol='tcp',
+                    FromPort='443',
+                    ToPort='443',
+                    SourceSecurityGroupName=Ref(api_security_group_resource)
+                )
+            ]
+        )
+    )
+
+
 def create_elasticsearch_resource(template, elasticsearch_domain_name_variable,
-                               elasticsearch_instance_count_parameter, elasticsearch_instance_class_parameter):
+                               elasticsearch_instance_count_parameter, elasticsearch_instance_class_parameter,
+                               elasticsearch_security_group_resource, subnets_parameter):
     return template.add_resource(
         elasticsearch.Domain(
             'Elasticsearch',
@@ -743,6 +763,10 @@ def create_elasticsearch_resource(template, elasticsearch_domain_name_variable,
                 InstanceCount=Ref(elasticsearch_instance_count_parameter),
                 InstanceType=Ref(elasticsearch_instance_class_parameter)
             ),
-            ElasticsearchVersion='6.3'
+            ElasticsearchVersion='6.3',
+            VPCOptions=elasticsearch.VPCOptions(
+                SecurityGroupIds=[GetAtt(elasticsearch_security_group_resource, 'GroupId')],
+                SubnetIds=[Select(0, Ref(subnets_parameter))]
+            )
         )
     )

@@ -23,7 +23,9 @@ from resources import create_load_balancer_security_group_resource, create_api_s
     create_queue_worker_task_definition_resource, create_scheduler_task_definition_resource, create_load_balancer_resource, \
     create_api_tarcreate_group_resource, create_load_balancer_listener_resource, create_ecs_service_role_resource, \
     create_api_service_resource, create_queue_worker_service_resource, create_scheduler_service_resource, \
-    create_autoscaling_group_resource, create_api_user_resource, create_ci_user_resource, create_elasticsearch_resource
+    create_autoscaling_group_resource, create_api_user_resource, create_ci_user_resource, \
+    create_elasticsearch_security_group_resource, create_elasticsearch_resource
+
 from outputs import create_database_name_output, create_database_username_output, create_database_host_output, \
     create_database_port_output, create_redis_host_output, create_redis_port_output, create_default_queue_output, \
     create_notifications_queue_output, create_load_balancer_domain_output, create_elasticsearch_host_output, \
@@ -133,9 +135,12 @@ autoscaling_group_resource = create_autoscaling_group_resource(template, api_ins
 api_user_resource = create_api_user_resource(template, api_user_name_variable, uploads_bucket_resource,
                                           default_queue_resource, notifications_queue_resource, search_queue_resource)
 ci_user_resource = create_ci_user_resource(template, ci_user_name_variable)
+elasticsearch_security_group_resource = create_elasticsearch_security_group_resource(template, api_security_group_resource)
 elasticsearch_resource = create_elasticsearch_resource(template, elasticsearch_domain_name_variable,
                                                        elasticsearch_instance_count_parameter,
-                                                       elasticsearch_instance_class_parameter)
+                                                       elasticsearch_instance_class_parameter,
+                                                       elasticsearch_security_group_resource,
+                                                       subnets_parameter)
 
 # Outputs.
 create_database_name_output(template, database_username_variable)

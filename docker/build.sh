@@ -5,8 +5,6 @@
 # $TRAVIS_COMMIT = The commit hash of the build.
 # $REPO_URI = The URI of the Docker repo to tag the image with.
 # $ENV_SECRET_ID = The ID of the .env file in AWS Secrets Manager.
-# $BLACKFIRE_SERVER_ID = The Blackfire server ID.
-# $BLACKFIRE_SERVER_TOKEN = The Blackfire server token.
 
 # Bail out on first error.
 set -e
@@ -42,8 +40,6 @@ aws secretsmanager get-secret-value \
 echo "Building Docker images..."
 cd ${TRAVIS_BUILD_DIR}/docker/app
 docker build \
-    --build-arg BLACKFIRE_SERVER_ID=$BLACKFIRE_SERVER_ID \
-    --build-arg BLACKFIRE_SERVER_TOKEN=$BLACKFIRE_SERVER_TOKEN \
     -t ${REPO_URI}:latest \
     -t ${REPO_URI}:${TRAVIS_COMMIT} .
 
