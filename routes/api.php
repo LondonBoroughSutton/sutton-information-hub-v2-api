@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
-*/
+ */
 
 Route::get('oauth/clients', 'Passport\\ClientController@index');
 
@@ -77,6 +77,8 @@ Route::prefix('core/v1')
             Route::apiResource('/organisations', 'OrganisationController');
             Route::get('/organisations/{organisation}/logo.png', 'Organisation\\LogoController')
                 ->name('organisations.logo');
+            Route::post('/organisations/import', 'Organisation\\ImportController')
+                ->name('organisations.import');
 
             // Organisation Sign Up Forms.
             Route::apiResource('/organisation-sign-up-forms', 'OrganisationSignUpFormController')

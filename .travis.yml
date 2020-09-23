@@ -3,8 +3,8 @@ dist: xenial
 
 branches:
   only:
-    # Master
-    - master
+    # Tagged releases
+    - /^[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+$/
     # Release branches
     - /^release\/.+$/
     # Develop
@@ -55,7 +55,7 @@ deploy:
     skip_cleanup: true
     on:
       all_branches: true
-      condition: ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH} =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+$
+      condition: ${TRAVIS_TAG} =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+$
   # Release branches
   - provider: script
     script: ENVIRONMENT=release REPO_URI=$REPO_URI_RELEASE CLUSTER=$CLUSTER_RELEASE AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_RELEASE AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_RELEASE AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION_RELEASE bash .travis/deploy.sh
