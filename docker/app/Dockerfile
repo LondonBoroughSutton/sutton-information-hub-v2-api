@@ -20,7 +20,7 @@ RUN apt-get update \
 RUN apt-add-repository -y ppa:ondrej/php \
     && apt-get update \
     && apt-get install -y php7.2-fpm php7.2-cli php7.2-gd php7.2-mysql php7.2-redis \
-       php7.2-imap php7.2-mbstring php7.2-xml php7.2-curl php7.2-zip \
+    php7.2-imap php7.2-mbstring php7.2-xml php7.2-curl php7.2-zip \
     && php -r "readfile('http://getcomposer.org/installer');" | php -- --install-dir=/usr/bin/ --filename=composer \
     && mkdir /run/php
 
@@ -38,6 +38,7 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 COPY etc/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY etc/nginx/sites-available/default /etc/nginx/sites-available/default
 COPY etc/php/7.2/fpm/php-fpm.conf /etc/php/7.2/fpm/php-fpm.conf
+COPY etc/php/7.2/fpm/conf.d/100-local.ini /etc/php/7.2/fpm/conf.d/100-local.ini
 COPY etc/supervisor/conf.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy the bootstrap script over.
