@@ -1142,6 +1142,9 @@ class OrganisationsTest extends TestCase
         ]);
     }
 
+    /**
+     * @group slow
+     */
     public function test_organisations_file_import_5krows()
     {
         Storage::fake('local');

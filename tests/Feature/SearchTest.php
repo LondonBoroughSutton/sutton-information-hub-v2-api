@@ -202,6 +202,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $service = factory(Service::class)->create();
         $collection = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
+            'slug' => 'self-help',
             'name' => 'Self Help',
             'meta' => [],
             'order' => 1,
@@ -228,6 +229,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $service = factory(Service::class)->create();
         $collection = Collection::create([
             'type' => Collection::TYPE_PERSONA,
+            'slug' => 'refugees',
             'name' => 'Refugees',
             'meta' => [],
             'order' => 1,
@@ -317,6 +319,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $service = factory(Service::class)->create(['name' => 'Ayup Digital']);
         $collection = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
+            'slug' => 'self-help',
             'name' => 'Self Help',
             'meta' => [],
             'order' => 1,
@@ -333,6 +336,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $differentService = factory(Service::class)->create(['name' => 'Ayup Digital']);
         $differentCollection = Collection::create([
             'type' => Collection::TYPE_PERSONA,
+            'slug' => 'refugees',
             'name' => 'Refugees',
             'meta' => [],
             'order' => 1,
@@ -361,6 +365,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $service = factory(Service::class)->create(['name' => 'Ayup Digital']);
         $collection = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
+            'slug' => 'self-help',
             'name' => 'Self Help',
             'meta' => [],
             'order' => 1,
@@ -377,6 +382,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $differentService = factory(Service::class)->create(['name' => 'Ayup Digital']);
         $differentCollection = Collection::create([
             'type' => Collection::TYPE_PERSONA,
+            'slug' => 'refugees',
             'name' => 'Refugees',
             'meta' => [],
             'order' => 1,
@@ -517,6 +523,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
         // Create a collection
         $collection = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
+            'slug' => 'self-help',
             'name' => 'Self Help',
             'meta' => [],
             'order' => 1,
@@ -580,6 +587,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
         // Create a collection
         $collection = Collection::create([
             'type' => Collection::TYPE_PERSONA,
+            'slug' => 'self-help',
             'name' => 'Self Help',
             'meta' => [],
             'order' => 1,
