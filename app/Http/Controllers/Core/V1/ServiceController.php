@@ -67,6 +67,7 @@ class ServiceController extends Controller
                 Filter::custom('organisation_name', OrganisationNameFilter::class),
                 Filter::exact('status'),
                 Filter::exact('referral_method'),
+                Filter::exact('is_national'),
                 Filter::custom('has_permission', HasPermissionFilter::class),
             ])
             ->allowedIncludes(['organisation'])
@@ -101,6 +102,7 @@ class ServiceController extends Controller
                 'name' => $request->name,
                 'type' => $request->type,
                 'status' => $request->status,
+                'is_national' => $request->is_national,
                 'intro' => $request->intro,
                 'description' => sanitize_markdown($request->description),
                 'wait_time' => $request->wait_time,
@@ -249,6 +251,7 @@ class ServiceController extends Controller
                 'name' => $request->missing('name'),
                 'type' => $request->missing('type'),
                 'status' => $request->missing('status'),
+                'is_national' => $request->missing('is_national'),
                 'intro' => $request->missing('intro'),
                 'description' => $request->missing('description', function ($description) {
                     return sanitize_markdown($description);
@@ -269,17 +272,17 @@ class ServiceController extends Controller
                 'referral_email' => $request->missing('referral_email'),
                 'referral_url' => $request->missing('referral_url'),
                 'criteria' => $request->has('criteria')
-                    ? array_filter_missing([
-                        'age_group' => $request->missing('criteria.age_group'),
-                        'disability' => $request->missing('criteria.disability'),
-                        'employment' => $request->missing('criteria.employment'),
-                        'gender' => $request->missing('criteria.gender'),
-                        'housing' => $request->missing('criteria.housing'),
-                        'income' => $request->missing('criteria.income'),
-                        'language' => $request->missing('criteria.language'),
-                        'other' => $request->missing('criteria.other'),
-                    ])
-                    : new MissingValue(),
+                ? array_filter_missing([
+                    'age_group' => $request->missing('criteria.age_group'),
+                    'disability' => $request->missing('criteria.disability'),
+                    'employment' => $request->missing('criteria.employment'),
+                    'gender' => $request->missing('criteria.gender'),
+                    'housing' => $request->missing('criteria.housing'),
+                    'income' => $request->missing('criteria.income'),
+                    'language' => $request->missing('criteria.language'),
+                    'other' => $request->missing('criteria.other'),
+                ])
+                : new MissingValue(),
                 'useful_infos' => $request->has('useful_infos') ? [] : new MissingValue(),
                 'offerings' => $request->has('offerings') ? [] : new MissingValue(),
                 'social_medias' => $request->has('social_medias') ? [] : new MissingValue(),

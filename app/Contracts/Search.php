@@ -47,6 +47,12 @@ interface Search
     public function applyIsFree(bool $isFree): Search;
 
     /**
+     * @param bool $isNational
+     * @return \App\Contracts\Search
+     */
+    public function applyIsNational(bool $isNational): Search;
+
+    /**
      * @param string $order
      * @param \App\Support\Coordinate|null $location
      * @return \App\Contracts\Search

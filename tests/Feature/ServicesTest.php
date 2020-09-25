@@ -6,6 +6,7 @@ use App\Events\EndpointHit;
 use App\Models\Audit;
 use App\Models\File;
 use App\Models\HolidayOpeningHour;
+use App\Models\Location;
 use App\Models\Organisation;
 use App\Models\RegularOpeningHour;
 use App\Models\Service;
@@ -64,6 +65,7 @@ class ServicesTest extends TestCase
             'name' => $service->name,
             'type' => $service->type,
             'status' => $service->status,
+            'is_national' => $service->is_national,
             'intro' => $service->intro,
             'description' => $service->description,
             'wait_time' => $service->wait_time,
@@ -277,6 +279,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_INACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -345,6 +348,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_INACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -413,6 +417,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -482,6 +487,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -559,6 +565,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -612,6 +619,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -682,6 +690,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -761,6 +770,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -840,6 +850,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_INACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -911,6 +922,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_INACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1002,6 +1014,7 @@ class ServicesTest extends TestCase
             'name' => $service->name,
             'type' => $service->type,
             'status' => $service->status,
+            'is_national' => $service->is_national,
             'intro' => $service->intro,
             'description' => $service->description,
             'wait_time' => $service->wait_time,
@@ -1095,6 +1108,7 @@ class ServicesTest extends TestCase
             'name' => $service->name,
             'type' => $service->type,
             'status' => $service->status,
+            'is_national' => $service->is_national,
             'intro' => $service->intro,
             'description' => $service->description,
             'wait_time' => $service->wait_time,
@@ -1229,6 +1243,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => true,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1302,6 +1317,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1375,6 +1391,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1449,6 +1466,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1523,6 +1541,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1599,6 +1618,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1673,6 +1693,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1746,6 +1767,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_INACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1802,6 +1824,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1858,6 +1881,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_INACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1914,6 +1938,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -1953,6 +1978,66 @@ class ServicesTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
     }
 
+    public function test_global_admin_cannot_update_is_national_if_service_location_exists()
+    {
+        $service = factory(Service::class)->create([
+            'slug' => 'test-service',
+            'is_national' => false,
+        ]);
+        $taxonomy = Taxonomy::category()->children()->firstOrFail();
+        $location = factory(Location::class)->create();
+        $service = factory(Service::class)->create();
+        $service->serviceLocations()->create(['location_id' => $location->id]);
+
+        $user = factory(User::class)->create()->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $payload = [
+            'slug' => 'new-slug',
+            'name' => 'Test Service',
+            'type' => Service::TYPE_SERVICE,
+            'status' => Service::STATUS_ACTIVE,
+            'is_national' => true,
+            'intro' => 'This is a test intro',
+            'description' => 'Lorem ipsum',
+            'wait_time' => null,
+            'is_free' => true,
+            'fees_text' => null,
+            'fees_url' => null,
+            'testimonial' => null,
+            'video_embed' => null,
+            'url' => $this->faker->url,
+            'contact_name' => $this->faker->name,
+            'contact_phone' => random_uk_phone(),
+            'contact_email' => $this->faker->safeEmail,
+            'show_referral_disclaimer' => true,
+            'referral_method' => Service::REFERRAL_METHOD_INTERNAL,
+            'referral_button_text' => null,
+            'referral_email' => $this->faker->safeEmail,
+            'referral_url' => null,
+            'criteria' => [
+                'age_group' => '18+',
+                'disability' => null,
+                'employment' => null,
+                'gender' => null,
+                'housing' => null,
+                'income' => null,
+                'language' => null,
+                'other' => null,
+            ],
+            'useful_infos' => [],
+            'offerings' => [],
+            'social_medias' => [],
+            'category_taxonomies' => [
+                $taxonomy->id,
+            ],
+        ];
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
     public function test_referral_email_must_be_provided_when_referral_type_is_internal()
     {
         $service = factory(Service::class)->create([
@@ -1970,6 +2055,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -2015,6 +2101,7 @@ class ServicesTest extends TestCase
         $service = factory(Service::class)->create([
             'slug' => 'test-service',
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'referral_method' => Service::REFERRAL_METHOD_INTERNAL,
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
@@ -2028,6 +2115,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -2074,6 +2162,7 @@ class ServicesTest extends TestCase
         $service = factory(Service::class)->create([
             'slug' => 'test-service',
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'referral_method' => Service::REFERRAL_METHOD_INTERNAL,
             'referral_email' => $this->faker->safeEmail,
         ]);
@@ -2088,6 +2177,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -2132,6 +2222,7 @@ class ServicesTest extends TestCase
         $service = factory(Service::class)->create([
             'slug' => 'test-service',
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'referral_method' => Service::REFERRAL_METHOD_INTERNAL,
             'referral_email' => $this->faker->safeEmail,
         ]);
@@ -2238,6 +2329,7 @@ class ServicesTest extends TestCase
         $service = factory(Service::class)->create([
             'slug' => 'test-service',
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'referral_method' => Service::REFERRAL_METHOD_EXTERNAL,
             'referral_url' => $this->faker->url,
         ]);
@@ -2651,6 +2743,7 @@ class ServicesTest extends TestCase
             'name' => 'Test Service',
             'type' => Service::TYPE_SERVICE,
             'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
             'intro' => 'This is a test intro',
             'description' => 'Lorem ipsum',
             'wait_time' => null,
@@ -2731,6 +2824,7 @@ class ServicesTest extends TestCase
             'slug' => $service->slug,
             'name' => $service->name,
             'status' => $service->status,
+            'is_national' => $service->is_national,
             'intro' => $service->intro,
             'description' => $service->description,
             'wait_time' => $service->wait_time,

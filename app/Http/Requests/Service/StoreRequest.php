@@ -75,6 +75,7 @@ class StoreRequest extends FormRequest
                     Service::STATUS_INACTIVE
                 ),
             ],
+            'is_national' => ['required', 'boolean'],
             'intro' => ['required', 'string', 'min:1', 'max:300'],
             'description' => ['required', 'string', new MarkdownMinLength(1), new MarkdownMaxLength(1600)],
             'wait_time' => ['present', 'nullable', Rule::in([
