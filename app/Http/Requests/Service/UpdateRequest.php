@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Service;
 
-use App\Http\Requests\HasMissingValues;
 use App\Models\File;
 use App\Models\Role;
 use App\Models\Service;
@@ -26,8 +25,6 @@ use Illuminate\Validation\Rule;
 
 class UpdateRequest extends FormRequest
 {
-    use HasMissingValues;
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -288,16 +285,6 @@ class UpdateRequest extends FormRequest
                 new FileIsPendingAssignment(),
             ],
         ];
-    }
-
-    /**
-     * Check if the user requested only a preview of the update request.
-     *
-     * @return bool
-     */
-    public function isPreview(): bool
-    {
-        return $this->preview === true;
     }
 
     /**

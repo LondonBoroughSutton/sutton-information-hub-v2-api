@@ -7,7 +7,6 @@ use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\StatusUpdate;
-use App\Models\UpdateRequest;
 use App\Models\User;
 use App\Models\UserRole;
 
@@ -40,22 +39,6 @@ trait UserRelationships
         $sql = (new User())->getHighestRoleOrderSql();
 
         return $this->roles()->orderByRaw($sql['sql'], $sql['bindings']);
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function updateRequests()
-    {
-        return $this->hasMany(UpdateRequest::class);
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function actionedUpdateRequests()
-    {
-        return $this->hasMany(UpdateRequest::class, 'actioning_user_id');
     }
 
     /**

@@ -2,27 +2,20 @@
 
 namespace App\Models;
 
-use App\Http\Requests\ServiceLocation\UpdateRequest as Request;
 use App\Models\Mutators\ServiceLocationMutators;
 use App\Models\Relationships\ServiceLocationRelationships;
 use App\Models\Scopes\ServiceLocationScopes;
-use App\Rules\FileIsMimeType;
 use App\Support\Time;
-use App\UpdateRequest\AppliesUpdateRequests;
-use App\UpdateRequest\UpdateRequests;
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
-class ServiceLocation extends Model implements AppliesUpdateRequests
+class ServiceLocation extends Model
 {
     use ServiceLocationMutators;
     use ServiceLocationRelationships;
     use ServiceLocationScopes;
-    use UpdateRequests;
 
     /**
      * Determine if the service location is open at this point in time.
@@ -121,88 +114,6 @@ class ServiceLocation extends Model implements AppliesUpdateRequests
         }
 
         return false;
-    }
-
-    /**
-     * Check if the update request is valid.
-     *
-     * @param \App\Models\UpdateRequest $updateRequest
-     * @return \Illuminate\Contracts\Validation\Validator
-     */
-    public function validateUpdateRequest(UpdateRequest $updateRequest): Validator
-    {
-        $rules = (new Request())->rules();
-
-        // Remove the pending assignment rule since the file is now uploaded.
-        $rules['image_file_id'] = [
-            'nullable',
-            'exists:files,id',
-            new FileIsMimeType(File::MIME_TYPE_PNG),
-        ];
-
-        return ValidatorFacade::make($updateRequest->data, $rules);
-    }
-
-    /**
-     * Apply the update request.
-     *
-     * @param \App\Models\UpdateRequest $updateRequest
-     * @return \App\Models\UpdateRequest
-     */
-    public function applyUpdateRequest(UpdateRequest $updateRequest): UpdateRequest
-    {
-        $data = $updateRequest->data;
-
-        // Update the service location.
-        $this->update([
-            'name' => $data['name'] ?? $this->name,
-            'image_file_id' => array_key_exists('image_file_id', $data)
-                ? $data['image_file_id']
-                : $this->image_file_id,
-        ]);
-
-        // Attach the regular opening hours.
-        if (array_key_exists('regular_opening_hours', $data)) {
-            $this->regularOpeningHours()->delete();
-            foreach ($data['regular_opening_hours'] as $regularOpeningHour) {
-                $this->regularOpeningHours()->create([
-                    'frequency' => $regularOpeningHour['frequency'],
-                    'weekday' => in_array(
-                        $regularOpeningHour['frequency'],
-                        [RegularOpeningHour::FREQUENCY_WEEKLY, RegularOpeningHour::FREQUENCY_NTH_OCCURRENCE_OF_MONTH]
-                    )
-                        ? $regularOpeningHour['weekday']
-                        : null,
-                    'day_of_month' => ($regularOpeningHour['frequency'] === RegularOpeningHour::FREQUENCY_MONTHLY)
-                        ? $regularOpeningHour['day_of_month']
-                        : null,
-                    'occurrence_of_month' => ($regularOpeningHour['frequency'] === RegularOpeningHour::FREQUENCY_NTH_OCCURRENCE_OF_MONTH)
-                        ? $regularOpeningHour['occurrence_of_month']
-                        : null,
-                    'starts_at' => ($regularOpeningHour['frequency'] === RegularOpeningHour::FREQUENCY_FORTNIGHTLY)
-                        ? $regularOpeningHour['starts_at']
-                        : null,
-                    'opens_at' => $regularOpeningHour['opens_at'],
-                    'closes_at' => $regularOpeningHour['closes_at'],
-                ]);
-            }
-        }
-
-        // Attach the holiday opening hours.
-        if (array_key_exists('holiday_opening_hours', $data)) {
-            $this->holidayOpeningHours()->delete();
-            foreach ($data['holiday_opening_hours'] as $holidayOpeningHour) {
-                $this->holidayOpeningHours()->create([
-                    'is_closed' => $holidayOpeningHour['is_closed'],
-                    'starts_at' => $holidayOpeningHour['starts_at'],
-                    'ends_at' => $holidayOpeningHour['ends_at'],
-                    'opens_at' => $holidayOpeningHour['opens_at'],
-                    'closes_at' => $holidayOpeningHour['closes_at'],
-                ]);
-            }
-        }
-
-        return $updateRequest;
     }
 
     /**

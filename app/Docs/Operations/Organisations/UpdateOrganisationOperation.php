@@ -2,14 +2,16 @@
 
 namespace App\Docs\Operations\Organisations;
 
-use App\Docs\Responses\UpdateRequestReceivedResponse;
+use App\Docs\Schemas\Organisation\OrganisationSchema;
 use App\Docs\Schemas\Organisation\UpdateOrganisationSchema;
+use App\Docs\Schemas\ResourceSchema;
 use App\Docs\Tags\OrganisationsTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Operation;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Parameter;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\RequestBody;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\Response;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 
 class UpdateOrganisationOperation extends Operation
@@ -41,7 +43,11 @@ class UpdateOrganisationOperation extends Operation
                     )
             )
             ->responses(
-                UpdateRequestReceivedResponse::create(null, UpdateOrganisationSchema::create())
+                Response::created()->content(
+                    MediaType::json()->schema(
+                        ResourceSchema::create(null, OrganisationSchema::create())
+                    )
+                )
             );
     }
 }

@@ -139,24 +139,6 @@ return [
                 'email' => '55af8b8f-1b36-4854-8cce-07d998fdd82a',
             ],
         ],
-        'update_request_received' => [
-            'notify_submitter' => [
-                'email' => 'e6cd56cc-6259-4cc7-9568-7c48a4988abc',
-            ],
-            'notify_global_admin' => [
-                'email' => '9d6c6177-37af-47f0-b097-bffd430a48cc',
-            ],
-        ],
-        'update_request_approved' => [
-            'notify_submitter' => [
-                'email' => 'e26647a6-97e9-4ab0-bedd-e924b4d03742',
-            ],
-        ],
-        'update_request_rejected' => [
-            'notify_submitter' => [
-                'email' => '4b9a76de-f869-4327-8563-51ebdf9d13f6',
-            ],
-        ],
         'user_created' => [
             'notify_user' => [
                 'email' => '7bb4074d-ffe8-4c80-baac-fbeb92be3ef9',
@@ -196,16 +178,6 @@ return [
             ],
             'notify_global_admin' => [
                 'email' => '0eb7828f-b28f-4c0c-acbe-62c7fbcc0be7',
-            ],
-        ],
-        'organisation_sign_up_form_approved' => [
-            'notify_submitter' => [
-                'email' => '18815d90-b2b9-4205-9784-f0e05e801599',
-            ],
-        ],
-        'organisation_sign_up_form_rejected' => [
-            'notify_submitter' => [
-                'email' => '6575fea8-5517-41fa-b78d-0c77cdc5d533',
             ],
         ],
         'organisation_admin_invite_initial' => [

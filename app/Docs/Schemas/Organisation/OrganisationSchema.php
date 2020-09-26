@@ -21,6 +21,8 @@ class OrganisationSchema extends Schema
                 Schema::string('id')
                     ->format(Schema::TYPE_OBJECT),
                 Schema::boolean('has_logo'),
+                Schema::boolean('location_id')
+                    ->format(Schema::FORMAT_UUID),
                 Schema::string('name'),
                 Schema::string('slug'),
                 Schema::string('description'),

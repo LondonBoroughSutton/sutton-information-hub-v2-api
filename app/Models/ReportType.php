@@ -75,12 +75,4 @@ class ReportType extends Model
     {
         return static::where('name', 'Search Histories Export')->firstOrFail();
     }
-
-    /**
-     * @return \App\Models\ReportType
-     */
-    public static function historicUpdateRequestsExport(): self
-    {
-        return static::where('name', 'Historic Update Requests Export')->firstOrFail();
-    }
 }

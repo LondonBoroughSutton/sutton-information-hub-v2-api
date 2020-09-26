@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Service\Logo\ShowRequest;
 use App\Models\File;
 use App\Models\Service;
-use App\Models\UpdateRequest;
 
 class LogoController extends Controller
 {
@@ -25,18 +24,6 @@ class LogoController extends Controller
 
         // Get the logo file associated.
         $file = $service->logoFile;
-
-        // Use the file from an update request instead, if specified.
-        if ($request->has('update_request_id')) {
-            $logoFileId = UpdateRequest::query()
-                ->serviceId($service->id)
-                ->where('id', '=', $request->update_request_id)
-                ->firstOrFail()
-                ->data['logo_file_id'];
-
-            /** @var \App\Models\File $file */
-            $file = File::findOrFail($logoFileId);
-        }
 
         // Return the file, or placeholder if the file is null.
         return optional($file)->resizedVersion($request->max_dimension)

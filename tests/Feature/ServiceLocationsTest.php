@@ -10,7 +10,6 @@ use App\Models\Location;
 use App\Models\RegularOpeningHour;
 use App\Models\Service;
 use App\Models\ServiceLocation;
-use App\Models\UpdateRequest;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
@@ -411,7 +410,7 @@ class ServiceLocationsTest extends TestCase
 
         Passport::actingAs($user);
 
-        $payload = [
+        $response = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", [
             'name' => 'New Company Name',
             'regular_opening_hours' => [
                 [
@@ -430,13 +429,30 @@ class ServiceLocationsTest extends TestCase
                     'closes_at' => '00:00:00',
                 ],
             ],
-        ];
-        $response = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", $payload);
+        ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        $response->assertJsonFragment(['data' => $payload]);
-        $data = $serviceLocation->updateRequests()->firstOrFail()->data;
-        $this->assertEquals($data, $payload);
+        $response->assertJsonFragment([
+            'id' => $serviceLocation->id,
+            'name' => 'New Company Name',
+            'regular_opening_hours' => [
+                [
+                    'frequency' => RegularOpeningHour::FREQUENCY_MONTHLY,
+                    'day_of_month' => 10,
+                    'opens_at' => '10:00:00',
+                    'closes_at' => '14:00:00',
+                ],
+            ],
+            'holiday_opening_hours' => [
+                [
+                    'is_closed' => true,
+                    'starts_at' => '2018-01-01',
+                    'ends_at' => '2018-01-01',
+                    'opens_at' => '00:00:00',
+                    'closes_at' => '00:00:00',
+                ],
+            ],
+        ]);
     }
 
     public function test_audit_created_when_updated()
@@ -468,40 +484,15 @@ class ServiceLocationsTest extends TestCase
 
         Passport::actingAs($user);
 
-        $payload = [
+        $response = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", [
             'name' => 'New Company Name',
-        ];
-        $response = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", $payload);
+        ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        $response->assertJsonFragment(['data' => $payload]);
-        $data = $serviceLocation->updateRequests()->firstOrFail()->data;
-        $this->assertEquals($data, $payload);
-    }
-
-    public function test_fields_removed_for_existing_update_requests()
-    {
-        $serviceLocation = factory(ServiceLocation::class)->create();
-        $user = factory(User::class)->create()->makeServiceAdmin($serviceLocation->service);
-
-        Passport::actingAs($user);
-
-        $responseOne = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", [
+        $response->assertJsonFragment([
+            'id' => $serviceLocation->id,
             'name' => 'New Company Name',
         ]);
-        $responseOne->assertStatus(Response::HTTP_OK);
-
-        $responseTwo = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", [
-            'name' => 'New Company Name',
-        ]);
-        $responseTwo->assertStatus(Response::HTTP_OK);
-
-        $updateRequestOne = UpdateRequest::withTrashed()->findOrFail($this->getResponseContent($responseOne)['id']);
-        $updateRequestTwo = UpdateRequest::findOrFail($this->getResponseContent($responseTwo)['id']);
-
-        $this->assertArrayNotHasKey('name', $updateRequestOne->data);
-        $this->assertArrayHasKey('name', $updateRequestTwo->data);
-        $this->assertSoftDeleted($updateRequestOne->getTable(), ['id' => $updateRequestOne->id]);
     }
 
     /*
@@ -650,14 +641,15 @@ class ServiceLocationsTest extends TestCase
             'holiday_opening_hours' => [],
             'image_file_id' => $this->getResponseContent($imageResponse, 'data.id'),
         ]);
-        $locationId = $this->getResponseContent($response, 'data.id');
+        $serviceLocationId = $this->getResponseContent($response, 'data.id');
 
         $response->assertStatus(Response::HTTP_CREATED);
-        $this->assertDatabaseHas(table(ServiceLocation::class), [
-            'id' => $locationId,
+        $response->assertJsonFragment([
+            'id' => $serviceLocationId,
+            'has_image' => true,
         ]);
         $this->assertDatabaseMissing(table(ServiceLocation::class), [
-            'id' => $locationId,
+            'id' => $serviceLocationId,
             'image_file_id' => null,
         ]);
     }
@@ -676,20 +668,20 @@ class ServiceLocationsTest extends TestCase
         $serviceLocation = factory(ServiceLocation::class)->create([
             'image_file_id' => factory(File::class)->create()->id,
         ]);
-        $payload = [
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", [
             'name' => null,
             'regular_opening_hours' => [],
             'holiday_opening_hours' => [],
             'image_file_id' => null,
-        ];
-
-        Passport::actingAs($user);
-
-        $response = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", $payload);
+        ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $serviceLocation->id]);
-        $updateRequest = UpdateRequest::where('updateable_id', $serviceLocation->id)->firstOrFail();
-        $this->assertEquals(null, $updateRequest->data['image_file_id']);
+        $response->assertJsonFragment([
+            'id' => $serviceLocation->id,
+            'has_image' => false,
+        ]);
     }
 }

@@ -91,7 +91,6 @@ class ServiceObserver
      */
     public function deleting(Service $service)
     {
-        $service->updateRequests->each->delete();
         $service->userRoles->each->delete();
         $service->referrals->each->delete();
         $service->serviceLocations->each->delete();

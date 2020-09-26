@@ -4,10 +4,9 @@ namespace Tests\Unit\Observers;
 
 use App\Emails\StaleServiceDisabled\NotifyGlobalAdminEmail;
 use App\Models\Service;
-use App\Models\User;
+use App\Observers\ServiceObserver;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Queue;
-use Laravel\Passport\Passport;
 use Tests\TestCase;
 
 class ServiceObserverTest extends TestCase
@@ -16,28 +15,16 @@ class ServiceObserverTest extends TestCase
     {
         Queue::fake();
 
-        $oldNow = Date::now()->subMonths(13);
-
-        $user = factory(User::class)->create()->makeGlobalAdmin();
-        Passport::actingAs($user);
-
         /** @var \App\Models\Service $service */
         $service = factory(Service::class)->create([
             'status' => Service::STATUS_ACTIVE,
-            'last_modified_at' => $oldNow,
-            'created_at' => $oldNow,
-            'updated_at' => $oldNow,
+            'last_modified_at' => Date::now()->subMonths(13),
         ]);
 
-        /** @var \App\Models\UpdateRequest $updateRequest */
-        $updateRequest = $service->updateRequests()->create([
-            'user_id' => factory(User::class)->create()->id,
-            'data' => [
-                'status' => Service::STATUS_INACTIVE,
-            ],
-        ]);
+        $service->status = Service::STATUS_INACTIVE;
 
-        $service->applyUpdateRequest($updateRequest);
+        $observer = new ServiceObserver();
+        $observer->updated($service);
 
         Queue::assertPushedOn('notifications', NotifyGlobalAdminEmail::class);
         Queue::assertPushed(NotifyGlobalAdminEmail::class, function (NotifyGlobalAdminEmail $email): bool {

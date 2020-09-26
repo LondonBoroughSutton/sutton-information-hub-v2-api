@@ -3,7 +3,6 @@
 namespace App\Docs\Operations\ServiceLocations;
 
 use App\Docs\Parameters\MaxDimensionParameter;
-use App\Docs\Parameters\UpdateRequestIdParameter;
 use App\Docs\Responses\PngResponse;
 use App\Docs\Tags\ServiceLocationsTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
@@ -25,8 +24,7 @@ class ImageServiceLocationOperation extends Operation
             ->description('**Permission:** `Open`')
             ->noSecurity()
             ->parameters(
-                MaxDimensionParameter::create(),
-                UpdateRequestIdParameter::create()
+                MaxDimensionParameter::create()
             )
             ->responses(PngResponse::create());
     }

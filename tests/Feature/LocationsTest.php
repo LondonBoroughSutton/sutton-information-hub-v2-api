@@ -8,7 +8,6 @@ use App\Models\File;
 use App\Models\Location;
 use App\Models\Organisation;
 use App\Models\Service;
-use App\Models\UpdateRequest;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
@@ -258,7 +257,7 @@ class LocationsTest extends TestCase
         $response->assertStatus(Response::HTTP_FORBIDDEN);
     }
 
-    public function test_service_admin_can_request_to_update_one()
+    public function test_service_admin_can_update_one()
     {
         /**
          * @var \App\Models\Service $service
@@ -271,7 +270,7 @@ class LocationsTest extends TestCase
 
         Passport::actingAs($user);
 
-        $payload = [
+        $response = $this->json('PUT', "/core/v1/locations/{$location->id}", [
             'address_line_1' => '30-34 Aire St',
             'address_line_2' => null,
             'address_line_3' => null,
@@ -282,22 +281,21 @@ class LocationsTest extends TestCase
             'accessibility_info' => null,
             'has_wheelchair_access' => false,
             'has_induction_loop' => false,
-        ];
-        $response = $this->json('PUT', "/core/v1/locations/{$location->id}", $payload);
+        ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        $response->assertJsonFragment(['data' => $payload]);
-        $this->assertDatabaseHas((new UpdateRequest())->getTable(), [
-            'user_id' => $user->id,
-            'updateable_type' => UpdateRequest::EXISTING_TYPE_LOCATION,
-            'updateable_id' => $location->id,
+        $response->assertJsonFragment([
+            'address_line_1' => '30-34 Aire St',
+            'address_line_2' => null,
+            'address_line_3' => null,
+            'city' => 'Leeds',
+            'county' => 'West Yorkshire',
+            'postcode' => 'LS1 4HT',
+            'country' => 'England',
+            'accessibility_info' => null,
+            'has_wheelchair_access' => false,
+            'has_induction_loop' => false,
         ]);
-        $data = UpdateRequest::query()
-            ->where('updateable_type', UpdateRequest::EXISTING_TYPE_LOCATION)
-            ->where('updateable_id', $location->id)
-            ->firstOrFail()
-            ->data;
-        $this->assertEquals($data, $payload);
     }
 
     public function test_audit_created_when_updated()
@@ -348,57 +346,14 @@ class LocationsTest extends TestCase
 
         Passport::actingAs($user);
 
-        $payload = [
+        $response = $this->json('PUT', "/core/v1/locations/{$location->id}", [
             'address_line_1' => '30-34 Aire St',
-        ];
-        $response = $this->json('PUT', "/core/v1/locations/{$location->id}", $payload);
+        ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        $response->assertJsonFragment(['data' => $payload]);
-        $this->assertDatabaseHas((new UpdateRequest())->getTable(), [
-            'user_id' => $user->id,
-            'updateable_type' => UpdateRequest::EXISTING_TYPE_LOCATION,
-            'updateable_id' => $location->id,
+        $response->assertJsonFragment([
+            'address_line_1' => '30-34 Aire St',
         ]);
-        $data = UpdateRequest::query()
-            ->where('updateable_type', UpdateRequest::EXISTING_TYPE_LOCATION)
-            ->where('updateable_id', $location->id)
-            ->firstOrFail()
-            ->data;
-        $this->assertEquals($data, $payload);
-    }
-
-    public function test_fields_removed_for_existing_update_requests()
-    {
-        /**
-         * @var \App\Models\Service $service
-         * @var \App\Models\User $user
-         */
-        $service = factory(Service::class)->create();
-        $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
-        $location = factory(Location::class)->create();
-
-        Passport::actingAs($user);
-
-        $responseOne = $this->json('PUT', "/core/v1/locations/{$location->id}", [
-            'address_line_1' => '1 Old Street',
-        ]);
-        $responseOne->assertStatus(Response::HTTP_OK);
-
-        $responseTwo = $this->json('PUT', "/core/v1/locations/{$location->id}", [
-            'address_line_1' => '2 New Street',
-            'address_line_2' => 'Floor 3',
-        ]);
-        $responseTwo->assertStatus(Response::HTTP_OK);
-
-        $updateRequestOne = UpdateRequest::withTrashed()->findOrFail($this->getResponseContent($responseOne)['id']);
-        $updateRequestTwo = UpdateRequest::findOrFail($this->getResponseContent($responseTwo)['id']);
-
-        $this->assertArrayNotHasKey('address_line_1', $updateRequestOne->data);
-        $this->assertArrayHasKey('address_line_1', $updateRequestTwo->data);
-        $this->assertArrayHasKey('address_line_2', $updateRequestTwo->data);
-        $this->assertSoftDeleted($updateRequestOne->getTable(), ['id' => $updateRequestOne->id]);
     }
 
     /*
@@ -570,12 +525,19 @@ class LocationsTest extends TestCase
         $locationId = $this->getResponseContent($response, 'data.id');
 
         $response->assertStatus(Response::HTTP_CREATED);
-        $this->assertDatabaseHas(table(Location::class), [
+        $response->assertJsonFragment([
             'id' => $locationId,
-        ]);
-        $this->assertDatabaseMissing(table(Location::class), [
-            'id' => $locationId,
-            'image_file_id' => null,
+            'address_line_1' => '30-34 Aire St',
+            'address_line_2' => null,
+            'address_line_3' => null,
+            'city' => 'Leeds',
+            'county' => 'West Yorkshire',
+            'postcode' => 'LS1 4HT',
+            'country' => 'England',
+            'accessibility_info' => null,
+            'has_wheelchair_access' => false,
+            'has_induction_loop' => false,
+            'has_image' => true,
         ]);
     }
 
@@ -612,8 +574,19 @@ class LocationsTest extends TestCase
         $response = $this->json('PUT', "/core/v1/locations/{$location->id}", $payload);
 
         $response->assertStatus(Response::HTTP_OK);
-        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $location->id]);
-        $updateRequest = UpdateRequest::where('updateable_id', $location->id)->firstOrFail();
-        $this->assertEquals(null, $updateRequest->data['image_file_id']);
+        $response->assertJsonFragment([
+            'id' => $location->id,
+            'address_line_1' => $location->address_line_1,
+            'address_line_2' => $location->address_line_2,
+            'address_line_3' => $location->address_line_3,
+            'city' => $location->city,
+            'county' => $location->county,
+            'postcode' => $location->postcode,
+            'country' => $location->country,
+            'accessibility_info' => $location->accessibility_info,
+            'has_wheelchair_access' => $location->has_wheelchair_access,
+            'has_induction_loop' => $location->has_induction_loop,
+            'has_image' => false,
+        ]);
     }
 }

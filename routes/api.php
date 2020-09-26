@@ -176,13 +176,6 @@ Route::prefix('core/v1')
             Route::put('/thesaurus', 'ThesaurusController@update')
                 ->name('thesaurus.update');
 
-            // Update Requests.
-            Route::match(['GET', 'POST'], '/update-requests/index', 'UpdateRequestController@index');
-            Route::apiResource('/update-requests', 'UpdateRequestController')
-                ->only('index', 'show', 'destroy');
-            Route::put('/update-requests/{update_request}/approve', 'UpdateRequest\\ApproveController@update')
-                ->name('update-requests.approve');
-
             // Users.
             Route::match(['GET', 'POST'], '/users/index', 'UserController@index');
             Route::get('/users/user', 'UserController@user')

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Location;
 
-use App\Http\Requests\HasMissingValues;
 use App\Models\File;
 use App\Rules\FileIsMimeType;
 use App\Rules\FileIsPendingAssignment;
@@ -11,8 +10,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateRequest extends FormRequest
 {
-    use HasMissingValues;
-
     /**
      * Determine if the user is authorized to make this request.
      *
