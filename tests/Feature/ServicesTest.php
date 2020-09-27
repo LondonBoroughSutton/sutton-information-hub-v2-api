@@ -186,6 +186,22 @@ class ServicesTest extends TestCase
         $response->assertJsonMissing(['id' => $anotherService->id]);
     }
 
+    public function test_guest_can_filter_by_has_category_taxonomies()
+    {
+        $service = factory(Service::class)->create();
+        $service->serviceTaxonomies()->create([
+            'taxonomy_id' => Taxonomy::category()->children()->first()->id,
+        ]);
+
+        factory(Service::class)->create();
+
+        $response = $this->json('GET', '/core/v1/services?filter[has_category_taxonomies]=true');
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $service->id]);
+    }
+
     public function test_audit_created_when_listed()
     {
         $this->fakeEvents();

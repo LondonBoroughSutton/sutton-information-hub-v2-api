@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Core\V1;
 
 use App\Events\EndpointHit;
 use App\Http\Controllers\Controller;
+use App\Http\Filters\Organisation\HasEmailFilter;
 use App\Http\Filters\Organisation\HasPermissionFilter;
+use App\Http\Filters\Organisation\HasPhoneFilter;
+use App\Http\Filters\Organisation\HasServicesFilter;
+use App\Http\Filters\Organisation\HasSocialMediasFilter;
 use App\Http\Requests\Organisation\DestroyRequest;
 use App\Http\Requests\Organisation\IndexRequest;
 use App\Http\Requests\Organisation\ShowRequest;
@@ -44,6 +48,10 @@ class OrganisationController extends Controller
                 Filter::exact('id'),
                 'name',
                 Filter::custom('has_permission', HasPermissionFilter::class),
+                Filter::custom('has_email', HasEmailFilter::class),
+                Filter::custom('has_social_medias', HasSocialMediasFilter::class),
+                Filter::custom('has_phone', HasPhoneFilter::class),
+                Filter::custom('has_services', HasServicesFilter::class),
             ])
             ->allowedSorts('name')
             ->defaultSort('name')

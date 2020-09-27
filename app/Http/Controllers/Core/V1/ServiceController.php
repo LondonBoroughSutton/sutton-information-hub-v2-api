@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Core\V1;
 
 use App\Events\EndpointHit;
 use App\Http\Controllers\Controller;
+use App\Http\Filters\Service\HasCategoryTaxonomiesFilter;
 use App\Http\Filters\Service\HasPermissionFilter;
 use App\Http\Filters\Service\OrganisationNameFilter;
 use App\Http\Requests\Service\DestroyRequest;
@@ -70,6 +71,7 @@ class ServiceController extends Controller
                 Filter::exact('referral_method'),
                 Filter::exact('is_national'),
                 Filter::custom('has_permission', HasPermissionFilter::class),
+                Filter::custom('has_category_taxonomies', HasCategoryTaxonomiesFilter::class),
             ])
             ->allowedIncludes(['organisation'])
             ->allowedSorts([

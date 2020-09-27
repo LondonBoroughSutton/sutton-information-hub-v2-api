@@ -41,6 +41,18 @@ class IndexOrganisationOperation extends Operation
                 FilterParameter::create(null, 'has_permission')
                     ->description('Filter organisations to only ones they have permissions for')
                     ->schema(Schema::boolean()),
+                FilterParameter::create(null, 'has_email')
+                    ->description('Filter out organisations that have no email')
+                    ->schema(Schema::boolean()),
+                FilterParameter::create(null, 'has_social_medias')
+                    ->description('Filter out organisations that have no social medias')
+                    ->schema(Schema::boolean()),
+                FilterParameter::create(null, 'has_phone')
+                    ->description('Filter out organisations that have no phone')
+                    ->schema(Schema::boolean()),
+                FilterParameter::create(null, 'has_services')
+                    ->description('Filter out organisations that have no services')
+                    ->schema(Schema::boolean()),
                 SortParameter::create(null, ['name'], 'name')
             )
             ->responses(

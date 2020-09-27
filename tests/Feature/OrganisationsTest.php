@@ -78,6 +78,67 @@ class OrganisationsTest extends TestCase
         $this->assertEquals($organisationTwo->id, $data['data'][0]['id']);
     }
 
+    public function test_guest_can_filter_by_has_email()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisation = factory(Organisation::class)->create([
+            'email' => 'acme.org@example.com',
+        ]);
+        factory(Organisation::class)->create([
+            'email' => null,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_email]=true');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisation->id]);
+    }
+
+    public function test_guest_can_filter_by_has_social_medias()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisation = factory(Organisation::class)->create();
+        $organisation->socialMedias()->create([
+            'type' => SocialMedia::TYPE_FACEBOOK,
+            'url' => 'https://facebook.com/AcmeOrg',
+        ]);
+
+        factory(Organisation::class)->create();
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=true');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisation->id]);
+    }
+
+    public function test_guest_can_filter_by_has_phone()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisation = factory(Organisation::class)->create([
+            'phone' => '01130000000',
+        ]);
+        factory(Organisation::class)->create([
+            'phone' => null,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=true');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisation->id]);
+    }
+
+    public function test_guest_can_filter_by_has_services()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisation = factory(Organisation::class)->create();
+        factory(Service::class)->create([
+            'organisation_id' => $organisation->id,
+        ]);
+
+        factory(Organisation::class)->create();
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_services]=true');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisation->id]);
+    }
+
     /*
      * Create an organisation.
      */
