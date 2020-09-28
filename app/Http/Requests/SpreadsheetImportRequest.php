@@ -32,6 +32,10 @@ class SpreadsheetImportRequest extends FormRequest
                 'required',
                 'regex:/^data:application\/[a-z\-\.]+;base64,/',
             ],
+            'organisation_id' => [
+                'sometimes',
+                'exists:organisations,id',
+            ],
         ];
     }
 }
