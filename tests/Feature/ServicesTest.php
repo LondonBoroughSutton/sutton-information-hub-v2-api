@@ -3094,4 +3094,29 @@ class ServicesTest extends TestCase
             'role_id' => Role::serviceAdmin()->id,
         ]);
     }
+
+    public function test_service_criterions_created_on_import()
+    {
+        Storage::fake('local');
+
+        $user = factory(User::class)->create()->makeSuperAdmin();
+
+        $admin = factory(User::class)->create()->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('POST', "/core/v1/services/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/services_import_1_good.xls')))]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 1,
+            ],
+        ]);
+
+        $serviceId = \DB::table('services')->latest()->pluck('id');
+
+        $this->assertDatabaseHas('service_criteria', [
+            'service_id' => $serviceId,
+        ]);
+    }
 }

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Core\V1\Organisation;
 
 use App\BatchUpload\SpreadsheetHandler;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Organisation\ImportRequest;
+use App\Http\Requests\SpreadsheetImportRequest;
 use App\Models\Role;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -33,11 +33,11 @@ class ImportController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param \App\Http\Requests\Organisation\ImportRequest $request
+     * @param \App\Http\Requests\SpreadsheetImportRequest $request
      * @throws Illuminate\Validation\ValidationException
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(ImportRequest $request)
+    public function __invoke(SpreadsheetImportRequest $request)
     {
         $filePath = $this->storeBase64FileString($request->input('spreadsheet'), 'batch-upload');
 
@@ -201,7 +201,7 @@ class ImportController extends Controller
             $globalAdminIds = Role::globalAdmin()->users()->pluck('users.id');
             $organisationRowBatch = $adminRowBatch = [];
             foreach ($spreadsheetHandler->readRows() as $organisationRow) {
-                $organisationRow['id'] = (string)Str::uuid();
+                $organisationRow['id'] = (string) Str::uuid();
                 $organisationRow['slug'] = Str::slug($organisationRow['name'] . ' ' . uniqid(), '-');
                 $organisationRow['created_at'] = Date::now();
                 $organisationRow['updated_at'] = Date::now();
@@ -209,7 +209,7 @@ class ImportController extends Controller
 
                 foreach ($globalAdminIds as $globalAdminId) {
                     $adminRowBatch[] = [
-                        'id' => (string)Str::uuid(),
+                        'id' => (string) Str::uuid(),
                         'user_id' => $globalAdminId,
                         'role_id' => $organisationAdminRoleId,
                         'organisation_id' => $organisationRow['id'],

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Organisation;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ImportRequest extends FormRequest
+class SpreadsheetImportRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -129,6 +129,8 @@ Route::prefix('core/v1')
                 ->name('services.logo');
             Route::get('/services/{service}/gallery-items/{file}', 'Service\\GalleryItemController')
                 ->name('services.gallery-items');
+            Route::post('/services/import', 'Service\\ImportController')
+                ->name('services.import');
 
             // Settings.
             Route::get('/settings', 'SettingController@index')
