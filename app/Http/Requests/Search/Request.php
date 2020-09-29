@@ -43,6 +43,7 @@ class Request extends FormRequest
                     Service::TYPE_HELPLINE,
                     Service::TYPE_INFORMATION,
                     Service::TYPE_APP,
+                    Service::TYPE_ADVICE,
                 ]),
             ],
             'category' => [

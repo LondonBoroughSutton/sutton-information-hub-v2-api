@@ -48,4 +48,29 @@ class ServiceTest extends TestCase
 
         $this->assertInstanceOf(\App\Models\SocialMedia::class, $service->socialMedias->first());
     }
+
+    /**
+     * @test
+     */
+    public function it_can_create_services_of_all_types()
+    {
+        $serviceTypes = [
+            Service::TYPE_SERVICE,
+            Service::TYPE_ACTIVITY,
+            Service::TYPE_CLUB,
+            Service::TYPE_GROUP,
+            Service::TYPE_HELPLINE,
+            Service::TYPE_INFORMATION,
+            Service::TYPE_APP,
+            Service::TYPE_ADVICE,
+        ];
+
+        foreach ($serviceTypes as $serviceType) {
+            $service = factory(\App\Models\Service::class)->create([
+                'type' => $serviceType,
+            ]);
+            $this->assertInstanceOf(Service::class, $service);
+            $this->assertEquals($serviceType, $service->type);
+        }
+    }
 }

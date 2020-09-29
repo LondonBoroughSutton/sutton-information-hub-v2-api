@@ -57,7 +57,8 @@ class UpdateServiceSchema extends Schema
                         Service::TYPE_GROUP,
                         Service::TYPE_HELPLINE,
                         Service::TYPE_INFORMATION,
-                        Service::TYPE_APP
+                        Service::TYPE_APP,
+                        Service::TYPE_ADVICE
                     ),
                 Schema::string('status')
                     ->enum(Service::STATUS_ACTIVE, Service::STATUS_INACTIVE),

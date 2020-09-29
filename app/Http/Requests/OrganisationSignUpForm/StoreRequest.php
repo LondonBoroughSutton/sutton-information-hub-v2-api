@@ -89,6 +89,7 @@ class StoreRequest extends FormRequest
                     Service::TYPE_HELPLINE,
                     Service::TYPE_INFORMATION,
                     Service::TYPE_APP,
+                    Service::TYPE_ADVICE,
                 ]),
             ],
             'service.intro' => ['required', 'string', 'min:1', 'max:300'],

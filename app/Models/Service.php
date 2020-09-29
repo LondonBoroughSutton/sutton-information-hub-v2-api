@@ -32,6 +32,7 @@ class Service extends Model implements Notifiable
     const TYPE_HELPLINE = 'helpline';
     const TYPE_INFORMATION = 'information';
     const TYPE_APP = 'app';
+    const TYPE_ADVICE = 'advice';
 
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';
