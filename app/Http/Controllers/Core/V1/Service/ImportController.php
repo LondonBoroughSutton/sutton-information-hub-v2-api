@@ -13,6 +13,7 @@ use App\Rules\IsOrganisationAdmin;
 use App\Rules\MarkdownMaxLength;
 use App\Rules\MarkdownMinLength;
 use App\Rules\UserHasRole;
+use App\Rules\VideoEmbed;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -122,8 +123,22 @@ class ImportController extends Controller implements SpreadsheetController
                 ],
                 'intro' => ['required', 'string', 'min:1', 'max:300'],
                 'description' => ['required', 'string', new MarkdownMinLength(1), new MarkdownMaxLength(1600)],
+                'wait_time' => ['present', 'nullable', Rule::in([
+                    Service::WAIT_TIME_ONE_WEEK,
+                    Service::WAIT_TIME_TWO_WEEKS,
+                    Service::WAIT_TIME_THREE_WEEKS,
+                    Service::WAIT_TIME_MONTH,
+                    Service::WAIT_TIME_LONGER,
+                ])],
                 'is_free' => ['required', 'boolean'],
+                'fees_text' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'fees_url' => ['present', 'nullable', 'url', 'max:255'],
+                'testimonial' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'video_embed' => ['present', 'nullable', 'url', 'max:255', new VideoEmbed()],
                 'url' => ['required', 'url', 'max:255'],
+                'contact_name' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'contact_phone' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'contact_email' => ['present', 'nullable', 'email', 'max:255'],
                 'show_referral_disclaimer' => [
                     'required',
                     'boolean',
@@ -150,6 +165,21 @@ class ImportController extends Controller implements SpreadsheetController
                             'role_id' => Role::globalAdmin()->id,
                         ]),
                         Service::REFERRAL_METHOD_NONE
+                    ),
+                ],
+                'referral_button_text' => [
+                    'present',
+                    'nullable',
+                    'string',
+                    'min:1',
+                    'max:255',
+                    new UserHasRole(
+                        $this->user('api'),
+                        new UserRole([
+                            'user_id' => $this->user('api')->id,
+                            'role_id' => Role::globalAdmin()->id,
+                        ]),
+                        null
                     ),
                 ],
                 'referral_email' => [
@@ -182,6 +212,14 @@ class ImportController extends Controller implements SpreadsheetController
                         null
                     ),
                 ],
+                'criteria_age_group' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'criteria_disability' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'criteria_employment' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'criteria_gender' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'criteria_housing' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'criteria_income' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'criteria_language' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+                'criteria_other' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
             ]);
 
             if ($validator->fails()) {
@@ -207,36 +245,89 @@ class ImportController extends Controller implements SpreadsheetController
         $spreadsheetParser->readHeaders();
 
         $importedRows = 0;
-        $adminRowBatch = [];
 
-        DB::transaction(function () use ($spreadsheetParser, &$importedRows, &$adminRowBatch) {
+        DB::transaction(function () use ($spreadsheetParser, &$importedRows) {
             $serviceAdminRoleId = Role::serviceAdmin()->id;
-            $globalAdminIds = Role::globalAdmin()->users()->pluck('users.id');
-            $serviceRowBatch = $adminRowBatch = [];
+            $serviceWorkerRoleId = Role::serviceWorker()->id;
+            $organisationAdminIds = Role::organisationAdmin()->users()->pluck('users.id');
+            $serviceRowBatch = $adminRowBatch = $criteriaRowBatch = [];
+            $criteriaFields = [
+                'age_group',
+                'disability',
+                'employment',
+                'gender',
+                'housing',
+                'income',
+                'language',
+                'other',
+            ];
             foreach ($spreadsheetParser->readRows() as $serviceRow) {
+                /**
+                 * Generate a new Service ID
+                 */
                 $serviceRow['id'] = (string) Str::uuid();
-                $serviceRow['slug'] = Str::slug($serviceRow['name'] . ' ' . uniqid(), '-');
+
+                /**
+                 * Check for Criteria fields.
+                 * Build a row of passed Criteria fields
+                 */
+                $criteriaRow = [];
+                foreach ($criteriaFields as $criteriaField) {
+                    if (array_key_exists('criteria_' . $criteriaField, $serviceRow)) {
+                        $criteriaRow[$criteriaField] = $serviceRow['criteria_' . $criteriaField];
+                    }
+                }
+
+                /**
+                 * Add any Criteria row to a batch array
+                 */
+                if (count($criteriaRow)) {
+                    $criteriaRow['service_id'] = $serviceRow['id'];
+                    $criteriaRowBatch[] = $criteriaRow;
+                }
+
+                /**
+                 * Add the meta fields to the Service row
+                 */
+                $serviceRow['slug'] = Str::slug(uniqid($serviceRow['name'] . '-'));
                 $serviceRow['organisation_id'] = $this->organisationId;
                 $serviceRow['created_at'] = Date::now();
                 $serviceRow['updated_at'] = Date::now();
                 $serviceRowBatch[] = $serviceRow;
 
-                foreach ($globalAdminIds as $globalAdminId) {
+                /**
+                 * Create the user_roles rows for Service Admin and Service Worker
+                 * for each Organisation Admin
+                 */
+                foreach ($organisationAdminIds as $organisationAdminId) {
                     $adminRowBatch[] = [
                         'id' => (string) Str::uuid(),
-                        'user_id' => $globalAdminId,
+                        'user_id' => $organisationAdminId,
                         'role_id' => $serviceAdminRoleId,
+                        'service_id' => $serviceRow['id'],
+                        'created_at' => Date::now(),
+                        'updated_at' => Date::now(),
+                    ];
+                    $adminRowBatch[] = [
+                        'id' => (string) Str::uuid(),
+                        'user_id' => $organisationAdminId,
+                        'role_id' => $serviceWorkerRoleId,
                         'service_id' => $serviceRow['id'],
                         'created_at' => Date::now(),
                         'updated_at' => Date::now(),
                     ];
                 }
 
+                /**
+                 * If the batch array has reach the import batch size create the insert queries
+                 */
                 if (count($serviceRowBatch) === self::ROW_IMPORT_BATCH_SIZE) {
                     DB::table('services')->insert($serviceRowBatch);
                     DB::table('user_roles')->insert($adminRowBatch);
+                    DB::table('user_roles')->insert($adminRowBatch);
+                    DB::table('service_criteria')->insert($criteriaRowBatch);
                     $importedRows += self::ROW_IMPORT_BATCH_SIZE;
-                    $serviceRowBatch = $adminRowBatch = [];
+                    $serviceRowBatch = $adminRowBatch = $criteriaRowBatch = [];
                 }
             }
 
