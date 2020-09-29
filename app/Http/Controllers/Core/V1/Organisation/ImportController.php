@@ -6,7 +6,7 @@ use App\BatchUpload\SpreadsheetParser;
 use App\BatchUpload\StoresSpreadsheets;
 use App\Contracts\SpreadsheetController;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SpreadsheetImportRequest;
+use App\Http\Requests\Organisation\ImportRequest;
 use App\Models\Role;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -34,10 +34,10 @@ class ImportController extends Controller implements SpreadsheetController
     /**
      * Display the specified resource.
      *
-     * @param \App\Http\Requests\SpreadsheetImportRequest $request
+     * @param \App\Http\Requests\Organisation\ImportRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(SpreadsheetImportRequest $request)
+    public function __invoke(ImportRequest $request)
     {
         ['rejected' => $rejected, 'imported' => $imported] = $this->processSpreadsheet($request->input('spreadsheet'));
 

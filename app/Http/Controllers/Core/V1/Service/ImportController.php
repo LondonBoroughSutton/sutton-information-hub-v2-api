@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Core\V1\Service;
 
 use App\BatchUpload\SpreadsheetParser;
+use App\BatchUpload\StoresSpreadsheets;
 use App\Contracts\SpreadsheetController;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SpreadsheetImportRequest;
+use App\Http\Requests\Service\ImportRequest;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\UserRole;
@@ -24,6 +25,8 @@ use Illuminate\Validation\ValidationException;
 
 class ImportController extends Controller implements SpreadsheetController
 {
+    use StoresSpreadsheets;
+
     /**
      * Number of rows to import at once.
      */
@@ -37,6 +40,13 @@ class ImportController extends Controller implements SpreadsheetController
     protected $organisationId = null;
 
     /**
+     * User requesting the import
+     *
+     * @var \App\Models\User
+     **/
+    protected $user;
+
+    /**
      * OrganisationController constructor.
      */
     public function __construct()
@@ -47,15 +57,16 @@ class ImportController extends Controller implements SpreadsheetController
     /**
      * Display the specified resource.
      *
-     * @param \App\Http\Requests\SpreadsheetImportRequest $request
+     * @param \App\Http\Requests\Service\ImportRequest $request
      * @throws Illuminate\Validation\ValidationException
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(SpreadsheetImportRequest $request)
+    public function __invoke(ImportRequest $request)
     {
+        $this->user = $request->user('api');
         $this->organisationId = $request->input('organisation_id');
 
-        if (!(new IsOrganisationAdmin($this->user()))->passes('id', $this->organisationId)) {
+        if (!(new IsOrganisationAdmin($this->user))->passes('id', $this->organisationId)) {
             throw ValidationException::withMessages([
                 'organisation_id' => 'The organisation_id field must contain an ID for an organisation you are an organisation admin for',
             ]);
@@ -91,7 +102,25 @@ class ImportController extends Controller implements SpreadsheetController
 
         $rejectedRows = [];
 
+        $globalAdminRoleId = Role::globalAdmin()->id;
+        $globalAdminRole = new UserRole([
+            'user_id' => $this->user->id,
+            'role_id' => $globalAdminRoleId,
+        ]);
+        $superAdminRoleId = Role::superAdmin()->id;
+        $superAdminRole = new UserRole([
+            'user_id' => $this->user->id,
+            'role_id' => $superAdminRoleId,
+        ]);
+
         foreach ($spreadsheetParser->readRows() as $i => $row) {
+            /**
+             * Cast Boolean rows to boolean value
+             */
+            $row['is_free'] = (boolean) $row['is_free'];
+            $row['is_national'] = (boolean) $row['is_national'];
+            $row['show_referral_disclaimer'] = (boolean) $row['show_referral_disclaimer'];
+
             $validator = Validator::make($row, [
                 'name' => ['required', 'string', 'min:1', 'max:255'],
                 'type' => [
@@ -113,14 +142,12 @@ class ImportController extends Controller implements SpreadsheetController
                         Service::STATUS_INACTIVE,
                     ]),
                     new UserHasRole(
-                        $this->user('api'),
-                        new UserRole([
-                            'user_id' => $this->user('api')->id,
-                            'role_id' => Role::globalAdmin()->id,
-                        ]),
+                        $this->user,
+                        $globalAdminRole,
                         Service::STATUS_INACTIVE
                     ),
                 ],
+                'is_national' => ['present', 'boolean'],
                 'intro' => ['required', 'string', 'min:1', 'max:300'],
                 'description' => ['required', 'string', new MarkdownMinLength(1), new MarkdownMaxLength(1600)],
                 'wait_time' => ['present', 'nullable', Rule::in([
@@ -143,12 +170,9 @@ class ImportController extends Controller implements SpreadsheetController
                     'required',
                     'boolean',
                     new UserHasRole(
-                        $this->user('api'),
-                        new UserRole([
-                            'user_id' => $this->user('api')->id,
-                            'role_id' => Role::superAdmin()->id,
-                        ]),
-                        ($this->referral_method === Service::REFERRAL_METHOD_NONE) ? false : true
+                        $this->user,
+                        $superAdminRole,
+                        ($row['referral_method'] === Service::REFERRAL_METHOD_NONE) ? false : true
                     ),
                 ],
                 'referral_method' => [
@@ -159,11 +183,8 @@ class ImportController extends Controller implements SpreadsheetController
                         Service::REFERRAL_METHOD_NONE,
                     ]),
                     new UserHasRole(
-                        $this->user('api'),
-                        new UserRole([
-                            'user_id' => $this->user('api')->id,
-                            'role_id' => Role::globalAdmin()->id,
-                        ]),
+                        $this->user,
+                        $globalAdminRole,
                         Service::REFERRAL_METHOD_NONE
                     ),
                 ],
@@ -174,11 +195,8 @@ class ImportController extends Controller implements SpreadsheetController
                     'min:1',
                     'max:255',
                     new UserHasRole(
-                        $this->user('api'),
-                        new UserRole([
-                            'user_id' => $this->user('api')->id,
-                            'role_id' => Role::globalAdmin()->id,
-                        ]),
+                        $this->user,
+                        $globalAdminRole,
                         null
                     ),
                 ],
@@ -189,11 +207,8 @@ class ImportController extends Controller implements SpreadsheetController
                     'email',
                     'max:255',
                     new UserHasRole(
-                        $this->user('api'),
-                        new UserRole([
-                            'user_id' => $this->user('api')->id,
-                            'role_id' => Role::globalAdmin()->id,
-                        ]),
+                        $this->user,
+                        $globalAdminRole,
                         null
                     ),
                 ],
@@ -204,11 +219,8 @@ class ImportController extends Controller implements SpreadsheetController
                     'url',
                     'max:255',
                     new UserHasRole(
-                        $this->user('api'),
-                        new UserRole([
-                            'user_id' => $this->user('api')->id,
-                            'role_id' => Role::globalAdmin()->id,
-                        ]),
+                        $this->user,
+                        $globalAdminRole,
                         null
                     ),
                 ],
@@ -268,6 +280,13 @@ class ImportController extends Controller implements SpreadsheetController
                 $serviceRow['id'] = (string) Str::uuid();
 
                 /**
+                 * Cast Boolean rows to boolean value
+                 */
+                $serviceRow['is_free'] = (boolean) $serviceRow['is_free'];
+                $serviceRow['is_national'] = (boolean) $serviceRow['is_national'];
+                $serviceRow['show_referral_disclaimer'] = (boolean) $serviceRow['show_referral_disclaimer'];
+
+                /**
                  * Check for Criteria fields.
                  * Build a row of passed Criteria fields
                  */
@@ -275,6 +294,7 @@ class ImportController extends Controller implements SpreadsheetController
                 foreach ($criteriaFields as $criteriaField) {
                     if (array_key_exists('criteria_' . $criteriaField, $serviceRow)) {
                         $criteriaRow[$criteriaField] = $serviceRow['criteria_' . $criteriaField];
+                        unset($serviceRow['criteria_' . $criteriaField]);
                     }
                 }
 

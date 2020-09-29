@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Organisation;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SpreadsheetImportRequest extends FormRequest
+class ImportRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -31,10 +31,6 @@ class SpreadsheetImportRequest extends FormRequest
             'spreadsheet' => [
                 'required',
                 'regex:/^data:application\/[a-z\-\.]+;base64,/',
-            ],
-            'organisation_id' => [
-                'sometimes',
-                'exists:organisations,id',
             ],
         ];
     }
