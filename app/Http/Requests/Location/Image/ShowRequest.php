@@ -24,7 +24,7 @@ class ShowRequest extends ImageFormRequest
     protected function extraRules(): array
     {
         return [
-            'update_request_id' => ['exists:update_requests,id'],
+            //
         ];
     }
 }

@@ -23,6 +23,7 @@ class ServiceResource extends JsonResource
             'name' => $this->name,
             'type' => $this->type,
             'status' => $this->status,
+            'is_national' => $this->is_national,
             'intro' => $this->intro,
             'description' => $this->description,
             'wait_time' => $this->wait_time,

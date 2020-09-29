@@ -2,13 +2,13 @@
 
 namespace App\Docs\Operations\OrganisationSignUpForms;
 
-use App\Docs\Responses\UpdateRequestReceivedResponse;
 use App\Docs\Schemas\OrganisationSignUpForm\StoreOrganisationSignUpFormSchema;
 use App\Docs\Tags\OrganisationSignUpFormsTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Operation;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\RequestBody;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\Response;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 
 class StoreOrganisationSignUpFormOperation extends Operation
@@ -36,25 +36,26 @@ class StoreOrganisationSignUpFormOperation extends Operation
                 )
             )
             ->responses(
-                UpdateRequestReceivedResponse::create(
-                    null,
-                    StoreOrganisationSignUpFormSchema::create()->properties(
-                        ...array_map(
-                            function (Schema $schema): Schema {
-                                if ($schema->objectId === 'user') {
-                                    return $schema->properties(
-                                        ...array_filter(
-                                            $schema->properties,
-                                            function (Schema $schema): bool {
-                                                return $schema->objectId !== 'password';
-                                            }
-                                        )
-                                    );
-                                }
+                Response::created()->content(
+                    MediaType::json()->schema(
+                        StoreOrganisationSignUpFormSchema::create()->properties(
+                            ...array_map(
+                                function (Schema $schema): Schema {
+                                    if ($schema->objectId === 'user') {
+                                        return $schema->properties(
+                                            ...array_filter(
+                                                $schema->properties,
+                                                function (Schema $schema): bool {
+                                                    return $schema->objectId !== 'password';
+                                                }
+                                            )
+                                        );
+                                    }
 
-                                return $schema;
-                            },
-                            StoreOrganisationSignUpFormSchema::create()->properties
+                                    return $schema;
+                                },
+                                StoreOrganisationSignUpFormSchema::create()->properties
+                            )
                         )
                     )
                 )

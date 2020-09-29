@@ -2,13 +2,15 @@
 
 namespace App\Docs\Operations\Locations;
 
-use App\Docs\Responses\UpdateRequestReceivedResponse;
+use App\Docs\Schemas\Location\LocationSchema;
 use App\Docs\Schemas\Location\UpdateLocationSchema;
+use App\Docs\Schemas\ResourceSchema;
 use App\Docs\Tags\LocationsTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Operation;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\RequestBody;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\Response;
 
 class UpdateLocationOperation extends Operation
 {
@@ -32,7 +34,11 @@ class UpdateLocationOperation extends Operation
                     )
             )
             ->responses(
-                UpdateRequestReceivedResponse::create(null, UpdateLocationSchema::create())
+                Response::created()->content(
+                    MediaType::json()->schema(
+                        ResourceSchema::create(null, LocationSchema::create())
+                    )
+                )
             );
     }
 }

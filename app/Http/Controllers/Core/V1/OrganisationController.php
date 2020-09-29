@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Core\V1;
 
 use App\Events\EndpointHit;
 use App\Http\Controllers\Controller;
+use App\Http\Filters\Organisation\HasEmailFilter;
 use App\Http\Filters\Organisation\HasPermissionFilter;
+use App\Http\Filters\Organisation\HasPhoneFilter;
+use App\Http\Filters\Organisation\HasServicesFilter;
+use App\Http\Filters\Organisation\HasSocialMediasFilter;
 use App\Http\Requests\Organisation\DestroyRequest;
 use App\Http\Requests\Organisation\IndexRequest;
 use App\Http\Requests\Organisation\ShowRequest;
@@ -12,9 +16,9 @@ use App\Http\Requests\Organisation\StoreRequest;
 use App\Http\Requests\Organisation\UpdateRequest;
 use App\Http\Resources\OrganisationResource;
 use App\Http\Responses\ResourceDeleted;
-use App\Http\Responses\UpdateRequestReceived;
 use App\Models\File;
 use App\Models\Organisation;
+use App\Normalisers\SocialMediaNormaliser;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\Filter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -44,6 +48,10 @@ class OrganisationController extends Controller
                 Filter::exact('id'),
                 'name',
                 Filter::custom('has_permission', HasPermissionFilter::class),
+                Filter::custom('has_email', HasEmailFilter::class),
+                Filter::custom('has_social_medias', HasSocialMediasFilter::class),
+                Filter::custom('has_phone', HasPhoneFilter::class),
+                Filter::custom('has_services', HasServicesFilter::class),
             ])
             ->allowedSorts('name')
             ->defaultSort('name')
@@ -130,38 +138,35 @@ class OrganisationController extends Controller
      * Update the specified resource in storage.
      *
      * @param \App\Http\Requests\Organisation\UpdateRequest $request
+     * @param \App\Normalisers\SocialMediaNormaliser $socialMediaNormaliser
      * @param \App\Models\Organisation $organisation
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateRequest $request, Organisation $organisation)
-    {
-        return DB::transaction(function () use ($request, $organisation) {
-            $data = array_filter_missing([
-                'slug' => $request->missing('slug'),
-                'name' => $request->missing('name'),
-                'description' => $request->missing('description', function ($description) {
-                    return sanitize_markdown($description);
-                }),
-                'url' => $request->missing('url'),
-                'email' => $request->missing('email'),
-                'phone' => $request->missing('phone'),
-                'logo_file_id' => $request->missing('logo_file_id'),
-                'location_id' => $request->missing('location_id'),
+    public function update(
+        UpdateRequest $request,
+        SocialMediaNormaliser $socialMediaNormaliser,
+        Organisation $organisation
+    ) {
+        return DB::transaction(function () use ($request, $socialMediaNormaliser, $organisation) {
+            $organisation->update([
+                'slug' => $request->input('slug', $organisation->slug),
+                'name' => $request->input('name', $organisation->name),
+                'description' => $request->input('description', $organisation->description),
+                'url' => $request->input('url', $organisation->url),
+                'email' => $request->input('email', $organisation->email),
+                'phone' => $request->input('phone', $organisation->phone),
+                'logo_file_id' => $request->input('logo_file_id', $organisation->logo_file_id),
+                'location_id' => $request->input('location_id', $organisation->location_id),
             ]);
 
-            // Loop through each social media.
-            foreach ($request->input('social_medias', []) as $socialMedia) {
-                $data['social_medias'][] = [
-                    'type' => $socialMedia['type'],
-                    'url' => $socialMedia['url'],
-                ];
+            // Update the social media records.
+            if ($request->has('social_medias')) {
+                $organisation->socialMedias()->delete();
+                $socialMedias = $socialMediaNormaliser->normaliseMultiple(
+                    $request->input('social_medias')
+                );
+                $organisation->socialMedias()->createMany($socialMedias);
             }
-
-            /** @var \App\Models\UpdateRequest $updateRequest */
-            $updateRequest = $organisation->updateRequests()->create([
-                'user_id' => $request->user()->id,
-                'data' => $data,
-            ]);
 
             if ($request->filled('logo_file_id')) {
                 /** @var \App\Models\File $file */
@@ -175,7 +180,7 @@ class OrganisationController extends Controller
 
             event(EndpointHit::onUpdate($request, "Updated organisation [{$organisation->id}]", $organisation));
 
-            return new UpdateRequestReceived($updateRequest);
+            return new OrganisationResource($organisation);
         });
     }
 

@@ -23,7 +23,6 @@ class LocationObserver
      */
     public function deleting(Location $location)
     {
-        $location->updateRequests->each->delete();
         $location->serviceLocations->each->delete();
     }
 

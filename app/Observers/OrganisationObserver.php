@@ -38,7 +38,6 @@ class OrganisationObserver
     public function deleting(Organisation $organisation)
     {
         $organisation->userRoles->each->delete();
-        $organisation->updateRequests->each->delete();
         $organisation->services->each->delete();
     }
 }

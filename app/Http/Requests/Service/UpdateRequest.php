@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Service;
 
-use App\Http\Requests\HasMissingValues;
 use App\Models\File;
 use App\Models\Role;
 use App\Models\Service;
@@ -17,6 +16,7 @@ use App\Rules\MarkdownMaxLength;
 use App\Rules\MarkdownMinLength;
 use App\Rules\NullableIf;
 use App\Rules\RootTaxonomyIs;
+use App\Rules\ServiceCanBeNational;
 use App\Rules\Slug;
 use App\Rules\UserHasRole;
 use App\Rules\VideoEmbed;
@@ -25,8 +25,6 @@ use Illuminate\Validation\Rule;
 
 class UpdateRequest extends FormRequest
 {
-    use HasMissingValues;
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -101,6 +99,7 @@ class UpdateRequest extends FormRequest
                     $this->service->status
                 ),
             ],
+            'is_national' => ['boolean', new ServiceCanBeNational($this->service->id)],
             'intro' => ['string', 'min:1', 'max:300'],
             'description' => ['string', new MarkdownMinLength(1), new MarkdownMaxLength(1600)],
             'wait_time' => [
@@ -167,7 +166,7 @@ class UpdateRequest extends FormRequest
                     $referralMethod = $this->input('referral_method', $this->service->referral_method);
 
                     return $referralMethod === Service::REFERRAL_METHOD_INTERNAL
-                        && $this->service->referral_email === null;
+                    && $this->service->referral_email === null;
                 }),
                 new NullableIf(function () {
                     $referralMethod = $this->input('referral_method', $this->service->referral_method);
@@ -190,7 +189,7 @@ class UpdateRequest extends FormRequest
                     $referralMethod = $this->input('referral_method', $this->service->referral_method);
 
                     return $referralMethod === Service::REFERRAL_METHOD_EXTERNAL
-                        && $this->service->referral_url === null;
+                    && $this->service->referral_url === null;
                 }),
                 new NullableIf(function () {
                     $referralMethod = $this->input('referral_method', $this->service->referral_method);
@@ -286,16 +285,6 @@ class UpdateRequest extends FormRequest
                 new FileIsPendingAssignment(),
             ],
         ];
-    }
-
-    /**
-     * Check if the user requested only a preview of the update request.
-     *
-     * @return bool
-     */
-    public function isPreview(): bool
-    {
-        return $this->preview === true;
     }
 
     /**

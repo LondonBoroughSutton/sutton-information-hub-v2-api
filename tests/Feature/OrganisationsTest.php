@@ -9,10 +9,8 @@ use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\SocialMedia;
-use App\Models\UpdateRequest;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Faker\Factory as Faker;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
@@ -36,6 +34,7 @@ class OrganisationsTest extends TestCase
         $response->assertJsonFragment([
             [
                 'id' => $organisation->id,
+                'location_id' => $organisation->location_id,
                 'has_logo' => $organisation->hasLogo(),
                 'slug' => $organisation->slug,
                 'name' => $organisation->name,
@@ -77,6 +76,67 @@ class OrganisationsTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $this->assertEquals($organisationOne->id, $data['data'][1]['id']);
         $this->assertEquals($organisationTwo->id, $data['data'][0]['id']);
+    }
+
+    public function test_guest_can_filter_by_has_email()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisation = factory(Organisation::class)->create([
+            'email' => 'acme.org@example.com',
+        ]);
+        factory(Organisation::class)->create([
+            'email' => null,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_email]=true');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisation->id]);
+    }
+
+    public function test_guest_can_filter_by_has_social_medias()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisation = factory(Organisation::class)->create();
+        $organisation->socialMedias()->create([
+            'type' => SocialMedia::TYPE_FACEBOOK,
+            'url' => 'https://facebook.com/AcmeOrg',
+        ]);
+
+        factory(Organisation::class)->create();
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=true');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisation->id]);
+    }
+
+    public function test_guest_can_filter_by_has_phone()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisation = factory(Organisation::class)->create([
+            'phone' => '01130000000',
+        ]);
+        factory(Organisation::class)->create([
+            'phone' => null,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=true');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisation->id]);
+    }
+
+    public function test_guest_can_filter_by_has_services()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisation = factory(Organisation::class)->create();
+        factory(Service::class)->create([
+            'organisation_id' => $organisation->id,
+        ]);
+
+        factory(Organisation::class)->create();
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_services]=true');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisation->id]);
     }
 
     /*
@@ -253,6 +313,7 @@ class OrganisationsTest extends TestCase
         $response->assertJsonFragment([
             [
                 'id' => $organisation->id,
+                'location_id' => $organisation->location_id,
                 'has_logo' => $organisation->hasLogo(),
                 'slug' => $organisation->slug,
                 'name' => $organisation->name,
@@ -278,6 +339,7 @@ class OrganisationsTest extends TestCase
         $response->assertJsonFragment([
             [
                 'id' => $organisation->id,
+                'location_id' => $organisation->location_id,
                 'has_logo' => $organisation->hasLogo(),
                 'slug' => $organisation->slug,
                 'name' => $organisation->name,
@@ -350,7 +412,10 @@ class OrganisationsTest extends TestCase
     {
         $organisation = factory(Organisation::class)->create();
         $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
-        $payload = [
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
             'slug' => 'test-org',
             'name' => 'Test Org',
             'description' => 'Test description',
@@ -358,31 +423,28 @@ class OrganisationsTest extends TestCase
             'email' => 'info@test-org.example.com',
             'phone' => '07700000000',
             'location_id' => null,
-        ];
-
-        Passport::actingAs($user);
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
+        ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        $response->assertJsonFragment(['data' => $payload]);
-        $this->assertDatabaseHas((new UpdateRequest())->getTable(), [
-            'user_id' => $user->id,
-            'updateable_type' => UpdateRequest::EXISTING_TYPE_ORGANISATION,
-            'updateable_id' => $organisation->id,
+        $response->assertJsonFragment([
+            'slug' => 'test-org',
+            'name' => 'Test Org',
+            'description' => 'Test description',
+            'url' => 'http://test-org.example.com',
+            'email' => 'info@test-org.example.com',
+            'phone' => '07700000000',
+            'location_id' => null,
         ]);
-        $data = UpdateRequest::query()
-            ->where('updateable_type', UpdateRequest::EXISTING_TYPE_ORGANISATION)
-            ->where('updateable_id', $organisation->id)
-            ->firstOrFail()->data;
-        $this->assertEquals($data, $payload);
     }
 
     public function test_organisation_admin_can_update_with_minimal_fields()
     {
         $organisation = factory(Organisation::class)->create();
         $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
-        $payload = [
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
             'slug' => 'test-org',
             'name' => 'Test Org',
             'description' => 'Test description',
@@ -390,24 +452,18 @@ class OrganisationsTest extends TestCase
             'email' => null,
             'phone' => null,
             'location_id' => null,
-        ];
-
-        Passport::actingAs($user);
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
+        ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        $response->assertJsonFragment(['data' => $payload]);
-        $this->assertDatabaseHas((new UpdateRequest())->getTable(), [
-            'user_id' => $user->id,
-            'updateable_type' => UpdateRequest::EXISTING_TYPE_ORGANISATION,
-            'updateable_id' => $organisation->id,
+        $response->assertJsonFragment([
+            'slug' => 'test-org',
+            'name' => 'Test Org',
+            'description' => 'Test description',
+            'url' => null,
+            'email' => null,
+            'phone' => null,
+            'location_id' => null,
         ]);
-        $data = UpdateRequest::query()
-            ->where('updateable_type', UpdateRequest::EXISTING_TYPE_ORGANISATION)
-            ->where('updateable_id', $organisation->id)
-            ->firstOrFail()->data;
-        $this->assertEquals($data, $payload);
     }
 
     public function test_organisation_admin_cannot_update_with_no_description()
@@ -436,26 +492,17 @@ class OrganisationsTest extends TestCase
     {
         $organisation = factory(Organisation::class)->create();
         $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
-        $payload = [
-            'slug' => 'test-org',
-        ];
 
         Passport::actingAs($user);
 
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
+            'slug' => 'test-org',
+        ]);
 
         $response->assertStatus(Response::HTTP_OK);
-        $response->assertJsonFragment(['data' => $payload]);
-        $this->assertDatabaseHas((new UpdateRequest())->getTable(), [
-            'user_id' => $user->id,
-            'updateable_type' => UpdateRequest::EXISTING_TYPE_ORGANISATION,
-            'updateable_id' => $organisation->id,
+        $response->assertJsonFragment([
+            'slug' => 'test-org',
         ]);
-        $data = UpdateRequest::query()
-            ->where('updateable_type', UpdateRequest::EXISTING_TYPE_ORGANISATION)
-            ->where('updateable_id', $organisation->id)
-            ->firstOrFail()->data;
-        $this->assertEquals($data, $payload);
     }
 
     public function test_audit_created_when_updated()
@@ -483,31 +530,207 @@ class OrganisationsTest extends TestCase
         });
     }
 
-    public function test_fields_removed_for_existing_update_requests()
+    public function test_organisation_admin_can_add_social_media()
     {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeSuperAdmin();
 
         Passport::actingAs($user);
 
-        $responseOne = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
-            'name' => 'Random 1',
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
+            'social_medias' => [
+                [
+                    'type' => SocialMedia::TYPE_INSTAGRAM,
+                    'url' => 'https://www.instagram.com/ayupdigital',
+                ],
+            ],
         ]);
-        $responseOne->assertStatus(Response::HTTP_OK);
-
-        $responseTwo = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
-            'name' => 'Random 2',
-            'slug' => 'random-1',
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'social_medias' => [
+                [
+                    'type' => SocialMedia::TYPE_INSTAGRAM,
+                    'url' => 'https://www.instagram.com/ayupdigital',
+                ],
+            ],
         ]);
-        $responseTwo->assertStatus(Response::HTTP_OK);
 
-        $updateRequestOne = UpdateRequest::withTrashed()->findOrFail($this->getResponseContent($responseOne)['id']);
-        $updateRequestTwo = UpdateRequest::findOrFail($this->getResponseContent($responseTwo)['id']);
+        $this->assertDatabaseHas(table(SocialMedia::class), [
+            'sociable_id' => $organisation->id,
+            'sociable_type' => 'organisations',
+        ]);
+    }
 
-        $this->assertArrayNotHasKey('name', $updateRequestOne->data);
-        $this->assertArrayHasKey('name', $updateRequestTwo->data);
-        $this->assertArrayHasKey('slug', $updateRequestTwo->data);
-        $this->assertSoftDeleted($updateRequestOne->getTable(), ['id' => $updateRequestOne->id]);
+    public function test_organisation_admin_can_remove_social_media()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+        $organisation = factory(Organisation::class)->states('social')->create();
+        $social = $organisation->socialMedias->all();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
+            'social_medias' => [
+                [
+                    'type' => $social[1]->type,
+                    'url' => $social[1]->url,
+                ],
+                [
+                    'type' => $social[2]->type,
+                    'url' => $social[2]->url,
+                ],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'social_medias' => [
+                [
+                    'type' => $social[1]->type,
+                    'url' => $social[1]->url,
+                ],
+                [
+                    'type' => $social[2]->type,
+                    'url' => $social[2]->url,
+                ],
+            ],
+        ]);
+
+        $this->assertDatabaseHas(table(SocialMedia::class), [
+            'sociable_id' => $organisation->id,
+            'sociable_type' => 'organisations',
+            'url' => $social[1]->url,
+        ]);
+
+        $this->assertDatabaseHas(table(SocialMedia::class), [
+            'sociable_id' => $organisation->id,
+            'sociable_type' => 'organisations',
+            'url' => $social[2]->url,
+        ]);
+
+        $this->assertDatabaseMissing(table(SocialMedia::class), [
+            'sociable_id' => $organisation->id,
+            'sociable_type' => 'organisations',
+            'url' => $social[0]->url,
+        ]);
+    }
+
+    public function test_organisation_admin_can_add_address()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+        $organisation = factory(Organisation::class)->create();
+        $location = factory(Location::class)->create();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
+            'location_id' => $location->id,
+        ]);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'location' => [
+                'id' => $location->id,
+                'has_image' => $location->hasImage(),
+                'address_line_1' => $location->address_line_1,
+                'address_line_2' => $location->address_line_2,
+                'address_line_3' => $location->address_line_3,
+                'city' => $location->city,
+                'county' => $location->county,
+                'postcode' => $location->postcode,
+                'country' => $location->country,
+                'lat' => $location->lat,
+                'lon' => $location->lon,
+                'accessibility_info' => $location->accessibility_info,
+                'has_wheelchair_access' => $location->has_wheelchair_access,
+                'has_induction_loop' => $location->has_induction_loop,
+                'created_at' => $location->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => $location->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ]);
+
+        $this->assertDatabaseHas(table(Organisation::class), [
+            'id' => $organisation->id,
+            'location_id' => $location->id,
+        ]);
+    }
+
+    public function test_organisation_admin_can_update_address()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+        $organisation = factory(Organisation::class)->states('location')->create();
+        $location = factory(Location::class)->create();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
+            'location_id' => $location->id,
+        ]);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'location' => [
+                'id' => $location->id,
+                'has_image' => $location->hasImage(),
+                'address_line_1' => $location->address_line_1,
+                'address_line_2' => $location->address_line_2,
+                'address_line_3' => $location->address_line_3,
+                'city' => $location->city,
+                'county' => $location->county,
+                'postcode' => $location->postcode,
+                'country' => $location->country,
+                'lat' => $location->lat,
+                'lon' => $location->lon,
+                'accessibility_info' => $location->accessibility_info,
+                'has_wheelchair_access' => $location->has_wheelchair_access,
+                'has_induction_loop' => $location->has_induction_loop,
+                'created_at' => $location->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => $location->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ]);
+
+        $this->assertDatabaseHas(table(Organisation::class), [
+            'id' => $organisation->id,
+            'location_id' => $location->id,
+        ]);
+    }
+
+    public function test_organisation_admin_can_delete_address()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+        $organisation = factory(Organisation::class)->states('location')->create();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
+            'location_id' => null,
+        ]);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'location' => null,
+        ]);
+
+        $this->assertDatabaseHas(table(Organisation::class), [
+            'id' => $organisation->id,
+            'location_id' => null,
+        ]);
     }
 
     /*
@@ -665,12 +888,15 @@ class OrganisationsTest extends TestCase
         $organisationId = $this->getResponseContent($response, 'data.id');
 
         $response->assertStatus(Response::HTTP_CREATED);
-        $this->assertDatabaseHas(table(Organisation::class), [
+        $response->assertJsonFragment([
             'id' => $organisationId,
-        ]);
-        $this->assertDatabaseMissing(table(Organisation::class), [
-            'id' => $organisationId,
-            'logo_file_id' => null,
+            'slug' => 'test-org',
+            'name' => 'Test Org',
+            'description' => 'Test description',
+            'url' => 'http://test-org.example.com',
+            'email' => 'info@test-org.example.com',
+            'phone' => '07700000000',
+            'has_logo' => true,
         ]);
     }
 
@@ -686,7 +912,10 @@ class OrganisationsTest extends TestCase
         $user = factory(User::class)->create();
         $user->makeGlobalAdmin();
         $organisation = factory(Organisation::class)->states('web', 'email', 'phone', 'logo')->create();
-        $payload = [
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
             'slug' => $organisation->slug,
             'name' => $organisation->name,
             'description' => $organisation->description,
@@ -694,214 +923,17 @@ class OrganisationsTest extends TestCase
             'email' => $organisation->email,
             'phone' => $organisation->phone,
             'logo_file_id' => null,
-        ];
-
-        Passport::actingAs($user);
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
-        $response->assertStatus(Response::HTTP_OK);
-        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $organisation->id]);
-        $updateRequest = UpdateRequest::where('updateable_id', $organisation->id)->firstOrFail();
-        $this->assertEquals(null, $updateRequest->data['logo_file_id']);
-    }
-
-    /**
-     * @test
-     */
-    public function organisation_admin_can_add_social_media()
-    {
-        /**
-         * @var \App\Models\User $user
-         */
-        $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
-        $organisation = factory(Organisation::class)->create();
-
-        Passport::actingAs($user);
-
-        $payload = [
-            'social_medias' => [
-                [
-                    'type' => SocialMedia::TYPE_INSTAGRAM,
-                    'url' => 'https://www.instagram.com/ayupdigital',
-                ],
-            ],
-        ];
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
-        $response->assertStatus(Response::HTTP_OK);
-
-        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $organisation->id]);
-        $updateRequest = UpdateRequest::where('updateable_id', $organisation->id)->firstOrFail();
-        $this->assertEquals($payload['social_medias'], $updateRequest->data['social_medias']);
-
-        $updateRequest->apply($user);
-
-        $this->assertDatabaseHas(table(SocialMedia::class), [
-            'sociable_id' => $organisation->id,
-            'sociable_type' => UpdateRequest::EXISTING_TYPE_ORGANISATION,
         ]);
-    }
-
-    /**
-     * @test
-     */
-    public function organisation_admin_can_remove_social_media()
-    {
-        /**
-         * @var \App\Models\User $user
-         */
-        $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
-        $organisation = factory(Organisation::class)->states('social')->create();
-        $social = $organisation->socialMedias->all();
-
-        Passport::actingAs($user);
-
-        $payload = [
-            'social_medias' => [
-                [
-                    'type' => $social[1]->type,
-                    'url' => $social[1]->url,
-                ],
-                [
-                    'type' => $social[2]->type,
-                    'url' => $social[2]->url,
-                ],
-            ],
-        ];
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
         $response->assertStatus(Response::HTTP_OK);
-
-        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $organisation->id]);
-        $updateRequest = UpdateRequest::where('updateable_id', $organisation->id)->firstOrFail();
-        $this->assertEquals($payload['social_medias'], $updateRequest->data['social_medias']);
-
-        $updateRequest->apply($user);
-
-        $this->assertDatabaseHas(table(SocialMedia::class), [
-            'sociable_id' => $organisation->id,
-            'sociable_type' => UpdateRequest::EXISTING_TYPE_ORGANISATION,
-            'url' => $social[1]->url,
-        ]);
-
-        $this->assertDatabaseHas(table(SocialMedia::class), [
-            'sociable_id' => $organisation->id,
-            'sociable_type' => UpdateRequest::EXISTING_TYPE_ORGANISATION,
-            'url' => $social[2]->url,
-        ]);
-
-        $this->assertDatabaseMissing(table(SocialMedia::class), [
-            'sociable_id' => $organisation->id,
-            'sociable_type' => UpdateRequest::EXISTING_TYPE_ORGANISATION,
-            'url' => $social[0]->url,
-        ]);
-    }
-
-    /**
-     * @test
-     */
-    public function organisation_admin_can_add_address()
-    {
-        $faker = Faker::create('en_GB');
-        /**
-         * @var \App\Models\User $user
-         */
-        $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
-        $organisation = factory(Organisation::class)->create();
-        $address = factory(Location::class)->create();
-
-        Passport::actingAs($user);
-
-        $payload = [
-            'location_id' => $address->id,
-        ];
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
-        $response->assertStatus(Response::HTTP_OK);
-
-        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $organisation->id]);
-        $updateRequest = UpdateRequest::where('updateable_id', $organisation->id)->firstOrFail();
-        $this->assertEquals($address->id, $updateRequest->data['location_id']);
-
-        $updateRequest->apply($user);
-
-        $this->assertDatabaseHas(table(Organisation::class), [
+        $response->assertJsonFragment([
             'id' => $organisation->id,
-            'location_id' => $address->id,
-        ]);
-    }
-
-    /**
-     * @test
-     */
-    public function organisation_admin_can_update_address()
-    {
-        $faker = Faker::create('en_GB');
-        /**
-         * @var \App\Models\User $user
-         */
-        $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
-        $organisation = factory(Organisation::class)->states('location')->create();
-        $address1 = $organisation->location;
-        $address2 = factory(Location::class)->create();
-
-        Passport::actingAs($user);
-
-        $payload = [
-            'location_id' => $address2->id,
-        ];
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
-        $response->assertStatus(Response::HTTP_OK);
-
-        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $organisation->id]);
-        $updateRequest = UpdateRequest::where('updateable_id', $organisation->id)->firstOrFail();
-        $this->assertEquals($address2->id, $updateRequest->data['location_id']);
-
-        $updateRequest->apply($user);
-
-        $this->assertDatabaseHas(table(Organisation::class), [
-            'id' => $organisation->id,
-            'location_id' => $address2->id,
-        ]);
-    }
-
-    /**
-     * @test
-     */
-    public function organisation_admin_can_delete_address()
-    {
-        $faker = Faker::create('en_GB');
-        /**
-         * @var \App\Models\User $user
-         */
-        $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
-        $organisation = factory(Organisation::class)->states('location')->create();
-        $address = $organisation->location;
-
-        Passport::actingAs($user);
-
-        $payload = [
-            'location_id' => null,
-        ];
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", $payload);
-        $response->assertStatus(Response::HTTP_OK);
-
-        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $organisation->id]);
-        $updateRequest = UpdateRequest::where('updateable_id', $organisation->id)->firstOrFail();
-        $this->assertEmpty($updateRequest->data['location_id']);
-
-        $updateRequest->apply($user);
-
-        $this->assertDatabaseHas(table(Organisation::class), [
-            'id' => $organisation->id,
-            'location_id' => null,
+            'slug' => $organisation->slug,
+            'name' => $organisation->name,
+            'description' => $organisation->description,
+            'url' => $organisation->url,
+            'email' => $organisation->email,
+            'phone' => $organisation->phone,
+            'has_logo' => false,
         ]);
     }
 

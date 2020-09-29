@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Core\V1;
 
 use App\Events\EndpointHit;
 use App\Http\Controllers\Controller;
+use App\Http\Filters\Service\HasCategoryTaxonomiesFilter;
 use App\Http\Filters\Service\HasPermissionFilter;
 use App\Http\Filters\Service\OrganisationNameFilter;
 use App\Http\Requests\Service\DestroyRequest;
@@ -13,13 +14,14 @@ use App\Http\Requests\Service\StoreRequest;
 use App\Http\Requests\Service\UpdateRequest;
 use App\Http\Resources\ServiceResource;
 use App\Http\Responses\ResourceDeleted;
-use App\Http\Responses\UpdateRequestReceived;
 use App\Http\Sorts\Service\OrganisationNameSort;
 use App\Models\File;
 use App\Models\Service;
 use App\Models\Taxonomy;
-use App\Models\UpdateRequest as UpdateRequestModel;
-use App\Support\MissingValue;
+use App\Normalisers\GalleryItemNormaliser;
+use App\Normalisers\OfferingNormaliser;
+use App\Normalisers\SocialMediaNormaliser;
+use App\Normalisers\UsefulInfoNormaliser;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -67,7 +69,9 @@ class ServiceController extends Controller
                 Filter::custom('organisation_name', OrganisationNameFilter::class),
                 Filter::exact('status'),
                 Filter::exact('referral_method'),
+                Filter::exact('is_national'),
                 Filter::custom('has_permission', HasPermissionFilter::class),
+                Filter::custom('has_category_taxonomies', HasCategoryTaxonomiesFilter::class),
             ])
             ->allowedIncludes(['organisation'])
             ->allowedSorts([
@@ -88,11 +92,26 @@ class ServiceController extends Controller
      * Store a newly created resource in storage.
      *
      * @param \App\Http\Requests\Service\StoreRequest $request
+     * @param \App\Normalisers\UsefulInfoNormaliser $usefulInfoNormaliser
+     * @param \App\Normalisers\OfferingNormaliser $offeringNormaliser
+     * @param \App\Normalisers\SocialMediaNormaliser $socialMediaNormaliser
+     * @param \App\Normalisers\GalleryItemNormaliser $galleryItemNormaliser
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreRequest $request)
-    {
-        return DB::transaction(function () use ($request) {
+    public function store(
+        StoreRequest $request,
+        UsefulInfoNormaliser $usefulInfoNormaliser,
+        OfferingNormaliser $offeringNormaliser,
+        SocialMediaNormaliser $socialMediaNormaliser,
+        GalleryItemNormaliser $galleryItemNormaliser
+    ) {
+        return DB::transaction(function () use (
+            $request,
+            $usefulInfoNormaliser,
+            $offeringNormaliser,
+            $socialMediaNormaliser,
+            $galleryItemNormaliser
+        ) {
             // Create the service record.
             /** @var \App\Models\Service $service */
             $service = Service::create([
@@ -101,6 +120,7 @@ class ServiceController extends Controller
                 'name' => $request->name,
                 'type' => $request->type,
                 'status' => $request->status,
+                'is_national' => $request->is_national,
                 'intro' => $request->intro,
                 'description' => sanitize_markdown($request->description),
                 'wait_time' => $request->wait_time,
@@ -121,6 +141,41 @@ class ServiceController extends Controller
                 'logo_file_id' => $request->logo_file_id,
                 'last_modified_at' => Date::now(),
             ]);
+
+            // Create the service criterion record.
+            $service->serviceCriterion()->create([
+                'age_group' => $request->criteria['age_group'],
+                'disability' => $request->criteria['disability'],
+                'employment' => $request->criteria['employment'],
+                'gender' => $request->criteria['gender'],
+                'housing' => $request->criteria['housing'],
+                'income' => $request->criteria['income'],
+                'language' => $request->criteria['language'],
+                'other' => $request->criteria['other'],
+            ]);
+
+            // Create the useful info records.
+            $usefulInfos = $usefulInfoNormaliser->normaliseMultiple($request->useful_infos);
+            $service->usefulInfos()->createMany($usefulInfos);
+
+            // Create the offering records.
+            $offerings = $offeringNormaliser->normaliseMultiple($request->offerings);
+            $service->offerings()->createMany($offerings);
+
+            // Create the social media records.
+            $socialMedias = $socialMediaNormaliser->normaliseMultiple($request->social_medias);
+            $service->socialMedias()->createMany($socialMedias);
+
+            // Create the gallery item records.
+            $galleryItems = $galleryItemNormaliser->normaliseMultiple($request->gallery_items);
+            $service->serviceGalleryItems()->createMany($galleryItems);
+
+            // Create the category taxonomy records.
+            $taxonomies = Taxonomy::whereIn('id', $request->category_taxonomies)->get();
+            $service->syncServiceTaxonomies($taxonomies);
+
+            // Ensure conditional fields are reset if needed.
+            $service->resetConditionalFields();
 
             if ($request->filled('gallery_items')) {
                 foreach ($request->gallery_items as $galleryItem) {
@@ -143,57 +198,6 @@ class ServiceController extends Controller
                     $file->resizedVersion($maxDimension);
                 }
             }
-
-            // Create the service criterion record.
-            $service->serviceCriterion()->create([
-                'age_group' => $request->criteria['age_group'],
-                'disability' => $request->criteria['disability'],
-                'employment' => $request->criteria['employment'],
-                'gender' => $request->criteria['gender'],
-                'housing' => $request->criteria['housing'],
-                'income' => $request->criteria['income'],
-                'language' => $request->criteria['language'],
-                'other' => $request->criteria['other'],
-            ]);
-
-            // Create the useful info records.
-            foreach ($request->useful_infos as $usefulInfo) {
-                $service->usefulInfos()->create([
-                    'title' => $usefulInfo['title'],
-                    'description' => sanitize_markdown($usefulInfo['description']),
-                    'order' => $usefulInfo['order'],
-                ]);
-            }
-
-            // Create the offering records.
-            foreach ($request->offerings as $offering) {
-                $service->offerings()->create([
-                    'offering' => $offering['offering'],
-                    'order' => $offering['order'],
-                ]);
-            }
-
-            // Create the social media records.
-            foreach ($request->social_medias as $socialMedia) {
-                $service->socialMedias()->create([
-                    'type' => $socialMedia['type'],
-                    'url' => $socialMedia['url'],
-                ]);
-            }
-
-            // Create the gallery item records.
-            foreach ($request->gallery_items as $galleryItem) {
-                $service->serviceGalleryItems()->create([
-                    'file_id' => $galleryItem['file_id'],
-                ]);
-            }
-
-            // Create the category taxonomy records.
-            $taxonomies = Taxonomy::whereIn('id', $request->category_taxonomies)->get();
-            $service->syncServiceTaxonomies($taxonomies);
-
-            // Ensure conditional fields are reset if needed.
-            $service->resetConditionalFields();
 
             event(EndpointHit::onCreate($request, "Created service [{$service->id}]", $service));
 
@@ -236,59 +240,111 @@ class ServiceController extends Controller
      * Update the specified resource in storage.
      *
      * @param \App\Http\Requests\Service\UpdateRequest $request
+     * @param \App\Normalisers\UsefulInfoNormaliser $usefulInfoNormaliser
+     * @param \App\Normalisers\OfferingNormaliser $offeringNormaliser
+     * @param \App\Normalisers\SocialMediaNormaliser $socialMediaNormaliser
+     * @param \App\Normalisers\GalleryItemNormaliser $galleryItemNormaliser
      * @param \App\Models\Service $service
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateRequest $request, Service $service)
-    {
-        return DB::transaction(function () use ($request, $service) {
-            // Initialise the data array.
-            $data = array_filter_missing([
-                'organisation_id' => $request->missing('organisation_id'),
-                'slug' => $request->missing('slug'),
-                'name' => $request->missing('name'),
-                'type' => $request->missing('type'),
-                'status' => $request->missing('status'),
-                'intro' => $request->missing('intro'),
-                'description' => $request->missing('description', function ($description) {
-                    return sanitize_markdown($description);
-                }),
-                'wait_time' => $request->missing('wait_time'),
-                'is_free' => $request->missing('is_free'),
-                'fees_text' => $request->missing('fees_text'),
-                'fees_url' => $request->missing('fees_url'),
-                'testimonial' => $request->missing('testimonial'),
-                'video_embed' => $request->missing('video_embed'),
-                'url' => $request->missing('url'),
-                'contact_name' => $request->missing('contact_name'),
-                'contact_phone' => $request->missing('contact_phone'),
-                'contact_email' => $request->missing('contact_email'),
-                'show_referral_disclaimer' => $request->missing('show_referral_disclaimer'),
-                'referral_method' => $request->missing('referral_method'),
-                'referral_button_text' => $request->missing('referral_button_text'),
-                'referral_email' => $request->missing('referral_email'),
-                'referral_url' => $request->missing('referral_url'),
-                'criteria' => $request->has('criteria')
-                    ? array_filter_missing([
-                        'age_group' => $request->missing('criteria.age_group'),
-                        'disability' => $request->missing('criteria.disability'),
-                        'employment' => $request->missing('criteria.employment'),
-                        'gender' => $request->missing('criteria.gender'),
-                        'housing' => $request->missing('criteria.housing'),
-                        'income' => $request->missing('criteria.income'),
-                        'language' => $request->missing('criteria.language'),
-                        'other' => $request->missing('criteria.other'),
-                    ])
-                    : new MissingValue(),
-                'useful_infos' => $request->has('useful_infos') ? [] : new MissingValue(),
-                'offerings' => $request->has('offerings') ? [] : new MissingValue(),
-                'social_medias' => $request->has('social_medias') ? [] : new MissingValue(),
-                'gallery_items' => $request->has('gallery_items') ? [] : new MissingValue(),
-                'category_taxonomies' => $request->missing('category_taxonomies'),
-                'logo_file_id' => $request->missing('logo_file_id'),
+    public function update(
+        UpdateRequest $request,
+        UsefulInfoNormaliser $usefulInfoNormaliser,
+        OfferingNormaliser $offeringNormaliser,
+        SocialMediaNormaliser $socialMediaNormaliser,
+        GalleryItemNormaliser $galleryItemNormaliser,
+        Service $service
+    ) {
+        return DB::transaction(function () use (
+            $request,
+            $usefulInfoNormaliser,
+            $offeringNormaliser,
+            $socialMediaNormaliser,
+            $galleryItemNormaliser,
+            $service
+        ) {
+            $service->update([
+                'organisation_id' => $request->input('organisation_id', $service->organisation_id),
+                'slug' => $request->input('slug', $service->slug),
+                'name' => $request->input('name', $service->name),
+                'type' => $request->input('type', $service->type),
+                'status' => $request->input('status', $service->status),
+                'is_national' => $request->input('is_national', $service->is_national),
+                'intro' => $request->input('intro', $service->intro),
+                'description' => sanitize_markdown(
+                    $request->input('description', $service->description)
+                ),
+                'wait_time' => $request->input('wait_time', $service->wait_time),
+                'is_free' => $request->input('is_free', $service->is_free),
+                'fees_text' => $request->input('fees_text', $service->fees_text),
+                'fees_url' => $request->input('fees_url', $service->fees_url),
+                'testimonial' => $request->input('testimonial', $service->testimonial),
+                'video_embed' => $request->input('video_embed', $service->video_embed),
+                'url' => $request->input('url', $service->url),
+                'contact_name' => $request->input('contact_name', $service->contact_name),
+                'contact_phone' => $request->input('contact_phone', $service->contact_phone),
+                'contact_email' => $request->input('contact_email', $service->contact_email),
+                'show_referral_disclaimer' => $request->input('show_referral_disclaimer', $service->show_referral_disclaimer),
+                'referral_method' => $request->input('referral_method', $service->referral_method),
+                'referral_button_text' => $request->input('referral_button_text', $service->referral_button_text),
+                'referral_email' => $request->input('referral_email', $service->referral_email),
+                'referral_url' => $request->input('referral_url', $service->referral_url),
+                'logo_file_id' => $request->input('logo_file_id', $service->logo_file_id),
+                // This must always be updated regardless of the fields changed.
+                'last_modified_at' => Date::now(),
             ]);
 
-            if ($request->filled('gallery_items') && !$request->isPreview()) {
+            $service->serviceCriterion->update([
+                'age_group' => $request->input('criteria.age_group', $service->serviceCriterion->age_group),
+                'disability' => $request->input('criteria.disability', $service->serviceCriterion->disability),
+                'employment' => $request->input('criteria.employment', $service->serviceCriterion->employment),
+                'gender' => $request->input('criteria.gender', $service->serviceCriterion->gender),
+                'housing' => $request->input('criteria.housing', $service->serviceCriterion->housing),
+                'income' => $request->input('criteria.income', $service->serviceCriterion->income),
+                'language' => $request->input('criteria.language', $service->serviceCriterion->language),
+                'other' => $request->input('criteria.other', $service->serviceCriterion->other),
+            ]);
+
+            // Update the useful info records.
+            if ($request->has('useful_infos')) {
+                $service->usefulInfos()->delete();
+                $usefulInfos = $usefulInfoNormaliser->normaliseMultiple(
+                    $request->input('useful_infos')
+                );
+                $service->usefulInfos()->createMany($usefulInfos);
+            }
+
+            // Update the offering records.
+            if ($request->has('offerings')) {
+                $service->offerings()->delete();
+                $offerings = $offeringNormaliser->normaliseMultiple(
+                    $request->input('offerings')
+                );
+                $service->offerings()->createMany($offerings);
+            }
+
+            // Update the gallery item records.
+            if ($request->has('social_medias')) {
+                $service->socialMedias()->delete();
+                $socialMedias = $socialMediaNormaliser->normaliseMultiple(
+                    $request->input('social_medias')
+                );
+                $service->socialMedias()->createMany($socialMedias);
+            }
+
+            // Update the social media records.
+            if ($request->has('gallery_items')) {
+                $service->serviceGalleryItems()->delete();
+                $galleryItems = $galleryItemNormaliser->normaliseMultiple(
+                    $request->input('gallery_items')
+                );
+                $service->serviceGalleryItems()->createMany($galleryItems);
+            }
+
+            // Ensure conditional fields are reset if needed.
+            $service->resetConditionalFields();
+
+            if ($request->filled('gallery_items')) {
                 foreach ($request->gallery_items as $galleryItem) {
                     /** @var \App\Models\File $file */
                     $file = File::findOrFail($galleryItem['file_id'])->assigned();
@@ -300,7 +356,7 @@ class ServiceController extends Controller
                 }
             }
 
-            if ($request->filled('logo_file_id') && !$request->isPreview()) {
+            if ($request->filled('logo_file_id')) {
                 /** @var \App\Models\File $file */
                 $file = File::findOrFail($request->logo_file_id)->assigned();
 
@@ -310,53 +366,9 @@ class ServiceController extends Controller
                 }
             }
 
-            // Loop through each useful info.
-            foreach ($request->input('useful_infos', []) as $usefulInfo) {
-                $data['useful_infos'][] = [
-                    'title' => $usefulInfo['title'],
-                    'description' => sanitize_markdown($usefulInfo['description']),
-                    'order' => $usefulInfo['order'],
-                ];
-            }
+            event(EndpointHit::onUpdate($request, "Updated service [{$service->id}]", $service));
 
-            // Loop through each offering.
-            foreach ($request->input('offerings', []) as $offering) {
-                $data['offerings'][] = [
-                    'offering' => $offering['offering'],
-                    'order' => $offering['order'],
-                ];
-            }
-
-            // Loop through each social media.
-            foreach ($request->input('social_medias', []) as $socialMedia) {
-                $data['social_medias'][] = [
-                    'type' => $socialMedia['type'],
-                    'url' => $socialMedia['url'],
-                ];
-            }
-
-            // Loop through each gallery item.
-            foreach ($request->input('gallery_items', []) as $galleryItem) {
-                $data['gallery_items'][] = [
-                    'file_id' => $galleryItem['file_id'],
-                ];
-            }
-
-            $updateRequest = new UpdateRequestModel([
-                'updateable_type' => UpdateRequestModel::EXISTING_TYPE_SERVICE,
-                'updateable_id' => $service->id,
-                'user_id' => $request->user()->id,
-                'data' => $data,
-            ]);
-
-            // Only persist to the database if the user did not request a preview.
-            if (!$request->isPreview()) {
-                $updateRequest->save();
-
-                event(EndpointHit::onUpdate($request, "Updated service [{$service->id}]", $service));
-            }
-
-            return new UpdateRequestReceived($updateRequest);
+            return new ServiceResource($service);
         });
     }
 

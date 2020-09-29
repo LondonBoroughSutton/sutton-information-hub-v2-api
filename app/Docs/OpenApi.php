@@ -85,10 +85,6 @@ class OpenApi extends BaseOpenApi implements Responsable
                 Paths\Taxonomies\Organisations\TaxonomyOrganisationsIndexPath::create(),
                 Paths\Taxonomies\Organisations\TaxonomyOrganisationsNestedPath::create(),
                 Paths\Thesaurus\ThesaurusRootPath::create(),
-                Paths\UpdateRequests\UpdateRequestsRootPath::create(),
-                Paths\UpdateRequests\UpdateRequestsIndexPath::create(),
-                Paths\UpdateRequests\UpdateRequestsNestedPath::create(),
-                Paths\UpdateRequests\UpdateRequestsApprovePath::create(),
                 Paths\Users\UsersRootPath::create(),
                 Paths\Users\UsersIndexPath::create(),
                 Paths\Users\UsersNestedPath::create(),
@@ -120,7 +116,6 @@ class OpenApi extends BaseOpenApi implements Responsable
                 Tags\StatusUpdatesTag::create(),
                 Tags\TaxonomyCategoriesTag::create(),
                 Tags\TaxonomyOrganisationsTag::create(),
-                Tags\UpdateRequestsTag::create(),
                 Tags\UsersTag::create()
             )
             ->externalDocs(ExternalDocs::create());

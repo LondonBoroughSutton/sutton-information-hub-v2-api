@@ -2,14 +2,15 @@
 
 namespace App\Docs\Operations\Services;
 
-use App\Docs\Responses\UpdateRequestReceivedResponse;
+use App\Docs\Schemas\ResourceSchema;
+use App\Docs\Schemas\Service\ServiceSchema;
 use App\Docs\Schemas\Service\UpdateServiceSchema;
 use App\Docs\Tags\ServicesTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Operation;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\RequestBody;
-use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
+use GoldSpecDigital\ObjectOrientedOAS\Objects\Response;
 
 class UpdateServiceOperation extends Operation
 {
@@ -20,14 +21,6 @@ class UpdateServiceOperation extends Operation
      */
     public static function create(string $objectId = null): BaseObject
     {
-        $updateServiceSchema = UpdateServiceSchema::create();
-        $updateServiceSchema = $updateServiceSchema->properties(
-            Schema::boolean('preview')
-                ->default(false)
-                ->description('When enabled, only a preview of the update request will be generated'),
-            ...$updateServiceSchema->properties
-        );
-
         return parent::create($objectId)
             ->action(static::ACTION_PUT)
             ->tags(ServicesTag::create())
@@ -45,11 +38,15 @@ EOT
                 RequestBody::create()
                     ->required()
                     ->content(
-                        MediaType::json()->schema($updateServiceSchema)
+                        MediaType::json()->schema(UpdateServiceSchema::create())
                     )
             )
             ->responses(
-                UpdateRequestReceivedResponse::create(null, UpdateServiceSchema::create())
+                Response::created()->content(
+                    MediaType::json()->schema(
+                        ResourceSchema::create(null, ServiceSchema::create())
+                    )
+                )
             );
     }
 }

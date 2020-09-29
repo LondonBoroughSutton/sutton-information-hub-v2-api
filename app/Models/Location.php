@@ -3,26 +3,19 @@
 namespace App\Models;
 
 use App\Contracts\Geocoder;
-use App\Http\Requests\Location\UpdateRequest as Request;
 use App\Models\Mutators\LocationMutators;
 use App\Models\Relationships\LocationRelationships;
 use App\Models\Scopes\LocationScopes;
-use App\Rules\FileIsMimeType;
 use App\Support\Address;
 use App\Support\Coordinate;
-use App\UpdateRequest\AppliesUpdateRequests;
-use App\UpdateRequest\UpdateRequests;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
-class Location extends Model implements AppliesUpdateRequests
+class Location extends Model
 {
     use LocationMutators;
     use LocationRelationships;
     use LocationScopes;
-    use UpdateRequests;
 
     /**
      * The attributes that should be cast to native types.
@@ -53,57 +46,6 @@ class Location extends Model implements AppliesUpdateRequests
         $this->lon = $coordinate->lon();
 
         return $this;
-    }
-
-    /**
-     * Check if the update request is valid.
-     *
-     * @param \App\Models\UpdateRequest $updateRequest
-     * @return \Illuminate\Contracts\Validation\Validator
-     */
-    public function validateUpdateRequest(UpdateRequest $updateRequest): Validator
-    {
-        $rules = (new Request())->rules();
-
-        // Remove the pending assignment rule since the file is now uploaded.
-        $rules['image_file_id'] = [
-            'nullable',
-            'exists:files,id',
-            new FileIsMimeType(File::MIME_TYPE_PNG),
-        ];
-
-        return ValidatorFacade::make($updateRequest->data, $rules);
-    }
-
-    /**
-     * Apply the update request.
-     *
-     * @param \App\Models\UpdateRequest $updateRequest
-     * @return \App\Models\UpdateRequest
-     */
-    public function applyUpdateRequest(UpdateRequest $updateRequest): UpdateRequest
-    {
-        $data = $updateRequest->data;
-
-        $this->update([
-            'address_line_1' => $data['address_line_1'] ?? $this->address_line_1,
-            'address_line_2' => $data['address_line_2'] ?? $this->address_line_2,
-            'address_line_3' => $data['address_line_3'] ?? $this->address_line_3,
-            'city' => $data['city'] ?? $this->city,
-            'county' => $data['county'] ?? $this->county,
-            'postcode' => $data['postcode'] ?? $this->postcode,
-            'country' => $data['country'] ?? $this->country,
-            'accessibility_info' => $data['accessibility_info'] ?? $this->accessibility_info,
-            'has_wheelchair_access' => $data['has_wheelchair_access'] ?? $this->has_wheelchair_access,
-            'has_induction_loop' => $data['has_induction_loop'] ?? $this->has_induction_loop,
-            'image_file_id' => array_key_exists('image_file_id', $data)
-                ? $data['image_file_id']
-                : $this->image_file_id,
-        ]);
-
-        $this->updateCoordinate()->save();
-
-        return $updateRequest;
     }
 
     /**

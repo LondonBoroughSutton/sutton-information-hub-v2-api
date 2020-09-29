@@ -15,7 +15,6 @@ use App\Models\Service;
 use App\Models\ServiceLocation;
 use App\Models\ServiceTaxonomy;
 use App\Models\Taxonomy;
-use App\Models\UpdateRequest;
 use App\Models\User;
 use App\Observers\CollectionObserver;
 use App\Observers\CollectionTaxonomyObserver;
@@ -30,7 +29,6 @@ use App\Observers\ServiceLocationObserver;
 use App\Observers\ServiceObserver;
 use App\Observers\ServiceTaxonomyObserver;
 use App\Observers\TaxonomyObserver;
-use App\Observers\UpdateRequestObserver;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
@@ -54,15 +52,12 @@ class ModelServiceProvider extends ServiceProvider
         Service::observe(ServiceObserver::class);
         ServiceTaxonomy::observe(ServiceTaxonomyObserver::class);
         Taxonomy::observe(TaxonomyObserver::class);
-        UpdateRequest::observe(UpdateRequestObserver::class);
 
         Relation::morphMap([
-            UpdateRequest::EXISTING_TYPE_LOCATION => Location::class,
-            UpdateRequest::EXISTING_TYPE_REFERRAL => Referral::class,
-            UpdateRequest::EXISTING_TYPE_SERVICE => Service::class,
-            UpdateRequest::EXISTING_TYPE_SERVICE_LOCATION => ServiceLocation::class,
-            UpdateRequest::EXISTING_TYPE_ORGANISATION => Organisation::class,
-            UpdateRequest::EXISTING_TYPE_USER => User::class,
+            'services' => Service::class,
+            'organisations' => Organisation::class,
+            'referrals' => Referral::class,
+            'users' => User::class,
         ]);
     }
 

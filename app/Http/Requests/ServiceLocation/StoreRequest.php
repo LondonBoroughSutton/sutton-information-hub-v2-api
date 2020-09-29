@@ -6,6 +6,7 @@ use App\Models\File;
 use App\Models\RegularOpeningHour;
 use App\Rules\FileIsMimeType;
 use App\Rules\FileIsPendingAssignment;
+use App\Rules\IsLocalService;
 use App\Rules\IsServiceAdmin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -34,7 +35,7 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'service_id' => ['required', 'exists:services,id', new IsServiceAdmin($this->user())],
+            'service_id' => ['required', 'exists:services,id', new IsLocalService(), new IsServiceAdmin($this->user())],
             'location_id' => ['required', 'exists:locations,id'],
             'name' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
 

@@ -11,11 +11,11 @@ use App\Http\Requests\ServiceLocation\StoreRequest;
 use App\Http\Requests\ServiceLocation\UpdateRequest;
 use App\Http\Resources\ServiceLocationResource;
 use App\Http\Responses\ResourceDeleted;
-use App\Http\Responses\UpdateRequestReceived;
 use App\Models\File;
 use App\Models\RegularOpeningHour;
 use App\Models\ServiceLocation;
-use App\Support\MissingValue;
+use App\Normalisers\HolidayOpeningHoursNormaliser;
+use App\Normalisers\RegularOpeningHoursNormaliser;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\Filter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -145,56 +145,45 @@ class ServiceLocationController extends Controller
      * Update the specified resource in storage.
      *
      * @param \App\Http\Requests\ServiceLocation\UpdateRequest $request
+     * @param \App\Normalisers\RegularOpeningHoursNormaliser $regularOpeningHoursNormaliser
+     * @param \App\Normalisers\HolidayOpeningHoursNormaliser $holidayOpeningHoursNormaliser
      * @param \App\Models\ServiceLocation $serviceLocation
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateRequest $request, ServiceLocation $serviceLocation)
-    {
-        return DB::transaction(function () use ($request, $serviceLocation) {
-            // Initialise the data array.
-            $data = array_filter_missing([
-                'name' => $request->missing('name'),
-                'regular_opening_hours' => $request->has('regular_opening_hours') ? [] : new MissingValue(),
-                'holiday_opening_hours' => $request->has('holiday_opening_hours') ? [] : new MissingValue(),
-                'image_file_id' => $request->missing('image_file_id'),
+    public function update(
+        UpdateRequest $request,
+        RegularOpeningHoursNormaliser $regularOpeningHoursNormaliser,
+        HolidayOpeningHoursNormaliser $holidayOpeningHoursNormaliser,
+        ServiceLocation $serviceLocation
+    ) {
+        return DB::transaction(function () use (
+            $request,
+            $regularOpeningHoursNormaliser,
+            $holidayOpeningHoursNormaliser,
+            $serviceLocation
+        ) {
+            $serviceLocation->update([
+                'name' => $request->input('name', $serviceLocation->name),
+                'image_file_id' => $request->input('image_file_id', $serviceLocation->image_file_id),
             ]);
 
-            // Loop through each regular opening hour to normalise and then append to the array.
-            foreach ($request->input('regular_opening_hours', []) as $regularOpeningHour) {
-                $data['regular_opening_hours'][] = array_filter_null([
-                    'frequency' => $regularOpeningHour['frequency'],
-                    'weekday' => in_array($regularOpeningHour['frequency'], [RegularOpeningHour::FREQUENCY_WEEKLY, RegularOpeningHour::FREQUENCY_NTH_OCCURRENCE_OF_MONTH])
-                        ? $regularOpeningHour['weekday']
-                        : null,
-                    'day_of_month' => ($regularOpeningHour['frequency'] === RegularOpeningHour::FREQUENCY_MONTHLY)
-                        ? $regularOpeningHour['day_of_month']
-                        : null,
-                    'occurrence_of_month' => ($regularOpeningHour['frequency'] === RegularOpeningHour::FREQUENCY_NTH_OCCURRENCE_OF_MONTH)
-                        ? $regularOpeningHour['occurrence_of_month']
-                        : null,
-                    'starts_at' => ($regularOpeningHour['frequency'] === RegularOpeningHour::FREQUENCY_FORTNIGHTLY)
-                        ? $regularOpeningHour['starts_at']
-                        : null,
-                    'opens_at' => $regularOpeningHour['opens_at'],
-                    'closes_at' => $regularOpeningHour['closes_at'],
-                ]);
+            // Attach the regular opening hours.
+            if ($request->has('regular_opening_hours')) {
+                $serviceLocation->regularOpeningHours()->delete();
+                $regularOpeningHours = $regularOpeningHoursNormaliser->normaliseMultiple(
+                    $request->input('regular_opening_hours')
+                );
+                $serviceLocation->regularOpeningHours()->createMany($regularOpeningHours);
             }
 
-            // Loop through each holiday opening hour to normalise and then append to the array.
-            foreach ($request->input('holiday_opening_hours', []) as $holidayOpeningHour) {
-                $data['holiday_opening_hours'][] = [
-                    'is_closed' => $holidayOpeningHour['is_closed'],
-                    'starts_at' => $holidayOpeningHour['starts_at'],
-                    'ends_at' => $holidayOpeningHour['ends_at'],
-                    'opens_at' => $holidayOpeningHour['opens_at'],
-                    'closes_at' => $holidayOpeningHour['closes_at'],
-                ];
+            // Attach the holiday opening hours.
+            if ($request->has('holiday_opening_hours')) {
+                $serviceLocation->holidayOpeningHours()->delete();
+                $holidayOpeningHours = $holidayOpeningHoursNormaliser->normaliseMultiple(
+                    $request->input('holiday_opening_hours')
+                );
+                $serviceLocation->holidayOpeningHours()->createMany($holidayOpeningHours);
             }
-
-            $updateRequest = $serviceLocation->updateRequests()->create([
-                'user_id' => $request->user()->id,
-                'data' => $data,
-            ]);
 
             if ($request->filled('image_file_id')) {
                 /** @var \App\Models\File $file */
@@ -208,7 +197,7 @@ class ServiceLocationController extends Controller
 
             event(EndpointHit::onUpdate($request, "Updated service location [{$serviceLocation->id}]", $serviceLocation));
 
-            return new UpdateRequestReceived($updateRequest);
+            return new ServiceLocationResource($serviceLocation);
         });
     }
 

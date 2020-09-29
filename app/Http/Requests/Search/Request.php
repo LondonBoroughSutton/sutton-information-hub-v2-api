@@ -28,13 +28,13 @@ class Request extends FormRequest
     {
         return [
             'query' => [
-                'required_without_all:category,type,persona,wait_time,is_free,location',
+                'required_without_all:category,type,persona,wait_time,is_free,is_national,location',
                 'string',
                 'min:3',
                 'max:255',
             ],
             'type' => [
-                'required_without_all:query,category,persona,wait_time,is_free,location',
+                'required_without_all:query,category,persona,wait_time,is_free,is_national,location',
                 Rule::in([
                     Service::TYPE_SERVICE,
                     Service::TYPE_ACTIVITY,
@@ -46,19 +46,19 @@ class Request extends FormRequest
                 ]),
             ],
             'category' => [
-                'required_without_all:query,type,persona,wait_time,is_free,location',
+                'required_without_all:query,type,persona,wait_time,is_free,is_national,location',
                 'string',
                 'min:1',
                 'max:255',
             ],
             'persona' => [
-                'required_without_all:query,type,category,wait_time,is_free,location',
+                'required_without_all:query,type,category,wait_time,is_free,is_national,location',
                 'string',
                 'min:1',
                 'max:255',
             ],
             'wait_time' => [
-                'required_without_all:query,type,category,is_free,persona,location',
+                'required_without_all:query,type,category,is_free,is_national,persona,location',
                 Rule::in([
                     Service::WAIT_TIME_ONE_WEEK,
                     Service::WAIT_TIME_TWO_WEEKS,
@@ -68,14 +68,18 @@ class Request extends FormRequest
                 ]),
             ],
             'is_free' => [
-                'required_without_all:query,type,category,persona,wait_time,location',
+                'required_without_all:query,type,category,persona,wait_time,location,is_national',
+                'boolean',
+            ],
+            'is_national' => [
+                'required_without_all:query,type,category,persona,wait_time,location,is_free',
                 'boolean',
             ],
             'order' => [
                 Rule::in([Search::ORDER_RELEVANCE, Search::ORDER_DISTANCE]),
             ],
             'location' => [
-                'required_without_all:query,type,category,persona,wait_time,is_free',
+                'required_without_all:query,type,category,persona,wait_time,is_free,is_national',
                 'required_if:order,distance',
                 'array',
             ],

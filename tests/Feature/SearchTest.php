@@ -281,6 +281,34 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $response->assertJsonMissing(['id' => $paidService->id]);
     }
 
+    public function test_filter_by_national_works()
+    {
+        $nationalService = factory(Service::class)->create(['is_national' => true]);
+        $localService = factory(Service::class)->create(['is_national' => false]);
+
+        $response = $this->json('POST', '/core/v1/search', [
+            'is_national' => true,
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment(['id' => $nationalService->id]);
+        $response->assertJsonMissing(['id' => $localService->id]);
+    }
+
+    public function test_filter_by_not_national_works()
+    {
+        $nationalService = factory(Service::class)->create(['is_national' => true]);
+        $localService = factory(Service::class)->create(['is_national' => false]);
+
+        $response = $this->json('POST', '/core/v1/search', [
+            'is_national' => false,
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment(['id' => $localService->id]);
+        $response->assertJsonMissing(['id' => $nationalService->id]);
+    }
+
     public function test_order_by_location_works()
     {
         $service = factory(Service::class)->create();
@@ -424,6 +452,54 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonFragment(['id' => $activeService->id]);
         $response->assertJsonMissing(['id' => $inactiveService->id]);
+    }
+
+    public function test_only_national_services_returned()
+    {
+        $nationalService = factory(Service::class)->create([
+            'name' => 'Testing Service',
+            'is_national' => true,
+        ]);
+        $localService = factory(Service::class)->create([
+            'name' => 'Testing Service',
+            'is_national' => false,
+        ]);
+
+        $response = $this->json('POST', '/core/v1/search', [
+            'query' => 'Testing Service',
+            'is_national' => true,
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment(['id' => $nationalService->id]);
+        $response->assertJsonMissing(['id' => $localService->id]);
+    }
+
+    public function test_national_service_not_returned_in_location_search()
+    {
+        $nationalService = factory(Service::class)->create([
+            'name' => 'Testing Service',
+            'is_national' => true,
+        ]);
+
+        $localService = factory(Service::class)->create([
+            'is_national' => false,
+        ]);
+        $localServiceLocation = factory(ServiceLocation::class)->create(['service_id' => $localService->id]);
+        DB::table('locations')->where('id', $localServiceLocation->location->id)->update(['lat' => 45, 'lon' => 90]);
+        $localService->save();
+
+        $response = $this->json('POST', '/core/v1/search', [
+            'order' => 'distance',
+            'location' => [
+                'lat' => 45,
+                'lon' => 90,
+            ],
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment(['id' => $localService->id]);
+        $response->assertJsonMissing(['id' => $nationalService->id]);
     }
 
     public function test_order_by_location_return_services_less_than_15_miles_away()

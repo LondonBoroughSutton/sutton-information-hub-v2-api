@@ -11,7 +11,6 @@ use App\Http\Requests\Location\StoreRequest;
 use App\Http\Requests\Location\UpdateRequest;
 use App\Http\Resources\LocationResource;
 use App\Http\Responses\ResourceDeleted;
-use App\Http\Responses\UpdateRequestReceived;
 use App\Models\File;
 use App\Models\Location;
 use Illuminate\Support\Facades\DB;
@@ -98,6 +97,9 @@ class LocationController extends Controller
                 'image_file_id' => $request->image_file_id,
             ]);
 
+            // Persist the record to the database.
+            $location->updateCoordinate()->save();
+
             if ($request->filled('image_file_id')) {
                 /** @var \App\Models\File $file */
                 $file = File::findOrFail($request->image_file_id)->assigned();
@@ -107,9 +109,6 @@ class LocationController extends Controller
                     $file->resizedVersion($maxDimension);
                 }
             }
-
-            // Persist the record to the database.
-            $location->updateCoordinate()->save();
 
             event(EndpointHit::onCreate($request, "Created location [{$location->id}]", $location));
 
@@ -147,22 +146,22 @@ class LocationController extends Controller
     public function update(UpdateRequest $request, Location $location)
     {
         return DB::transaction(function () use ($request, $location) {
-            $updateRequest = $location->updateRequests()->create([
-                'user_id' => $request->user()->id,
-                'data' => array_filter_missing([
-                    'address_line_1' => $request->missing('address_line_1'),
-                    'address_line_2' => $request->missing('address_line_2'),
-                    'address_line_3' => $request->missing('address_line_3'),
-                    'city' => $request->missing('city'),
-                    'county' => $request->missing('county'),
-                    'postcode' => $request->missing('postcode'),
-                    'country' => $request->missing('country'),
-                    'accessibility_info' => $request->missing('accessibility_info'),
-                    'has_wheelchair_access' => $request->missing('has_wheelchair_access'),
-                    'has_induction_loop' => $request->missing('has_induction_loop'),
-                    'image_file_id' => $request->missing('image_file_id'),
-                ]),
+            $location->update([
+                'address_line_1' => $request->input('address_line_1', $location->address_line_1),
+                'address_line_2' => $request->input('address_line_2', $location->address_line_2),
+                'address_line_3' => $request->input('address_line_3', $location->address_line_3),
+                'city' => $request->input('city', $location->city),
+                'county' => $request->input('county', $location->county),
+                'postcode' => $request->input('postcode', $location->postcode),
+                'country' => $request->input('country', $location->country),
+                'accessibility_info' => $request->input('accessibility_info', $location->accessibility_info),
+                'has_wheelchair_access' => $request->input('has_wheelchair_access', $location->has_wheelchair_access),
+                'has_induction_loop' => $request->input('has_induction_loop', $location->has_induction_loop),
+                'image_file_id' => $request->input('image_file_id', $location->image_file_id),
             ]);
+
+            // Persist the record to the database.
+            $location->updateCoordinate()->save();
 
             if ($request->filled('image_file_id')) {
                 /** @var \App\Models\File $file */
@@ -176,7 +175,7 @@ class LocationController extends Controller
 
             event(EndpointHit::onUpdate($request, "Updated location [{$location->id}]", $location));
 
-            return new UpdateRequestReceived($updateRequest);
+            return new LocationResource($location);
         });
     }
 

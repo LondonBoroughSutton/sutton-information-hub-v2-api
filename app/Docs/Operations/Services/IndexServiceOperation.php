@@ -81,6 +81,9 @@ EOT
                 FilterParameter::create(null, 'has_permission')
                     ->description('Filter services to only ones they have permissions for')
                     ->schema(Schema::boolean()),
+                FilterParameter::create(null, 'has_category_taxonomies')
+                    ->description('Filter out services with no category taxonomies')
+                    ->schema(Schema::boolean()),
                 IncludeParameter::create(null, ['organisation']),
                 SortParameter::create(null, [
                     'name',

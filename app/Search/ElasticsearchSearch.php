@@ -247,6 +247,20 @@ class ElasticsearchSearch implements Search
     /**
      * @inheritDoc
      */
+    public function applyIsNational(bool $isNational): Search
+    {
+        $this->query['query']['bool']['filter']['bool']['must'][] = [
+            'term' => [
+                'is_national' => $isNational,
+            ],
+        ];
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function applyOrder(string $order, Coordinate $location = null): Search
     {
         if ($order === static::ORDER_DISTANCE) {
@@ -313,6 +327,7 @@ class ElasticsearchSearch implements Search
         $this->query['size'] = $perPage;
 
         $response = Service::searchRaw($this->query);
+
         $this->logMetrics($response);
 
         return $this->toResource($response, true, $page);

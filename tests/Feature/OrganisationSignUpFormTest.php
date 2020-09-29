@@ -7,7 +7,6 @@ use App\Models\Audit;
 use App\Models\Organisation;
 use App\Models\Service;
 use App\Models\SocialMedia;
-use App\Models\UpdateRequest;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
@@ -235,7 +234,7 @@ class OrganisationSignUpFormTest extends TestCase
     {
         $this->fakeEvents();
 
-        $response = $this->json('POST', '/core/v1/organisation-sign-up-forms', [
+        $this->json('POST', '/core/v1/organisation-sign-up-forms', [
             'user' => [
                 'first_name' => $this->faker->firstName,
                 'last_name' => $this->faker->lastName,
@@ -299,15 +298,9 @@ class OrganisationSignUpFormTest extends TestCase
             ],
         ]);
 
-        Event::assertDispatched(EndpointHit::class, function (EndpointHit $event) use ($response) {
-            /** @var \App\Models\UpdateRequest $updateRequest */
-            $updateRequest = UpdateRequest::findOrFail(
-                $this->getResponseContent($response, 'id')
-            );
-
+        Event::assertDispatched(EndpointHit::class, function (EndpointHit $event) {
             return ($event->getAction() === Audit::ACTION_CREATE) &&
-                ($event->getUser() === null) &&
-                ($event->getModel()->is($updateRequest));
+                ($event->getUser() === null);
         });
     }
 }

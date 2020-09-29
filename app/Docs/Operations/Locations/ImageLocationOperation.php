@@ -3,7 +3,6 @@
 namespace App\Docs\Operations\Locations;
 
 use App\Docs\Parameters\MaxDimensionParameter;
-use App\Docs\Parameters\UpdateRequestIdParameter;
 use App\Docs\Responses\PngResponse;
 use App\Docs\Tags\LocationsTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
@@ -25,8 +24,7 @@ class ImageLocationOperation extends Operation
             ->description('**Permission:** `Open`')
             ->noSecurity()
             ->parameters(
-                MaxDimensionParameter::create(),
-                UpdateRequestIdParameter::create()
+                MaxDimensionParameter::create()
             )
             ->responses(PngResponse::create());
     }
