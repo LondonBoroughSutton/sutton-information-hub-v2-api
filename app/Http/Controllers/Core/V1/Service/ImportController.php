@@ -117,9 +117,9 @@ class ImportController extends Controller implements SpreadsheetController
             /**
              * Cast Boolean rows to boolean value
              */
-            $row['is_free'] = (boolean) $row['is_free'];
-            $row['is_national'] = (boolean) $row['is_national'];
-            $row['show_referral_disclaimer'] = (boolean) $row['show_referral_disclaimer'];
+            $row['is_free'] = null === $row['is_free'] ? null : (boolean) $row['is_free'];
+            $row['is_national'] = null === $row['is_national'] ? null : (boolean) $row['is_national'];
+            $row['show_referral_disclaimer'] = null === $row['show_referral_disclaimer'] ? null : (boolean) $row['show_referral_disclaimer'];
 
             $validator = Validator::make($row, [
                 'name' => ['required', 'string', 'min:1', 'max:255'],

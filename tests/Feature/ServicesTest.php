@@ -21,7 +21,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
@@ -1325,8 +1324,8 @@ class ServicesTest extends TestCase
                         'name' => $taxonomy->name,
                         'created_at' => $taxonomy->created_at->format(CarbonImmutable::ISO8601),
                         'updated_at' => $taxonomy->updated_at->format(CarbonImmutable::ISO8601),
-                    ]
-                ]
+                    ],
+                ],
             ]
         ));
     }
@@ -1413,8 +1412,8 @@ class ServicesTest extends TestCase
                         'name' => $taxonomy->name,
                         'created_at' => $taxonomy->created_at->format(CarbonImmutable::ISO8601),
                         'updated_at' => $taxonomy->updated_at->format(CarbonImmutable::ISO8601),
-                    ]
-                ]
+                    ],
+                ],
             ]
         ));
     }
@@ -1502,8 +1501,8 @@ class ServicesTest extends TestCase
                         'name' => $taxonomy->name,
                         'created_at' => $taxonomy->created_at->format(CarbonImmutable::ISO8601),
                         'updated_at' => $taxonomy->updated_at->format(CarbonImmutable::ISO8601),
-                    ]
-                ]
+                    ],
+                ],
             ]
         ));
     }
@@ -2963,7 +2962,6 @@ class ServicesTest extends TestCase
         ];
 
         $response = $this->json('POST', "/core/v1/services/import", $data);
-        dd($response->json());
 
         $response->assertStatus(Response::HTTP_CREATED);
     }
@@ -3007,6 +3005,8 @@ class ServicesTest extends TestCase
     {
         Storage::fake('local');
 
+        $organisation = factory(Organisation::class)->create();
+
         $invalidFieldTypes = [
             ['spreadsheet' => 'This is a string'],
             ['spreadsheet' => 1],
@@ -3022,6 +3022,7 @@ class ServicesTest extends TestCase
         Passport::actingAs($user);
 
         foreach ($invalidFieldTypes as $data) {
+            $data['organisation_id'] = $organisation->id;
             $response = $this->json('POST', "/core/v1/services/import", $data);
             $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -3064,8 +3065,8 @@ class ServicesTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = factory(User::class)->create()->makeOrganisationAdmin();
         $organisation = factory(Organisation::class)->create();
+        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
 
         Passport::actingAs($user);
 
@@ -3090,18 +3091,6 @@ class ServicesTest extends TestCase
                                 'url' => [],
                                 'show_referral_disclaimer' => [],
                                 'referral_method' => [],
-                            ],
-                        ],
-                        [
-                            'row' => [],
-                            'errors' => [
-                                'referral_email' => [],
-                            ],
-                        ],
-                        [
-                            'row' => [],
-                            'errors' => [
-                                'referral_url' => [],
                             ],
                         ],
                     ],
@@ -3154,9 +3143,9 @@ class ServicesTest extends TestCase
     {
         Storage::fake('local');
 
-        $organisationAdminUser = factory(User::class)->create()->makeOrganisationAdmin();
-        $globalAdminUser = factory(User::class)->create()->makeGlobalAdmin();
         $organisation = factory(Organisation::class)->create();
+        $organisationAdminUser = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $globalAdminUser = factory(User::class)->create()->makeGlobalAdmin();
 
         Passport::actingAs($organisationAdminUser);
 
@@ -3227,9 +3216,9 @@ class ServicesTest extends TestCase
     {
         Storage::fake('local');
 
+        $organisation = factory(Organisation::class)->create();
         $globalAdminUser = factory(User::class)->create()->makeGlobalAdmin();
         $superAdminUser = factory(User::class)->create()->makeSuperAdmin();
-        $organisation = factory(Organisation::class)->create();
 
         Passport::actingAs($globalAdminUser);
 
@@ -3292,8 +3281,8 @@ class ServicesTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = factory(User::class)->create()->makeSuperAdmin();
         $organisation = factory(Organisation::class)->create();
+        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
 
         Passport::actingAs($user);
 
@@ -3327,8 +3316,8 @@ class ServicesTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = factory(User::class)->create()->makeSuperAdmin();
         $organisation = factory(Organisation::class)->create();
+        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
 
         Passport::actingAs($user);
 
