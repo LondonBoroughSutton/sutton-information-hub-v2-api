@@ -2,26 +2,27 @@
 
 namespace App\Http\Controllers\Core\V1;
 
-use App\Events\EndpointHit;
-use App\Http\Controllers\Controller;
-use App\Http\Filters\Organisation\HasEmailFilter;
-use App\Http\Filters\Organisation\HasPermissionFilter;
-use App\Http\Filters\Organisation\HasPhoneFilter;
-use App\Http\Filters\Organisation\HasServicesFilter;
-use App\Http\Filters\Organisation\HasSocialMediasFilter;
-use App\Http\Requests\Organisation\DestroyRequest;
-use App\Http\Requests\Organisation\IndexRequest;
-use App\Http\Requests\Organisation\ShowRequest;
-use App\Http\Requests\Organisation\StoreRequest;
-use App\Http\Requests\Organisation\UpdateRequest;
-use App\Http\Resources\OrganisationResource;
-use App\Http\Responses\ResourceDeleted;
 use App\Models\File;
+use App\Events\EndpointHit;
 use App\Models\Organisation;
-use App\Normalisers\SocialMediaNormaliser;
-use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\Filter;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Spatie\QueryBuilder\QueryBuilder;
+use App\Http\Responses\ResourceDeleted;
+use App\Normalisers\SocialMediaNormaliser;
+use App\Http\Resources\OrganisationResource;
+use App\Http\Requests\Organisation\ShowRequest;
+use App\Http\Filters\Organisation\IsAdminFilter;
+use App\Http\Requests\Organisation\IndexRequest;
+use App\Http\Requests\Organisation\StoreRequest;
+use App\Http\Filters\Organisation\HasEmailFilter;
+use App\Http\Filters\Organisation\HasPhoneFilter;
+use App\Http\Requests\Organisation\UpdateRequest;
+use App\Http\Requests\Organisation\DestroyRequest;
+use App\Http\Filters\Organisation\HasServicesFilter;
+use App\Http\Filters\Organisation\HasPermissionFilter;
+use App\Http\Filters\Organisation\HasSocialMediasFilter;
 
 class OrganisationController extends Controller
 {
@@ -47,6 +48,7 @@ class OrganisationController extends Controller
             ->allowedFilters([
                 Filter::exact('id'),
                 'name',
+                Filter::custom('is_admin', IsAdminFilter::class),
                 Filter::custom('has_permission', HasPermissionFilter::class),
                 Filter::custom('has_email', HasEmailFilter::class),
                 Filter::custom('has_social_medias', HasSocialMediasFilter::class),
