@@ -87,7 +87,7 @@ class ImportController extends Controller implements SpreadsheetController
             ]);
 
             if ($validator->fails()) {
-                $row['index'] = $i;
+                $row['index'] = $i + 2;
                 $rejectedRows[] = ['row' => $row, 'errors' => $validator->errors()];
             }
         }

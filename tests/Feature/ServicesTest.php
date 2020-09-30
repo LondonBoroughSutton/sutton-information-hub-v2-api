@@ -3390,7 +3390,7 @@ class ServicesTest extends TestCase
         Passport::actingAs($user);
 
         $response = $this->json('POST', "/core/v1/services/import", [
-            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/services_criteria_import_1_good.xls'))),
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/services_import_1_good.xls'))),
             'organisation_id' => $organisation->id,
         ]);
         $response->assertStatus(Response::HTTP_CREATED);

@@ -235,7 +235,7 @@ class ImportController extends Controller implements SpreadsheetController
             ]);
 
             if ($validator->fails()) {
-                $row['index'] = $i;
+                $row['index'] = $i + 2;
                 $rejectedRows[] = ['row' => $row, 'errors' => $validator->errors()];
             }
         }
@@ -288,9 +288,15 @@ class ImportController extends Controller implements SpreadsheetController
 
                 /**
                  * Check for Criteria fields.
-                 * Build a row of passed Criteria fields
+                 * Build a row of passed Criteria fields.
+                 * Remove Criteria fields from the Service row
                  */
-                $criteriaRow = [];
+                $criteriaRow = [
+                    'id' => (string) Str::uuid(),
+                    'service_id' => $serviceRow['id'],
+                    'created_at' => Date::now(),
+                    'updated_at' => Date::now(),
+                ];
                 foreach ($criteriaFields as $criteriaField) {
                     if (array_key_exists('criteria_' . $criteriaField, $serviceRow)) {
                         $criteriaRow[$criteriaField] = $serviceRow['criteria_' . $criteriaField];
@@ -299,12 +305,9 @@ class ImportController extends Controller implements SpreadsheetController
                 }
 
                 /**
-                 * Add any Criteria row to a batch array
+                 * Add the Criteria row to a batch array
                  */
-                if (count($criteriaRow)) {
-                    $criteriaRow['service_id'] = $serviceRow['id'];
-                    $criteriaRowBatch[] = $criteriaRow;
-                }
+                $criteriaRowBatch[] = $criteriaRow;
 
                 /**
                  * Add the meta fields to the Service row
@@ -344,7 +347,6 @@ class ImportController extends Controller implements SpreadsheetController
                 if (count($serviceRowBatch) === self::ROW_IMPORT_BATCH_SIZE) {
                     DB::table('services')->insert($serviceRowBatch);
                     DB::table('user_roles')->insert($adminRowBatch);
-                    DB::table('user_roles')->insert($adminRowBatch);
                     DB::table('service_criteria')->insert($criteriaRowBatch);
                     $importedRows += self::ROW_IMPORT_BATCH_SIZE;
                     $serviceRowBatch = $adminRowBatch = $criteriaRowBatch = [];
@@ -354,6 +356,7 @@ class ImportController extends Controller implements SpreadsheetController
             if (count($serviceRowBatch) && count($serviceRowBatch) !== self::ROW_IMPORT_BATCH_SIZE) {
                 DB::table('services')->insert($serviceRowBatch);
                 DB::table('user_roles')->insert($adminRowBatch);
+                DB::table('service_criteria')->insert($criteriaRowBatch);
                 $importedRows += count($serviceRowBatch);
             }
         }, 5);
