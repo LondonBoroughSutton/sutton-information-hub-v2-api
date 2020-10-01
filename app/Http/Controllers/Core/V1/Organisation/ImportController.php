@@ -39,7 +39,7 @@ class ImportController extends Controller implements SpreadsheetController
      */
     public function __invoke(ImportRequest $request)
     {
-        ['rejected' => $rejected, 'imported' => $imported] = $this->processSpreadsheet($request->input('spreadsheet'));
+        list('rejected' => $rejected, 'imported' => $imported) = $this->processSpreadsheet($request->input('spreadsheet'));
 
         $responseStatus = 201;
         $response = ['imported_row_count' => $imported];
@@ -57,10 +57,10 @@ class ImportController extends Controller implements SpreadsheetController
     /**
      * Validate the spreadsheet rows.
      *
-     * @param String $filePath
-     * @return Array
+     * @param string $filePath
+     * @return array
      */
-    public function validateSpreadsheet(String $filePath)
+    public function validateSpreadsheet(string $filePath)
     {
         $spreadsheetParser = new SpreadsheetParser();
 
@@ -98,9 +98,9 @@ class ImportController extends Controller implements SpreadsheetController
     /**
      * Import the uploaded file contents.
      *
-     * @param String $filePath
+     * @param string $filePath
      */
-    public function importSpreadsheet(String $filePath)
+    public function importSpreadsheet(string $filePath)
     {
         $spreadsheetParser = new SpreadsheetParser();
 
@@ -116,7 +116,7 @@ class ImportController extends Controller implements SpreadsheetController
             $globalAdminIds = Role::globalAdmin()->users()->pluck('users.id');
             $organisationRowBatch = $adminRowBatch = [];
             foreach ($spreadsheetParser->readRows() as $organisationRow) {
-                $organisationRow['id'] = (string) Str::uuid();
+                $organisationRow['id'] = (string)Str::uuid();
                 $organisationRow['slug'] = Str::slug($organisationRow['name'] . ' ' . uniqid(), '-');
                 $organisationRow['created_at'] = Date::now();
                 $organisationRow['updated_at'] = Date::now();
@@ -124,7 +124,7 @@ class ImportController extends Controller implements SpreadsheetController
 
                 foreach ($globalAdminIds as $globalAdminId) {
                     $adminRowBatch[] = [
-                        'id' => (string) Str::uuid(),
+                        'id' => (string)Str::uuid(),
                         'user_id' => $globalAdminId,
                         'role_id' => $organisationAdminRoleId,
                         'organisation_id' => $organisationRow['id'],

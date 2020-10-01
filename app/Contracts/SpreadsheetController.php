@@ -7,15 +7,15 @@ interface SpreadsheetController
     /**
      * Validate the spreadsheet rows.
      *
-     * @param String $filePath
-     * @return Array
+     * @param string $filePath
+     * @return array
      */
     public function validateSpreadsheet(string $filePath);
 
     /**
      * Import the uploaded file contents.
      *
-     * @param String $filePath
+     * @param string $filePath
      */
-    public function importSpreadsheet(String $filePath);
+    public function importSpreadsheet(string $filePath);
 }

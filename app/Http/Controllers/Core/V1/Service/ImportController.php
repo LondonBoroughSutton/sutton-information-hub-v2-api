@@ -33,17 +33,17 @@ class ImportController extends Controller implements SpreadsheetController
     const ROW_IMPORT_BATCH_SIZE = 100;
 
     /**
-     * Organisation ID to which Services will be assigned
+     * Organisation ID to which Services will be assigned.
      *
-     * @var String
-     **/
+     * @var string
+     */
     protected $organisationId = null;
 
     /**
-     * User requesting the import
+     * User requesting the import.
      *
      * @var \App\Models\User
-     **/
+     */
     protected $user;
 
     /**
@@ -71,7 +71,7 @@ class ImportController extends Controller implements SpreadsheetController
                 'organisation_id' => 'The organisation_id field must contain an ID for an organisation you are an organisation admin for',
             ]);
         }
-        ['rejected' => $rejected, 'imported' => $imported] = $this->processSpreadsheet($request->input('spreadsheet'));
+        list('rejected' => $rejected, 'imported' => $imported) = $this->processSpreadsheet($request->input('spreadsheet'));
 
         $responseStatus = 201;
         $response = ['imported_row_count' => $imported];
@@ -89,10 +89,10 @@ class ImportController extends Controller implements SpreadsheetController
     /**
      * Validate the spreadsheet rows.
      *
-     * @param String $filePath
-     * @return Array
+     * @param string $filePath
+     * @return array
      */
-    public function validateSpreadsheet(String $filePath)
+    public function validateSpreadsheet(string $filePath)
     {
         $spreadsheetParser = new SpreadsheetParser();
 
@@ -115,11 +115,11 @@ class ImportController extends Controller implements SpreadsheetController
 
         foreach ($spreadsheetParser->readRows() as $i => $row) {
             /**
-             * Cast Boolean rows to boolean value
+             * Cast Boolean rows to boolean value.
              */
-            $row['is_free'] = null === $row['is_free'] ? null : (boolean) $row['is_free'];
-            $row['is_national'] = null === $row['is_national'] ? null : (boolean) $row['is_national'];
-            $row['show_referral_disclaimer'] = null === $row['show_referral_disclaimer'] ? null : (boolean) $row['show_referral_disclaimer'];
+            $row['is_free'] = null === $row['is_free'] ? null : (bool)$row['is_free'];
+            $row['is_national'] = null === $row['is_national'] ? null : (bool)$row['is_national'];
+            $row['show_referral_disclaimer'] = null === $row['show_referral_disclaimer'] ? null : (bool)$row['show_referral_disclaimer'];
 
             $validator = Validator::make($row, [
                 'name' => ['required', 'string', 'min:1', 'max:255'],
@@ -246,9 +246,9 @@ class ImportController extends Controller implements SpreadsheetController
     /**
      * Import the uploaded file contents.
      *
-     * @param String $filePath
+     * @param string $filePath
      */
-    public function importSpreadsheet(String $filePath)
+    public function importSpreadsheet(string $filePath)
     {
         $spreadsheetParser = new SpreadsheetParser();
 
@@ -275,24 +275,24 @@ class ImportController extends Controller implements SpreadsheetController
             ];
             foreach ($spreadsheetParser->readRows() as $serviceRow) {
                 /**
-                 * Generate a new Service ID
+                 * Generate a new Service ID.
                  */
-                $serviceRow['id'] = (string) Str::uuid();
+                $serviceRow['id'] = (string)Str::uuid();
 
                 /**
-                 * Cast Boolean rows to boolean value
+                 * Cast Boolean rows to boolean value.
                  */
-                $serviceRow['is_free'] = (boolean) $serviceRow['is_free'];
-                $serviceRow['is_national'] = (boolean) $serviceRow['is_national'];
-                $serviceRow['show_referral_disclaimer'] = (boolean) $serviceRow['show_referral_disclaimer'];
+                $serviceRow['is_free'] = (bool)$serviceRow['is_free'];
+                $serviceRow['is_national'] = (bool)$serviceRow['is_national'];
+                $serviceRow['show_referral_disclaimer'] = (bool)$serviceRow['show_referral_disclaimer'];
 
                 /**
                  * Check for Criteria fields.
                  * Build a row of passed Criteria fields.
-                 * Remove Criteria fields from the Service row
+                 * Remove Criteria fields from the Service row.
                  */
                 $criteriaRow = [
-                    'id' => (string) Str::uuid(),
+                    'id' => (string)Str::uuid(),
                     'service_id' => $serviceRow['id'],
                     'created_at' => Date::now(),
                     'updated_at' => Date::now(),
@@ -305,12 +305,12 @@ class ImportController extends Controller implements SpreadsheetController
                 }
 
                 /**
-                 * Add the Criteria row to a batch array
+                 * Add the Criteria row to a batch array.
                  */
                 $criteriaRowBatch[] = $criteriaRow;
 
                 /**
-                 * Add the meta fields to the Service row
+                 * Add the meta fields to the Service row.
                  */
                 $serviceRow['slug'] = Str::slug(uniqid($serviceRow['name'] . '-'));
                 $serviceRow['organisation_id'] = $this->organisationId;
@@ -320,11 +320,11 @@ class ImportController extends Controller implements SpreadsheetController
 
                 /**
                  * Create the user_roles rows for Service Admin and Service Worker
-                 * for each Organisation Admin
+                 * for each Organisation Admin.
                  */
                 foreach ($organisationAdminIds as $organisationAdminId) {
                     $adminRowBatch[] = [
-                        'id' => (string) Str::uuid(),
+                        'id' => (string)Str::uuid(),
                         'user_id' => $organisationAdminId,
                         'role_id' => $serviceAdminRoleId,
                         'service_id' => $serviceRow['id'],
@@ -332,7 +332,7 @@ class ImportController extends Controller implements SpreadsheetController
                         'updated_at' => Date::now(),
                     ];
                     $adminRowBatch[] = [
-                        'id' => (string) Str::uuid(),
+                        'id' => (string)Str::uuid(),
                         'user_id' => $organisationAdminId,
                         'role_id' => $serviceWorkerRoleId,
                         'service_id' => $serviceRow['id'],
@@ -342,7 +342,7 @@ class ImportController extends Controller implements SpreadsheetController
                 }
 
                 /**
-                 * If the batch array has reach the import batch size create the insert queries
+                 * If the batch array has reach the import batch size create the insert queries.
                  */
                 if (count($serviceRowBatch) === self::ROW_IMPORT_BATCH_SIZE) {
                     DB::table('services')->insert($serviceRowBatch);
