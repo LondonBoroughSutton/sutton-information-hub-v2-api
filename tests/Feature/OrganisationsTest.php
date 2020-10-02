@@ -1257,8 +1257,13 @@ class OrganisationsTest extends TestCase
         $data = $this->getResponseContent($response);
 
         $response->assertStatus(Response::HTTP_OK);
-        $this->assertEquals($organisations->get(0)->id, $data['data'][1]['id']);
-        $this->assertEquals($organisations->get(1)->id, $data['data'][0]['id']);
+
+        $response->assertJsonFragment([
+            'id' => $organisations->get(0)->id,
+        ]);
+        $response->assertJsonFragment([
+            'id' => $organisations->get(1)->id,
+        ]);
 
         Passport::actingAs($globalAdmin);
 
