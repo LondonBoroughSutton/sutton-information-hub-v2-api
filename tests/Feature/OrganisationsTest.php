@@ -1281,4 +1281,57 @@ class OrganisationsTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonCount(5, 'data');
     }
+
+    /**
+     * @test
+     */
+    public function duplicate_import_organisations_are_detected()
+    {
+        Storage::fake('local');
+
+        $user = factory(User::class)->create()->makeSuperAdmin();
+
+        Passport::actingAs($user);
+
+        $organisation1 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current Organisation']);
+        $organisations = collect([
+            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'Current Organisation']),
+            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'New Organisation']),
+        ]);
+
+        $headers = [
+            'name',
+            'description',
+            'url',
+            'email',
+            'phone',
+        ];
+
+        $spreadsheet = \Tests\Integration\SpreadsheetParserTest::createSpreadsheets($organisations, $headers);
+        \Tests\Integration\SpreadsheetParserTest::writeSpreadsheetsToDisk($spreadsheet, 'test.xlsx', 'test.xls');
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $response->assertJsonFragment([
+            'errors' => [
+                'spreadsheet' => [
+                    [
+                        'row' => collect($organisations->get(0)->getAttributes())->only($headers),
+                        'duplicate' => collect($organisation1->getAttributes())->only($headers),
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function possible_duplicate_import_organisations_can_be_ignored()
+    {
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
+    }
 }

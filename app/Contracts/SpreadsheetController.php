@@ -13,6 +13,13 @@ interface SpreadsheetController
     public function validateSpreadsheet(string $filePath);
 
     /**
+     * Check for existing matching entities
+     *
+     * @return array
+     **/
+    public function rowsExist();
+
+    /**
      * Import the uploaded file contents.
      *
      * @param string $filePath
