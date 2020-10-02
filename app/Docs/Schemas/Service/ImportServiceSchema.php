@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Docs\Schemas\File;
+namespace App\Docs\Schemas\Service;
 
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 
-class StoreSpreadsheetSchema extends Schema
+class ImportServiceSchema extends Schema
 {
     /**
      * @param string|null $objectId
@@ -20,6 +20,9 @@ class StoreSpreadsheetSchema extends Schema
                 'spreadsheet'
             )
             ->properties(
+                Schema::string('organisation_id')
+                    ->format(static::FORMAT_UUID)
+                    ->description('UUID of an exisiting Organisation'),
                 Schema::string('spreadsheet')
                     ->format(static::FORMAT_BINARY)
                     ->description('Base64 encoded string of an Excel compatible spreadsheet')

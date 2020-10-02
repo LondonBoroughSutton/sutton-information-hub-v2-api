@@ -4,7 +4,7 @@ namespace App\BatchUpload;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class SpreadsheetHandler
+class SpreadsheetParser
 {
     /**
      * The spreadsheet import / export library.

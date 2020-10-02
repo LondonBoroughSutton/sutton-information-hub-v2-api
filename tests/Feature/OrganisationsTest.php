@@ -1228,4 +1228,57 @@ class OrganisationsTest extends TestCase
             'role_id' => Role::organisationAdmin()->id,
         ]);
     }
+
+    public function test_filter_organisations_by_is_admin()
+    {
+        $organisations = factory(Organisation::class, 5)->create();
+        $service = factory(Service::class)->create([
+            'organisation_id' => $organisations->get(0)->id,
+        ]);
+
+        $superAdmin = factory(User::class)->create()->makeSuperAdmin();
+        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
+        $organisationAdmin = factory(User::class)->create()
+            ->makeOrganisationAdmin($organisations->get(0))
+            ->makeOrganisationAdmin($organisations->get(1));
+        $serviceAdmin = factory(User::class)->create()->makeServiceAdmin($service);
+
+        Passport::actingAs($serviceAdmin);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[is_admin]=true');
+        $data = $this->getResponseContent($response);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(0, 'data');
+
+        Passport::actingAs($organisationAdmin);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[is_admin]=true');
+        $data = $this->getResponseContent($response);
+
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment([
+            'id' => $organisations->get(0)->id,
+        ]);
+        $response->assertJsonFragment([
+            'id' => $organisations->get(1)->id,
+        ]);
+
+        Passport::actingAs($globalAdmin);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[is_admin]=true');
+        $data = $this->getResponseContent($response);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(5, 'data');
+
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[is_admin]=true');
+        $data = $this->getResponseContent($response);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(5, 'data');
+    }
 }
