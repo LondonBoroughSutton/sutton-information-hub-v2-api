@@ -34,6 +34,13 @@ trait StoresSpreadsheets
     protected $duplicates = [];
 
     /**
+     * Organisation Ids of duplicates that can be imported
+     *
+     * @var Array
+     **/
+    protected $ignoreDuplicateIds = [];
+
+    /**
      * Import a base64 encode spreadsheet.
      *
      * @param string $spreadsheet

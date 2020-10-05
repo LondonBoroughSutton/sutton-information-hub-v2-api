@@ -40,6 +40,7 @@ class ImportController extends Controller implements SpreadsheetController
      */
     public function __invoke(ImportRequest $request)
     {
+        $this->ignoreDuplicateIds = $request->input('ignore_duplicates', []);
         $this->processSpreadsheet($request->input('spreadsheet'));
 
         $responseStatus = 201;
@@ -108,11 +109,79 @@ class ImportController extends Controller implements SpreadsheetController
      **/
     public function rowsExist()
     {
-        $sql = 'select group_concat(distinct id order by id separator ";") as ids,'
-            . ' group_concat(distinct name order by name separator ";") as results, count(name) as row_count,'
-            . ' replace(replace(replace(replace(replace(lower(trim(name)),"-","")," ",""),".",""),",",""),"\'","") as normalised_col'
-            . ' FROM organisations group by normalised_col having count(name) > 1';
-        return DB::select($sql);
+        $sql = [
+            implode(',', [
+                'select group_concat(distinct id order by id separator ";") as ids',
+                'group_concat(distinct name order by name separator ";") as results',
+                'count(name) as row_count',
+                'replace(replace(replace(replace(replace(replace(lower(trim(name)),"-","")," ",""),".",""),",",""),"\'",""),"\"","") as normalised_col',
+            ]),
+        ];
+        $sql[] = 'FROM organisations';
+        if (count($this->ignoreDuplicateIds)) {
+            $sql[] = 'where id NOT IN ("' . implode('","', $this->ignoreDuplicateIds) . '")';
+        }
+        $sql[] = 'group by normalised_col having count(name) > 1';
+        return DB::select(implode(' ', $sql));
+    }
+
+    /**
+     * Check for duplicate Organisations and store details of them
+     *
+     * @param Array $duplicates
+     * @param Array $headers
+     * @param Array $nameIndex
+     * @throws App\Exceptions\DuplicateContentException
+     **/
+    public function checkForDuplicates(array $duplicates, array $headers, array $nameIndex)
+    {
+        foreach ($duplicates as $duplicate) {
+            /**
+             * Get the IDs of the duplicate Organisations
+             */
+            $organisationIds = explode(';', $duplicate->ids);
+
+            /**
+             * Get the names which were duplicates
+             */
+            $names = explode(';', $duplicate->results);
+
+            foreach ($names as $i => $name) {
+                /**
+                 * Find the imported row details for the duplicate name
+                 */
+                $rowIndex = array_search($name, array_column($nameIndex, 'name', 'index'));
+                if (false !== $rowIndex) {
+                    /**
+                     * Get the details of the row that was being imported
+                     */
+                    $duplicateRow = DB::table('organisations')
+                        ->where('id', $nameIndex[$rowIndex]['id'])
+                        ->select($headers)
+                        ->first();
+                    break;
+                }
+            }
+
+            /**
+             * Get the details of the rows the import row clashes with
+             */
+            unset($organisationIds[array_search($nameIndex[$rowIndex]['id'], $organisationIds)]);
+            $originalRows = DB::table('organisations')
+                ->whereIn('id', $organisationIds)
+                ->select(array_merge(['id'], $headers))
+                ->get();
+
+            /**
+             * Add the result to the duplicates array
+             */
+            $this->duplicates[] = [
+                'row' => array_merge(['index' => $rowIndex], json_decode(json_encode($duplicateRow), true)),
+                'originals' => $originalRows,
+            ];
+        }
+
+        throw new DuplicateContentException();
     }
 
     /**
@@ -199,54 +268,9 @@ class ImportController extends Controller implements SpreadsheetController
              * Look for duplicates in the database
              */
             $duplicates = $this->rowsExist();
+
             if (count($duplicates)) {
-                foreach ($duplicates as $duplicate) {
-                    /**
-                     * Get the IDs of the duplicate Organisations
-                     */
-                    $organisationIds = explode(';', $duplicate->ids);
-
-                    /**
-                     * Get the names which were duplicates
-                     */
-                    $names = explode(';', $duplicate->results);
-
-                    foreach ($names as $i => $name) {
-                        /**
-                         * Find the imported row details for the duplicate name
-                         */
-                        $rowIndex = array_search($name, array_column($nameIndex, 'name', 'index'));
-                        if (false !== $rowIndex) {
-                            /**
-                             * Get the details of the row that was being imported
-                             */
-                            $duplicateRow = DB::table('organisations')
-                                ->where('id', $nameIndex[$rowIndex]['id'])
-                                ->select($spreadsheetParser->headers)
-                                ->first();
-                            break;
-                        }
-                    }
-
-                    /**
-                     * Get the details of the rows the import row clashes with
-                     */
-                    unset($organisationIds[array_search($nameIndex[$rowIndex]['id'], $organisationIds)]);
-                    $originalRows = DB::table('organisations')
-                        ->whereIn('id', $organisationIds)
-                        ->select(array_merge(['id'], $spreadsheetParser->headers))
-                        ->get();
-
-                    /**
-                     * Add the result to the duplicates array
-                     */
-                    $this->duplicates[] = [
-                        'row' => array_merge(['index' => $rowIndex], json_decode(json_encode($duplicateRow), true)),
-                        'originals' => $originalRows,
-                    ];
-                }
-
-                throw new DuplicateContentException();
+                $this->checkForDuplicates($duplicates, $spreadsheetParser->headers, $nameIndex);
             }
         }, 5);
 
