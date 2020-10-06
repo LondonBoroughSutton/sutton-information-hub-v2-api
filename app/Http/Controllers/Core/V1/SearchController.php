@@ -44,11 +44,6 @@ class SearchController extends Controller
             $search->applyIsFree($request->is_free);
         }
 
-        // Apply filter on `is_national` field.
-        if ($request->has('is_national')) {
-            $search->applyIsNational((bool)$request->is_national);
-        }
-
         // If location was passed, then parse the location.
         if ($request->has('location')) {
             $location = new Coordinate(
@@ -58,6 +53,9 @@ class SearchController extends Controller
 
             // Apply radius filtering.
             $search->applyRadius($location, $request->radius ?? config('hlp.search_distance'));
+        } elseif ($request->has('is_national')) {
+            // Apply filter on `is_national` field.
+            $search->applyIsNational((bool)$request->is_national);
         }
 
         // Apply order.
