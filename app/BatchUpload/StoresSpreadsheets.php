@@ -65,7 +65,7 @@ trait StoresSpreadsheets
             } catch (\Exception $e) {
                 Storage::disk('local')->delete($filePath);
 
-                abort(500, $e->getMessage());
+                abort(500, $e->getMessage() . $e->getTraceAsString());
             }
         }
 

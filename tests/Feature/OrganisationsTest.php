@@ -1277,13 +1277,15 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = factory(User::class)->create(['first_name' => 'Super Admin'])->makeSuperAdmin();
 
-        $admin = factory(User::class)->create()->makeGlobalAdmin();
+        $admin1 = factory(User::class)->create(['first_name' => 'Global Admin 1'])->makeGlobalAdmin();
+        $admin2 = factory(User::class)->create(['first_name' => 'Global Admin 2'])->makeGlobalAdmin();
+        $admin3 = factory(User::class)->create(['first_name' => 'Global Admin 3'])->makeGlobalAdmin();
 
         Passport::actingAs($user);
 
-        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+        $organisations = factory(Organisation::class, 10)->states('web', 'email', 'phone')->make();
 
         $this->createOrganisationSpreadsheets($organisations);
 
@@ -1291,23 +1293,33 @@ class OrganisationsTest extends TestCase
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
-                'imported_row_count' => 2,
+                'imported_row_count' => 10,
             ],
         ]);
 
         $organisationIds = \DB::table('organisations')->latest()->pluck('id');
 
         $this->assertDatabaseHas('user_roles', [
-            'user_id' => $admin->id,
+            'user_id' => $admin1->id,
             'organisation_id' => $organisationIds[0],
             'role_id' => Role::organisationAdmin()->id,
         ]);
 
         $this->assertDatabaseHas('user_roles', [
-            'user_id' => $admin->id,
-            'organisation_id' => $organisationIds[1],
+            'user_id' => $admin2->id,
+            'organisation_id' => $organisationIds[0],
             'role_id' => Role::organisationAdmin()->id,
         ]);
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $admin3->id,
+            'organisation_id' => $organisationIds[0],
+            'role_id' => Role::organisationAdmin()->id,
+        ]);
+
+        $organisationAdminCount = \DB::select('select count(*) as total from user_roles where role_id = ?', [Role::organisationAdmin()->id]);
+
+        $this->assertEquals(40, $organisationAdminCount[0]->total);
     }
 
     public function test_filter_organisations_by_is_admin()
@@ -1380,6 +1392,7 @@ class OrganisationsTest extends TestCase
         $organisation4 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current.Organisation']);
         $organisation5 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current, Organisation']);
         $organisation6 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current-Organisation']);
+
         $organisations = collect([
             factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'Current Organisation']),
             factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'New Organisation']),

@@ -109,12 +109,14 @@ class ImportController extends Controller implements SpreadsheetController
      **/
     public function rowsExist()
     {
+        $normaliseCharacters = str_split('-, _.\'"');
+
         $sql = [
             implode(',', [
                 'select group_concat(distinct id order by id separator ";") as ids',
                 'group_concat(distinct name order by name separator ";") as results',
                 'count(name) as row_count',
-                'replace(replace(replace(replace(replace(replace(lower(trim(name)),"-","")," ",""),".",""),",",""),"\'",""),"\"","") as normalised_col',
+                $this->buildSqlReplaceCharacterSet('lower(trim(name))', $normaliseCharacters) . ' as normalised_col',
             ]),
         ];
         $sql[] = 'FROM organisations';
@@ -126,14 +128,34 @@ class ImportController extends Controller implements SpreadsheetController
     }
 
     /**
-     * Check for duplicate Organisations and store details of them
+     * Wrap a string in SQL replace functions for a character set
+     *
+     * @param String $string
+     * @param Array $replace
+     * @param String $replacement
+     * @return String
+     **/
+    public function buildSqlReplaceCharacterSet(String $string, array $replace, $replacement = "")
+    {
+        $sql = $string;
+        foreach ($replace as $chr) {
+            if ($chr === "'" || $chr === '"') {
+                $chr = '\\' . $chr;
+            }
+            $sql = 'replace(' . $sql . ',"' . $chr . '","' . $replacement . '")';
+        }
+        return $sql;
+    }
+
+    /**
+     * Format the duplicate Organisations and store details of them
      *
      * @param Array $duplicates
      * @param Array $headers
      * @param Array $nameIndex
      * @throws App\Exceptions\DuplicateContentException
      **/
-    public function checkForDuplicates(array $duplicates, array $headers, array $nameIndex)
+    public function formatDuplicates(array $duplicates, array $headers, array $nameIndex)
     {
         foreach ($duplicates as $duplicate) {
             /**
@@ -209,9 +231,14 @@ class ImportController extends Controller implements SpreadsheetController
             $organisationRowBatch = $adminRowBatch = $nameIndex = [];
             foreach ($spreadsheetParser->readRows() as $i => $organisationRow) {
                 /**
-                 * Generate a new Organisation ID.
+                 * Generate a new Organisation ID, normalise the Organistion name
+                 * and add the meta fields to the Organisation row
                  */
                 $organisationRow['id'] = (string) Str::uuid();
+                $organisationRow['name'] = preg_replace('/[^a-zA-Z0-9,\.\'\&" ]/', '', $organisationRow['name']);
+                $organisationRow['slug'] = Str::slug($organisationRow['name'] . ' ' . uniqid(), '-');
+                $organisationRow['created_at'] = Date::now();
+                $organisationRow['updated_at'] = Date::now();
 
                 /**
                  * Build the name index in case of name clashes
@@ -223,11 +250,8 @@ class ImportController extends Controller implements SpreadsheetController
                 ];
 
                 /**
-                 * Add the meta fields to the Organisation row.
+                 * Add the row to the batch array
                  */
-                $organisationRow['slug'] = Str::slug($organisationRow['name'] . ' ' . uniqid(), '-');
-                $organisationRow['created_at'] = Date::now();
-                $organisationRow['updated_at'] = Date::now();
                 $organisationRowBatch[] = $organisationRow;
 
                 /**
@@ -270,7 +294,18 @@ class ImportController extends Controller implements SpreadsheetController
             $duplicates = $this->rowsExist();
 
             if (count($duplicates)) {
-                $this->checkForDuplicates($duplicates, $spreadsheetParser->headers, $nameIndex);
+                /**
+                 * If there are still duplicates despite having ignore_duplicates IDs.
+                 * As this is an atomic process, all duplicates should be returned as none have been inserted.
+                 */
+                if (count($this->ignoreDuplicateIds)) {
+                    $this->ignoreDuplicateIds = [];
+                    $duplicates = $this->rowsExist();
+                }
+                /**
+                 * Throws an exception which will be caught in self::processSpreadsheet
+                 */
+                $this->formatDuplicates($duplicates, $spreadsheetParser->headers, $nameIndex);
             }
         }, 5);
 
