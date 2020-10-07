@@ -13,31 +13,31 @@ use Symfony\Component\Mime\MimeTypes;
 trait StoresSpreadsheets
 {
     /**
-     * Total number of imported rows
+     * Total number of imported rows.
      *
-     * @var Integer
-     **/
+     * @var int
+     */
     protected $imported = 0;
 
     /**
-     * Spreadsheet rows that were rejected by validation
+     * Spreadsheet rows that were rejected by validation.
      *
-     * @var Array
-     **/
+     * @var array
+     */
     protected $rejected = [];
 
     /**
-     * Spreadsheet rows that are duplicates of existing entities
+     * Spreadsheet rows that are duplicates of existing entities.
      *
-     * @var Array
-     **/
+     * @var array
+     */
     protected $duplicates = [];
 
     /**
-     * Organisation Ids of duplicates that can be imported
+     * Organisation Ids of duplicates that can be imported.
      *
-     * @var Array
-     **/
+     * @var array
+     */
     protected $ignoreDuplicateIds = [];
 
     /**

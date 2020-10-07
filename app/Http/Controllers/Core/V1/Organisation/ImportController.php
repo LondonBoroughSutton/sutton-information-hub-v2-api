@@ -103,13 +103,13 @@ class ImportController extends Controller implements SpreadsheetController
     }
 
     /**
-     * Find exisiting Orgaisations that match rows in the spreadsheet
+     * Find exisiting Orgaisations that match rows in the spreadsheet.
      *
      * @return array
-     **/
+     */
     public function rowsExist()
     {
-        $normaliseCharacters = str_split('-, _.\'"');
+        $normaliseCharacters = mb_str_split('-, _.\'"');
 
         $sql = [
             implode(',', [
@@ -124,18 +124,19 @@ class ImportController extends Controller implements SpreadsheetController
             $sql[] = 'where id NOT IN ("' . implode('","', $this->ignoreDuplicateIds) . '")';
         }
         $sql[] = 'group by normalised_col having count(name) > 1';
+
         return DB::select(implode(' ', $sql));
     }
 
     /**
-     * Wrap a string in SQL replace functions for a character set
+     * Wrap a string in SQL replace functions for a character set.
      *
-     * @param String $string
-     * @param Array $replace
-     * @param String $replacement
-     * @return String
-     **/
-    public function buildSqlReplaceCharacterSet(String $string, array $replace, $replacement = "")
+     * @param string $string
+     * @param array $replace
+     * @param string $replacement
+     * @return string
+     */
+    public function buildSqlReplaceCharacterSet(string $string, array $replace, $replacement = '')
     {
         $sql = $string;
         foreach ($replace as $chr) {
@@ -144,38 +145,39 @@ class ImportController extends Controller implements SpreadsheetController
             }
             $sql = 'replace(' . $sql . ',"' . $chr . '","' . $replacement . '")';
         }
+
         return $sql;
     }
 
     /**
-     * Format the duplicate Organisations and store details of them
+     * Format the duplicate Organisations and store details of them.
      *
-     * @param Array $duplicates
-     * @param Array $headers
-     * @param Array $nameIndex
+     * @param array $duplicates
+     * @param array $headers
+     * @param array $nameIndex
      * @throws App\Exceptions\DuplicateContentException
-     **/
+     */
     public function formatDuplicates(array $duplicates, array $headers, array $nameIndex)
     {
         foreach ($duplicates as $duplicate) {
             /**
-             * Get the IDs of the duplicate Organisations
+             * Get the IDs of the duplicate Organisations.
              */
             $organisationIds = explode(';', $duplicate->ids);
 
             /**
-             * Get the names which were duplicates
+             * Get the names which were duplicates.
              */
             $names = explode(';', $duplicate->results);
 
             foreach ($names as $i => $name) {
                 /**
-                 * Find the imported row details for the duplicate name
+                 * Find the imported row details for the duplicate name.
                  */
                 $rowIndex = array_search($name, array_column($nameIndex, 'name', 'index'));
                 if (false !== $rowIndex) {
                     /**
-                     * Get the details of the row that was being imported
+                     * Get the details of the row that was being imported.
                      */
                     $duplicateRow = DB::table('organisations')
                         ->where('id', $nameIndex[$rowIndex]['id'])
@@ -186,7 +188,7 @@ class ImportController extends Controller implements SpreadsheetController
             }
 
             /**
-             * Get the details of the rows the import row clashes with
+             * Get the details of the rows the import row clashes with.
              */
             unset($organisationIds[array_search($nameIndex[$rowIndex]['id'], $organisationIds)]);
             $originalRows = DB::table('organisations')
@@ -195,7 +197,7 @@ class ImportController extends Controller implements SpreadsheetController
                 ->get();
 
             /**
-             * Add the result to the duplicates array
+             * Add the result to the duplicates array.
              */
             $this->duplicates[] = [
                 'row' => array_merge(['index' => $rowIndex], json_decode(json_encode($duplicateRow), true)),
@@ -218,7 +220,7 @@ class ImportController extends Controller implements SpreadsheetController
         $spreadsheetParser->import(Storage::disk('local')->path($filePath));
 
         /**
-         * Load the first row of the Spreadsheet as column names
+         * Load the first row of the Spreadsheet as column names.
          */
         $spreadsheetParser->readHeaders();
 
@@ -232,16 +234,16 @@ class ImportController extends Controller implements SpreadsheetController
             foreach ($spreadsheetParser->readRows() as $i => $organisationRow) {
                 /**
                  * Generate a new Organisation ID, normalise the Organistion name
-                 * and add the meta fields to the Organisation row
+                 * and add the meta fields to the Organisation row.
                  */
-                $organisationRow['id'] = (string) Str::uuid();
+                $organisationRow['id'] = (string)Str::uuid();
                 $organisationRow['name'] = preg_replace('/[^a-zA-Z0-9,\.\'\&" ]/', '', $organisationRow['name']);
                 $organisationRow['slug'] = Str::slug($organisationRow['name'] . ' ' . uniqid(), '-');
                 $organisationRow['created_at'] = Date::now();
                 $organisationRow['updated_at'] = Date::now();
 
                 /**
-                 * Build the name index in case of name clashes
+                 * Build the name index in case of name clashes.
                  */
                 $nameIndex[$i + 2] = [
                     'id' => $organisationRow['id'],
@@ -250,7 +252,7 @@ class ImportController extends Controller implements SpreadsheetController
                 ];
 
                 /**
-                 * Add the row to the batch array
+                 * Add the row to the batch array.
                  */
                 $organisationRowBatch[] = $organisationRow;
 
@@ -259,7 +261,7 @@ class ImportController extends Controller implements SpreadsheetController
                  */
                 foreach ($globalAdminIds as $globalAdminId) {
                     $adminRowBatch[] = [
-                        'id' => (string) Str::uuid(),
+                        'id' => (string)Str::uuid(),
                         'user_id' => $globalAdminId,
                         'role_id' => $organisationAdminRoleId,
                         'organisation_id' => $organisationRow['id'],
@@ -280,7 +282,7 @@ class ImportController extends Controller implements SpreadsheetController
             }
 
             /**
-             * If there are a final batch that did not meet the import batch size, create queries for these
+             * If there are a final batch that did not meet the import batch size, create queries for these.
              */
             if (count($organisationRowBatch) && count($organisationRowBatch) !== self::ROW_IMPORT_BATCH_SIZE) {
                 DB::table('organisations')->insert($organisationRowBatch);
@@ -289,7 +291,7 @@ class ImportController extends Controller implements SpreadsheetController
             }
 
             /**
-             * Look for duplicates in the database
+             * Look for duplicates in the database.
              */
             $duplicates = $this->rowsExist();
 
@@ -303,7 +305,7 @@ class ImportController extends Controller implements SpreadsheetController
                     $duplicates = $this->rowsExist();
                 }
                 /**
-                 * Throws an exception which will be caught in self::processSpreadsheet
+                 * Throws an exception which will be caught in self::processSpreadsheet.
                  */
                 $this->formatDuplicates($duplicates, $spreadsheetParser->headers, $nameIndex);
             }
