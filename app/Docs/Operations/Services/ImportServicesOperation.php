@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Docs\Operations\Organisations;
+namespace App\Docs\Operations\Services;
 
-use App\Docs\Schemas\Organisation\ImportOrganisationSchema;
 use App\Docs\Schemas\ResourceSchema;
+use App\Docs\Schemas\Service\ImportServiceSchema;
 use App\Docs\Schemas\SpreadsheetSchema;
-use App\Docs\Tags\OrganisationsTag;
+use App\Docs\Tags\ServicesTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Operation;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\RequestBody;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Response;
 
-class ImportOrganisationsOperation extends Operation
+class ImportServicesOperation extends Operation
 {
     /**
      * @param string|null $objectId
@@ -23,14 +23,14 @@ class ImportOrganisationsOperation extends Operation
     {
         return parent::create($objectId)
             ->action(static::ACTION_POST)
-            ->tags(OrganisationsTag::create())
-            ->summary('Import organisations')
-            ->description('**Permission:** `Super Admin`')
+            ->tags(ServicesTag::create())
+            ->summary('Import services')
+            ->description('**Permission:** `Super Admin` `Global Admin` `Organisation Admin`')
             ->requestBody(
                 RequestBody::create()
                     ->required()
                     ->content(
-                        MediaType::json()->schema(ImportOrganisationSchema::create())
+                        MediaType::json()->schema(ImportServiceSchema::create())
                     )
             )
             ->responses(

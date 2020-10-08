@@ -2,12 +2,12 @@
 
 namespace Tests\Integration;
 
-use App\BatchUpload\SpreadsheetHandler;
+use App\BatchUpload\SpreadsheetParser;
 use App\Models\Organisation;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class SpreadsheetHandlerTest extends TestCase
+class SpreadsheetParserTest extends TestCase
 {
     private $spreadsheet;
 
@@ -68,13 +68,13 @@ class SpreadsheetHandlerTest extends TestCase
      */
     public function it_can_import_a_xls_spreadsheet()
     {
-        $spreadsheetHandler = new SpreadsheetHandler();
+        $spreadsheetParser = new SpreadsheetParser();
 
-        $spreadsheetHandler->Import(Storage::disk('local')->path($this->xlsFilepath));
+        $spreadsheetParser->Import(Storage::disk('local')->path($this->xlsFilepath));
 
-        $spreadsheetHandler->readHeaders();
+        $spreadsheetParser->readHeaders();
 
-        $this->assertEquals(['A' => 'name', 'B' => 'description', 'C' => 'url', 'D' => 'email', 'E' => 'phone'], $spreadsheetHandler->headers);
+        $this->assertEquals(['A' => 'name', 'B' => 'description', 'C' => 'url', 'D' => 'email', 'E' => 'phone'], $spreadsheetParser->headers);
     }
 
     /**
@@ -82,13 +82,13 @@ class SpreadsheetHandlerTest extends TestCase
      */
     public function it_can_import_a_xlsx_spreadsheet()
     {
-        $spreadsheetHandler = new SpreadsheetHandler();
+        $spreadsheetParser = new SpreadsheetParser();
 
-        $spreadsheetHandler->Import(Storage::disk('local')->path($this->xlsxFilepath));
+        $spreadsheetParser->Import(Storage::disk('local')->path($this->xlsxFilepath));
 
-        $spreadsheetHandler->readHeaders();
+        $spreadsheetParser->readHeaders();
 
-        $this->assertEquals(['A' => 'name', 'B' => 'description', 'C' => 'url', 'D' => 'email', 'E' => 'phone'], $spreadsheetHandler->headers);
+        $this->assertEquals(['A' => 'name', 'B' => 'description', 'C' => 'url', 'D' => 'email', 'E' => 'phone'], $spreadsheetParser->headers);
     }
 
     /**
@@ -96,15 +96,15 @@ class SpreadsheetHandlerTest extends TestCase
      */
     public function it_can_read_rows_from_a_xls_spreadsheet()
     {
-        $spreadsheetHandler = new SpreadsheetHandler();
+        $spreadsheetParser = new SpreadsheetParser();
 
-        $spreadsheetHandler->Import(Storage::disk('local')->path($this->xlsFilepath));
+        $spreadsheetParser->Import(Storage::disk('local')->path($this->xlsFilepath));
 
         $organisations = Organisation::all();
 
-        $spreadsheetHandler->readHeaders();
+        $spreadsheetParser->readHeaders();
 
-        foreach ($spreadsheetHandler->readRows() as $row) {
+        foreach ($spreadsheetParser->readRows() as $row) {
             $this->assertTrue($organisations->contains('name', $row['name']));
         }
     }
