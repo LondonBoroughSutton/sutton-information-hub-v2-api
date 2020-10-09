@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Core\V1\Organisation;
 
 use App\BatchUpload\SpreadsheetParser;
 use App\BatchUpload\StoresSpreadsheets;
-use App\Contracts\SpreadsheetController;
 use App\Exceptions\DuplicateContentException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organisation\ImportRequest;
@@ -15,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
-class ImportController extends Controller implements SpreadsheetController
+class ImportController extends Controller
 {
     use StoresSpreadsheets;
 

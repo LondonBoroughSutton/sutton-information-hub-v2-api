@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers\Core\V1\Service;
 
-use App\BatchUpload\SpreadsheetParser;
-use App\BatchUpload\StoresSpreadsheets;
-use App\Contracts\SpreadsheetController;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Service\ImportRequest;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\UserRole;
-use App\Rules\IsOrganisationAdmin;
+use App\Rules\VideoEmbed;
+use App\Rules\UserHasRole;
+use Illuminate\Support\Str;
+use App\Models\Organisation;
+use Illuminate\Validation\Rule;
 use App\Rules\MarkdownMaxLength;
 use App\Rules\MarkdownMinLength;
-use App\Rules\UserHasRole;
-use App\Rules\VideoEmbed;
-use Illuminate\Support\Facades\Date;
+use App\Rules\IsOrganisationAdmin;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Date;
+use App\BatchUpload\SpreadsheetParser;
+use App\BatchUpload\StoresSpreadsheets;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use App\Http\Requests\Service\ImportRequest;
 use Illuminate\Validation\ValidationException;
 
-class ImportController extends Controller implements SpreadsheetController
+class ImportController extends Controller
 {
     use StoresSpreadsheets;
 
@@ -64,13 +64,8 @@ class ImportController extends Controller implements SpreadsheetController
     public function __invoke(ImportRequest $request)
     {
         $this->user = $request->user('api');
-        $this->organisationId = $request->input('organisation_id');
+        $this->organisation = Organisation::findOrFail($request->input('organisation_id'));
 
-        if (!(new IsOrganisationAdmin($this->user))->passes('id', $this->organisationId)) {
-            throw ValidationException::withMessages([
-                'organisation_id' => 'The organisation_id field must contain an ID for an organisation you are an organisation admin for',
-            ]);
-        }
         $this->processSpreadsheet($request->input('spreadsheet'));
 
         $responseStatus = 201;
@@ -244,15 +239,6 @@ class ImportController extends Controller implements SpreadsheetController
     }
 
     /**
-     * Find exisiting Orgaisations that match rows in the spreadsheet.
-     *
-     * @return array
-     */
-    public function rowsExist()
-    {
-    }
-
-    /**
      * Import the uploaded file contents.
      *
      * @param string $filePath
@@ -270,7 +256,10 @@ class ImportController extends Controller implements SpreadsheetController
         DB::transaction(function () use ($spreadsheetParser, &$importedRows) {
             $serviceAdminRoleId = Role::serviceAdmin()->id;
             $serviceWorkerRoleId = Role::serviceWorker()->id;
-            $organisationAdminIds = Role::organisationAdmin()->users()->pluck('users.id');
+            $organisationAdminIds = $this->organisation
+                ->users()
+                ->where('user_roles.role_id', Role::organisationAdmin()->id)
+                ->pluck('users.id');
             $serviceRowBatch = $adminRowBatch = $criteriaRowBatch = [];
             $criteriaFields = [
                 'age_group',
@@ -322,7 +311,7 @@ class ImportController extends Controller implements SpreadsheetController
                  * Add the meta fields to the Service row.
                  */
                 $serviceRow['slug'] = Str::slug(uniqid($serviceRow['name'] . '-'));
-                $serviceRow['organisation_id'] = $this->organisationId;
+                $serviceRow['organisation_id'] = $this->organisation->id;
                 $serviceRow['created_at'] = Date::now();
                 $serviceRow['updated_at'] = Date::now();
                 $serviceRowBatch[] = $serviceRow;

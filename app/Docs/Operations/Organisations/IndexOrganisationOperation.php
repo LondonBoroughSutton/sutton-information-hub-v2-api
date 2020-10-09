@@ -38,6 +38,9 @@ class IndexOrganisationOperation extends Operation
                 FilterParameter::create(null, 'name')
                     ->description('Name to filter by')
                     ->schema(Schema::string()),
+                FilterParameter::create(null, 'is_admin')
+                    ->description('Filter organisations to only ones they have admin permissions for')
+                    ->schema(Schema::boolean()),
                 FilterParameter::create(null, 'has_permission')
                     ->description('Filter organisations to only ones they have permissions for')
                     ->schema(Schema::boolean()),
