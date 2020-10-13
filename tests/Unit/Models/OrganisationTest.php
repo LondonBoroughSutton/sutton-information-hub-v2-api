@@ -48,15 +48,13 @@ class OrganisationTest extends TestCase
     /**
      * @test
      */
-    public function it_should_have_a_description_property()
+    public function it_should_have_an_optional_description_property()
     {
-        $name = $this->faker->unique()->company;
-        $this->expectException(\Illuminate\Database\QueryException::class);
-        Organisation::create([
-            'slug' => Str::slug($name) . '-' . mt_rand(1, 1000),
-            'name' => $name,
-        ]);
         $organisation = factory(Organisation::class)->create();
+        $this->assertEmpty($organisation->description);
+        $organisation->update([
+            'description' => 'New description',
+        ]);
         $this->assertNotEmpty($organisation->description);
     }
 

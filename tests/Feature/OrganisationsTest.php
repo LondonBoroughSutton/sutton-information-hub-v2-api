@@ -253,30 +253,6 @@ class OrganisationsTest extends TestCase
         $payload = [
             'slug' => 'test-org',
             'name' => 'Test Org',
-            'description' => 'Test description',
-            'url' => null,
-            'email' => null,
-            'phone' => null,
-        ];
-
-        Passport::actingAs($user);
-
-        $response = $this->json('POST', '/core/v1/organisations', $payload);
-
-        $response->assertStatus(Response::HTTP_CREATED);
-        $response->assertJsonFragment($payload);
-    }
-
-    public function test_global_admin_cannot_create_one_with_no_description()
-    {
-        /**
-         * @var \App\Models\User $user
-         */
-        $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
-        $payload = [
-            'slug' => 'test-org',
-            'name' => 'Test Org',
             'description' => null,
             'url' => null,
             'email' => null,
@@ -286,8 +262,8 @@ class OrganisationsTest extends TestCase
         Passport::actingAs($user);
 
         $response = $this->json('POST', '/core/v1/organisations', $payload);
-
-        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJsonFragment($payload);
     }
 
     public function test_audit_created_when_created()
@@ -466,7 +442,7 @@ class OrganisationsTest extends TestCase
         $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
             'slug' => 'test-org',
             'name' => 'Test Org',
-            'description' => 'Test description',
+            'description' => null,
             'url' => null,
             'email' => null,
             'phone' => null,
@@ -477,34 +453,12 @@ class OrganisationsTest extends TestCase
         $response->assertJsonFragment([
             'slug' => 'test-org',
             'name' => 'Test Org',
-            'description' => 'Test description',
+            'description' => null,
             'url' => null,
             'email' => null,
             'phone' => null,
             'location_id' => null,
         ]);
-    }
-
-    public function test_organisation_admin_cannot_update_with_no_description()
-    {
-        $organisation = factory(Organisation::class)->create([
-            'email' => 'info@test-org.example.com',
-            'phone' => null,
-        ]);
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
-
-        Passport::actingAs($user);
-
-        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
-            'slug' => 'test-org',
-            'name' => 'Test Org',
-            'description' => null,
-            'url' => null,
-            'email' => null,
-            'phone' => null,
-        ]);
-
-        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
     public function test_only_partial_fields_can_be_updated()
@@ -1082,6 +1036,27 @@ class OrganisationsTest extends TestCase
         $response->assertStatus(Response::HTTP_CREATED);
     }
 
+    public function test_super_admin_can_bulk_import_with_minimal_fields()
+    {
+        Storage::fake('local');
+
+        $organisations = factory(Organisation::class, 2)->states('web', 'email')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $data = [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+        ];
+
+        $user = factory(User::class)->create()->makeSuperAdmin();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
     public function test_validate_file_import_type()
     {
         Storage::fake('local');
@@ -1159,7 +1134,6 @@ class OrganisationsTest extends TestCase
                             'row' => [],
                             'errors' => [
                                 'name' => [],
-                                'description' => [],
                                 'url' => [],
                                 'email' => [],
                             ],
@@ -1186,7 +1160,6 @@ class OrganisationsTest extends TestCase
                             'row' => [],
                             'errors' => [
                                 'name' => [],
-                                'description' => [],
                                 'url' => [],
                                 'email' => [],
                             ],
@@ -1333,16 +1306,16 @@ class OrganisationsTest extends TestCase
 
         Passport::actingAs($user);
 
-        $organisation1 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current Organisation']);
-        $organisation2 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current  Organisation']);
-        $organisation3 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current "Organisation"']);
-        $organisation4 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current.Organisation']);
-        $organisation5 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current, Organisation']);
-        $organisation6 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current-Organisation']);
+        $organisation1 = factory(Organisation::class)->states('web', 'email', 'phone', 'description')->create(['name' => 'Current Organisation']);
+        $organisation2 = factory(Organisation::class)->states('web', 'email', 'phone', 'description')->create(['name' => 'Current  Organisation']);
+        $organisation3 = factory(Organisation::class)->states('web', 'email', 'phone', 'description')->create(['name' => 'Current "Organisation"']);
+        $organisation4 = factory(Organisation::class)->states('web', 'email', 'phone', 'description')->create(['name' => 'Current.Organisation']);
+        $organisation5 = factory(Organisation::class)->states('web', 'email', 'phone', 'description')->create(['name' => 'Current, Organisation']);
+        $organisation6 = factory(Organisation::class)->states('web', 'email', 'phone', 'description')->create(['name' => 'Current-Organisation']);
 
         $organisations = collect([
-            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'Current Organisation']),
-            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'New Organisation']),
+            factory(Organisation::class)->states('web', 'email', 'phone', 'description')->make(['name' => 'Current Organisation']),
+            factory(Organisation::class)->states('web', 'email', 'phone', 'description')->make(['name' => 'New Organisation']),
         ]);
 
         $this->createOrganisationSpreadsheets($organisations);
