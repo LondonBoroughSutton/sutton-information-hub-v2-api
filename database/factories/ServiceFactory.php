@@ -22,6 +22,8 @@ $factory->define(Service::class, function (Faker $faker) {
         'description' => $faker->sentence,
         'is_free' => true,
         'url' => $faker->url,
+        'ios_app_url' => null,
+        'android_app_url' => null,
         'contact_name' => $faker->name,
         'contact_phone' => random_uk_phone(),
         'contact_email' => $faker->safeEmail,
