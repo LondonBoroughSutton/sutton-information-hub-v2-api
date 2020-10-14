@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Setting;
 
-use App\Rules\VideoEmbed;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateRequest extends FormRequest
@@ -54,15 +53,22 @@ class UpdateRequest extends FormRequest
             'cms.frontend.about' => ['required', 'array'],
             'cms.frontend.about.title' => ['required', 'string'],
             'cms.frontend.about.content' => ['required', 'string'],
-            'cms.frontend.about.video_url' => ['required', 'string', 'url', new VideoEmbed()],
+
+            'cms.frontend.providers' => ['required', 'array'],
+            'cms.frontend.providers.title' => ['required', 'string'],
+            'cms.frontend.providers.content' => ['required', 'string'],
+
+            'cms.frontend.supporters' => ['required', 'array'],
+            'cms.frontend.supporters.title' => ['required', 'string'],
+            'cms.frontend.supporters.content' => ['required', 'string'],
+
+            'cms.frontend.funders' => ['required', 'array'],
+            'cms.frontend.funders.title' => ['required', 'string'],
+            'cms.frontend.funders.content' => ['required', 'string'],
 
             'cms.frontend.contact' => ['required', 'array'],
             'cms.frontend.contact.title' => ['required', 'string'],
             'cms.frontend.contact.content' => ['required', 'string'],
-
-            'cms.frontend.get_involved' => ['required', 'array'],
-            'cms.frontend.get_involved.title' => ['required', 'string'],
-            'cms.frontend.get_involved.content' => ['required', 'string'],
 
             'cms.frontend.favourites' => ['required', 'array'],
             'cms.frontend.favourites.title' => ['required', 'string'],

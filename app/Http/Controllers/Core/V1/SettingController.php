@@ -66,15 +66,22 @@ class SettingController extends Controller
                             'about' => [
                                 'title' => $request->input('cms.frontend.about.title'),
                                 'content' => sanitize_markdown($request->input('cms.frontend.about.content')),
-                                'video_url' => $request->input('cms.frontend.about.video_url'),
+                            ],
+                            'providers' => [
+                                'title' => $request->input('cms.frontend.providers.title'),
+                                'content' => sanitize_markdown($request->input('cms.frontend.providers.content')),
+                            ],
+                            'supporters' => [
+                                'title' => $request->input('cms.frontend.supporters.title'),
+                                'content' => sanitize_markdown($request->input('cms.frontend.supporters.content')),
+                            ],
+                            'funders' => [
+                                'title' => $request->input('cms.frontend.funders.title'),
+                                'content' => sanitize_markdown($request->input('cms.frontend.funders.content')),
                             ],
                             'contact' => [
                                 'title' => $request->input('cms.frontend.contact.title'),
                                 'content' => sanitize_markdown($request->input('cms.frontend.contact.content')),
-                            ],
-                            'get_involved' => [
-                                'title' => $request->input('cms.frontend.get_involved.title'),
-                                'content' => sanitize_markdown($request->input('cms.frontend.get_involved.content')),
                             ],
                             'favourites' => [
                                 'title' => $request->input('cms.frontend.favourites.title'),

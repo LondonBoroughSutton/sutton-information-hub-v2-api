@@ -119,6 +119,42 @@ class UpdateRequest extends FormRequest
             'testimonial' => ['nullable', 'string', 'min:1', 'max:255'],
             'video_embed' => ['nullable', 'string', 'url', 'max:255', new VideoEmbed()],
             'url' => ['url', 'max:255'],
+            'ios_app_url' => [
+                'nullable',
+                'url',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    /**
+                     * If the service is, or is intended to be an app.
+                     */
+                    $isApp = $this->service->type === Service::TYPE_APP || $this->type === Service::TYPE_APP;
+                    /**
+                     * Does the service have, or will it have at least 1 app store url.
+                     */
+                    $hasAppStoreUrl = $this->android_app_url || $this->service->ios_app_url || $this->service->android_app_url;
+                    if (($isApp && !$hasAppStoreUrl) && !$value) {
+                        $fail($attribute . ' is required without android_app_url for an App Service type');
+                    }
+                },
+            ],
+            'android_app_url' => [
+                'nullable',
+                'url',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    /**
+                     * If the service is, or is intended to be an app.
+                     */
+                    $isApp = $this->service->type === Service::TYPE_APP || $this->type === Service::TYPE_APP;
+                    /**
+                     * Does the service have, or will it have at least 1 app store url.
+                     */
+                    $hasAppStoreUrl = $this->ios_app_url || $this->service->ios_app_url || $this->service->android_app_url;
+                    if (($isApp && !$hasAppStoreUrl) && !$value) {
+                        $fail($attribute . ' is required without ios_app_url for an App Service type');
+                    }
+                },
+            ],
             'contact_name' => ['nullable', 'string', 'min:1', 'max:255'],
             'contact_phone' => ['nullable', 'string', 'min:1', 'max:255'],
             'contact_email' => ['nullable', 'email', 'max:255'],

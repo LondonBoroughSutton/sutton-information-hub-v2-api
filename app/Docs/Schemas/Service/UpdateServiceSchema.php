@@ -84,6 +84,10 @@ class UpdateServiceSchema extends Schema
                     ->nullable(),
                 Schema::string('url')
                     ->nullable(),
+                Schema::string('ios_app_url')
+                    ->nullable(),
+                Schema::string('android_app_url')
+                    ->nullable(),
                 Schema::string('contact_name'),
                 Schema::string('contact_phone'),
                 Schema::string('contact_email'),

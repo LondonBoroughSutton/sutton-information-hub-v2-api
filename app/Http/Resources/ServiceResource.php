@@ -33,6 +33,8 @@ class ServiceResource extends JsonResource
             'testimonial' => $this->testimonial,
             'video_embed' => $this->video_embed,
             'url' => $this->url,
+            'ios_app_url' => $this->ios_app_url,
+            'android_app_url' => $this->android_app_url,
             'contact_name' => $this->contact_name,
             'contact_phone' => $this->contact_phone,
             'contact_email' => $this->contact_email,

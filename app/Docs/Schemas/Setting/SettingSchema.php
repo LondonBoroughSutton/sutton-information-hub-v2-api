@@ -39,18 +39,27 @@ class SettingSchema extends Schema
             Schema::string('content')->format('markdown')
         );
 
-        $about = Schema::object('about')->properties(
-            Schema::string('title'),
-            Schema::string('content')->format('markdown'),
-            Schema::string('video_url')
-        );
-
-        $contact = Schema::object('contact')->properties(
+        $aboutConnect = Schema::object('about_connect')->properties(
             Schema::string('title'),
             Schema::string('content')->format('markdown')
         );
 
-        $getInvolved = Schema::object('get_involved')->properties(
+        $providers = Schema::object('providers')->properties(
+            Schema::string('title'),
+            Schema::string('content')->format('markdown')
+        );
+
+        $supporters = Schema::object('supporters')->properties(
+            Schema::string('title'),
+            Schema::string('content')->format('markdown')
+        );
+
+        $funders = Schema::object('funders')->properties(
+            Schema::string('title'),
+            Schema::string('content')->format('markdown')
+        );
+
+        $contact = Schema::object('contact')->properties(
             Schema::string('title'),
             Schema::string('content')->format('markdown')
         );
@@ -71,9 +80,11 @@ class SettingSchema extends Schema
                                 $home,
                                 $termsAndConditions,
                                 $privacyPolicy,
-                                $about,
+                                $aboutConnect,
+                                $providers,
+                                $supporters,
+                                $funders,
                                 $contact,
-                                $getInvolved,
                                 $favourites
                             )
                     )
