@@ -17,10 +17,10 @@ class CreateUserCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'hlp:create-user 
-        {first_name : The user\'s first name} 
-        {last_name : The user\' last name} 
-        {email : The user\'s email} 
+    protected $signature = 'hlp:create-user
+        {first_name : The user\'s first name}
+        {last_name : The user\' last name}
+        {email : The user\'s email}
         {phone : The user\'s phone number}
         {--password= : The user\'s password}';
 
@@ -93,7 +93,7 @@ class CreateUserCommand extends Command
      */
     protected function makeSuperAdmin(User $user): User
     {
-        return $this->roleManager->updateRoles($user, [
+        return $this->roleManager->addRoles($user, [
             new UserRole(['role_id' => Role::superAdmin()->id]),
         ]);
     }
