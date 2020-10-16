@@ -432,7 +432,8 @@ class ServicesTest extends TestCase
     public function test_organisation_admin_cannot_create_an_active_one()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -891,7 +892,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1195,7 +1196,7 @@ class ServicesTest extends TestCase
         $service = factory(Service::class)->create();
         $service->serviceLocations()->create(['location_id' => $location->id]);
 
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1835,7 +1836,7 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeServiceWorker($service);
+        $user = $this->makeServiceWorker(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1854,7 +1855,7 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1874,7 +1875,7 @@ class ServicesTest extends TestCase
 
         $organisation1 = factory(Organisation::class)->create();
         $organisation2 = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation1);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation1);
 
         Passport::actingAs($user);
 
@@ -1893,7 +1894,7 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -1915,7 +1916,7 @@ class ServicesTest extends TestCase
             'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/services_import_1_good.xls'))),
             'organisation_id' => factory(Organisation::class)->create()->id,
         ];
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1933,7 +1934,7 @@ class ServicesTest extends TestCase
             'organisation_id' => factory(Organisation::class)->create()->id,
         ];
 
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1957,7 +1958,7 @@ class ServicesTest extends TestCase
             ['spreadsheet' => UploadedFile::fake()->create('dummy.csv', 3000)],
         ];
 
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
         $organisation = factory(Organisation::class)->create();
 
         Passport::actingAs($user);
@@ -2007,7 +2008,7 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -2085,8 +2086,8 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $organisation = factory(Organisation::class)->create();
-        $organisationAdminUser = factory(User::class)->create()->makeOrganisationAdmin($organisation);
-        $globalAdminUser = factory(User::class)->create()->makeGlobalAdmin();
+        $organisationAdminUser = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
+        $globalAdminUser = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($organisationAdminUser);
 
@@ -2158,8 +2159,8 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $organisation = factory(Organisation::class)->create();
-        $globalAdminUser = factory(User::class)->create()->makeGlobalAdmin();
-        $superAdminUser = factory(User::class)->create()->makeSuperAdmin();
+        $globalAdminUser = $this->makeGlobalAdmin(factory(User::class)->create());
+        $superAdminUser = $this->makeSuperAdmin(factory(User::class)->create());
 
         Passport::actingAs($globalAdminUser);
 
@@ -2223,7 +2224,7 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -2258,7 +2259,7 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -2289,7 +2290,7 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -2324,9 +2325,7 @@ class ServicesTest extends TestCase
         Storage::fake('local');
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
-
-        $admin = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -2350,7 +2349,7 @@ class ServicesTest extends TestCase
     public function test_organisation_admin_can_create_an_app_service_with_one_app_store_url()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -2366,7 +2365,7 @@ class ServicesTest extends TestCase
     public function test_organisation_admin_cannot_create_an_app_service_without_an_app_store_url()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -2381,7 +2380,7 @@ class ServicesTest extends TestCase
     public function test_organisation_admin_cannot_create_an_app_service_without_a_valid_app_store_url()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 

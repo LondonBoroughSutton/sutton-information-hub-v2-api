@@ -484,7 +484,7 @@ class ServiceLocationsTest extends TestCase
 
         Passport::actingAs($user);
 
-        $responseOne = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", [
+        $response = $this->json('PUT', "/core/v1/service-locations/{$serviceLocation->id}", [
             'name' => 'New Company Name',
         ]);
 
