@@ -7,23 +7,15 @@ use App\Models\User;
 interface RoleManagerInterface
 {
     /**
+     * RoleManagerInterface constructor.
+     *
      * @param \App\Models\User $user
-     * @param \App\Models\UserRole[] $userRoles
-     * @return \App\Models\User
      */
-    public function updateRoles(User $user, array $userRoles): User;
+    public function __construct(User $user);
 
     /**
-     * @param \App\Models\User $user
      * @param \App\Models\UserRole[] $userRoles
      * @return \App\Models\User
      */
-    public function addRoles(User $user, array $userRoles): User;
-
-    /**
-     * @param \App\Models\User $user
-     * @param \App\Models\UserRole[] $userRoles
-     * @return \App\Models\User
-     */
-    public function removeRoles(User $user, array $userRoles): User;
+    public function updateRoles(array $userRoles): User;
 }

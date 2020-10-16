@@ -84,7 +84,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceWorker($service);
+        $this->makeServiceWorker($user, $service);
 
         Passport::actingAs($user);
 
@@ -101,7 +101,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
 
         Passport::actingAs($user);
 
@@ -118,7 +118,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $organisation = factory(Organisation::class)->create();
         $user = factory(User::class)->create();
-        $user->makeOrganisationAdmin($organisation);
+        $this->makeOrganisationAdmin($user, $organisation);
 
         Passport::actingAs($user);
 
@@ -133,7 +133,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
+        $this->makeGlobalAdmin($user);
 
         Passport::actingAs($user);
 
@@ -148,7 +148,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $randomCategory = Taxonomy::category()->children()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -219,7 +219,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -281,7 +281,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -343,7 +343,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -405,7 +405,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
 
         Passport::actingAs($user);
 
@@ -430,7 +430,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -476,7 +476,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $randomCategory = Taxonomy::category()->children()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -626,7 +626,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceWorker($service);
+        $this->makeServiceWorker($user, $service);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -644,7 +644,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -662,7 +662,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $organisation = factory(Organisation::class)->create();
         $user = factory(User::class)->create();
-        $user->makeOrganisationAdmin($organisation);
+        $this->makeOrganisationAdmin($user, $organisation);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -678,7 +678,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
+        $this->makeGlobalAdmin($user);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
         $taxonomy = Taxonomy::category()->children()->inRandomOrder()->firstOrFail();
 
@@ -740,7 +740,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -801,7 +801,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -862,7 +862,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -923,7 +923,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $category = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -959,7 +959,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $category = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -994,7 +994,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
         $taxonomy = Taxonomy::category()->children()->inRandomOrder()->firstOrFail();
 
@@ -1037,7 +1037,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceWorker($service);
+        $this->makeServiceWorker($user, $service);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -1055,7 +1055,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -1073,7 +1073,7 @@ class CollectionCategoriesTest extends TestCase
          */
         $organisation = factory(Organisation::class)->create();
         $user = factory(User::class)->create();
-        $user->makeOrganisationAdmin($organisation);
+        $this->makeOrganisationAdmin($user, $organisation);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -1089,7 +1089,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
+        $this->makeGlobalAdmin($user);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -1105,7 +1105,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);
@@ -1126,7 +1126,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -1180,7 +1180,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -1234,7 +1234,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $first = Collection::create([
             'type' => Collection::TYPE_CATEGORY,
             'slug' => 'first',
@@ -1287,7 +1287,7 @@ class CollectionCategoriesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
+        $this->makeSuperAdmin($user);
         $category = Collection::categories()->inRandomOrder()->firstOrFail();
 
         Passport::actingAs($user);

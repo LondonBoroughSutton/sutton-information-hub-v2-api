@@ -379,7 +379,7 @@ class ServicesTest extends TestCase
     public function test_service_worker_cannot_create_one()
     {
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeServiceWorker($service);
+        $user = $this->makeServiceWorker(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -391,7 +391,7 @@ class ServicesTest extends TestCase
     public function test_service_admin_cannot_create_one()
     {
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -403,7 +403,7 @@ class ServicesTest extends TestCase
     public function test_organisation_admin_can_create_an_inactive_one()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -417,7 +417,7 @@ class ServicesTest extends TestCase
     public function test_organisation_admin_can_create_one_with_single_form_of_contact()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -448,7 +448,7 @@ class ServicesTest extends TestCase
         $taxonomy = Taxonomy::category()->children()->firstOrFail()->children()->firstOrFail();
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -472,7 +472,7 @@ class ServicesTest extends TestCase
     {
         $anotherOrganisation = factory(Organisation::class)->create();
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         Passport::actingAs($user);
 
@@ -488,7 +488,7 @@ class ServicesTest extends TestCase
         $this->fakeEvents();
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -506,7 +506,7 @@ class ServicesTest extends TestCase
     public function test_global_admin_can_create_an_active_one_with_taxonomies()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -534,7 +534,7 @@ class ServicesTest extends TestCase
     public function test_global_admin_can_create_one_accepting_referrals()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -565,7 +565,7 @@ class ServicesTest extends TestCase
     public function test_global_admin_cannot_create_one_with_referral_disclaimer_showing()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -580,7 +580,7 @@ class ServicesTest extends TestCase
     public function test_super_admin_can_create_one_with_referral_disclaimer_showing()
     {
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -839,7 +839,7 @@ class ServicesTest extends TestCase
     public function test_service_worker_cannot_update_one()
     {
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeServiceWorker($service);
+        $user = $this->makeServiceWorker(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -856,7 +856,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -926,7 +926,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1016,7 +1016,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1038,7 +1038,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1059,7 +1059,7 @@ class ServicesTest extends TestCase
         $service = factory(Service::class)->create();
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1084,7 +1084,7 @@ class ServicesTest extends TestCase
         $service = factory(Service::class)->create();
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1112,7 +1112,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1132,7 +1132,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1152,7 +1152,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1172,7 +1172,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1215,7 +1215,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1246,7 +1246,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1274,7 +1274,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1300,7 +1300,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
         $image = Storage::disk('local')->get('/test-data/image.png');
 
         Passport::actingAs($user);
@@ -1330,7 +1330,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1355,7 +1355,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1374,7 +1374,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
 
         Passport::actingAs($user);
 
@@ -1393,7 +1393,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
         $organisation = factory(Organisation::class)->create();
 
         Passport::actingAs($user);
@@ -1424,7 +1424,7 @@ class ServicesTest extends TestCase
     public function test_service_worker_cannot_delete_one()
     {
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeServiceWorker($service);
+        $user = $this->makeServiceWorker(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1436,7 +1436,7 @@ class ServicesTest extends TestCase
     public function test_service_admin_cannot_delete_one()
     {
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($user);
 
@@ -1448,7 +1448,7 @@ class ServicesTest extends TestCase
     public function test_organisation_admin_cannot_delete_one()
     {
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
+        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
 
         Passport::actingAs($user);
 
@@ -1460,7 +1460,7 @@ class ServicesTest extends TestCase
     public function test_global_admin_can_delete_one()
     {
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1475,7 +1475,7 @@ class ServicesTest extends TestCase
         $this->fakeEvents();
 
         $service = factory(Service::class)->create();
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1500,7 +1500,7 @@ class ServicesTest extends TestCase
         factory(HolidayOpeningHour::class)->create([
             'service_location_id' => $serviceLocation->id,
         ]);
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1723,7 +1723,7 @@ class ServicesTest extends TestCase
     {
         $organisation = factory(Organisation::class)->create();
         $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
+        $this->makeGlobalAdmin($user);
         $image = Storage::disk('local')->get('/test-data/image.png');
 
         Passport::actingAs($user);
@@ -1768,7 +1768,7 @@ class ServicesTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
+        $this->makeGlobalAdmin($user);
         $service = factory(Service::class)->create([
             'logo_file_id' => factory(File::class)->create()->id,
         ]);
