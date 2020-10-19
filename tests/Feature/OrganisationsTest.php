@@ -10,6 +10,8 @@ use App\Models\Role;
 use App\Models\Service;
 use App\Models\SocialMedia;
 use App\Models\User;
+use App\Models\UserRole;
+use App\RoleManagement\RoleManagerInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
@@ -1193,8 +1195,19 @@ class OrganisationsTest extends TestCase
         $superAdmin = $this->makeSuperAdmin(factory(User::class)->create());
         $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
         $organisationAdmin = factory(User::class)->create();
-        $this->makeOrganisationAdmin($organisationAdmin, $organisations->get(0));
-        $this->makeOrganisationAdmin($organisationAdmin, $organisations->get(1));
+        /** @var \App\RoleManagement\RoleManagerInterface $roleManager */
+        app()->make(RoleManagerInterface::class, [
+            'user' => $organisationAdmin,
+        ])->updateRoles(array_merge($organisationAdmin->userRoles->all(), [
+            new UserRole([
+                'role_id' => Role::organisationAdmin()->id,
+                'organisation_id' => $organisations->get(0)->id,
+            ]),
+            new UserRole([
+                'role_id' => Role::organisationAdmin()->id,
+                'organisation_id' => $organisations->get(1)->id,
+            ]),
+        ]));
         $serviceAdmin = $this->makeServiceAdmin(factory(User::class)->create(), $service);
 
         Passport::actingAs($serviceAdmin);
@@ -1211,6 +1224,7 @@ class OrganisationsTest extends TestCase
         $data = $this->getResponseContent($response);
 
         $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(2, 'data');
 
         $response->assertJsonFragment([
             'id' => $organisations->get(0)->id,
