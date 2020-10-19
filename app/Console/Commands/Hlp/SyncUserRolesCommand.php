@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Tlr;
+namespace App\Console\Commands\Hlp;
 
 use App\Models\User;
 use App\RoleManagement\RoleManagerInterface;
@@ -14,7 +14,7 @@ class SyncUserRolesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'tlr:sync-user-roles';
+    protected $signature = 'hlp:sync-user-roles';
 
     /**
      * The console command description.

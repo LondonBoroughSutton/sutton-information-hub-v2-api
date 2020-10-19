@@ -21,8 +21,7 @@ class CreateUserCommand extends Command
         {first_name : The user\'s first name}
         {last_name : The user\' last name}
         {email : The user\'s email}
-        {phone : The user\'s phone number}
-        {--password= : The user\'s password}';
+        {phone : The user\'s phone number}';
 
     /**
      * The console command description.
@@ -41,7 +40,7 @@ class CreateUserCommand extends Command
     {
         return DB::transaction(function () {
             // Cache the password to display.
-            $password = $this->option('password') ?? Str::random(16);
+            $password = Str::random();
 
             $user = $this->createUser($password);
             $this->makeSuperAdmin($user);
