@@ -22,12 +22,7 @@ class ImportOrganisationSchema extends Schema
             ->properties(
                 Schema::string('spreadsheet')
                     ->format(static::FORMAT_BINARY)
-                    ->description('Base64 encoded string of an Excel compatible spreadsheet'),
-                Schema::array('ignore_duplicates')->items(
-                    Schema::string()
-                        ->format(static::FORMAT_UUID)
-                        ->description('Exisiting duplicate Organisation ID. Clashes in import will be ignored.')
-                )
+                    ->description('Base64 encoded string of an Excel compatible spreadsheet')
             );
     }
 }

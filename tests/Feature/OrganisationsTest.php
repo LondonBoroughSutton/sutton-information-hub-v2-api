@@ -1323,6 +1323,7 @@ class OrganisationsTest extends TestCase
         $response = $this->json('POST', "/core/v1/organisations/import", [
             'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
         ]);
+
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         $headers = [
