@@ -42,6 +42,8 @@ Our initial information is not always accurate and nothing you see here is made 
 Having problems?
 You can view some <a href="https://connect.nhs.uk/providers">Frequently Asked Questions here</a>.
 
+<a href="https://www.facebook.com/groups/1016800338800042">Click here to join our Users Community</a>! A community space for services listed on NHS Connect. Here you can collaborate with other NHS Connect services, learn more about the ways it can help you and your users. It's also your go-to place to connect with the NHS Connect team about the product/ give feedback/make suggestions.
+
 Many thanks for your help
 
 NHS Connect Team
