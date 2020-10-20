@@ -62,7 +62,7 @@ class OrganisationTest extends TestCase
     public function test_organisation_admin_invite_status_is_invited_when_invite_sent()
     {
         $organisation = factory(Organisation::class)->create();
-        $organisation = factory(OrganisationAdminInvite::class)->states('email')->create([
+        factory(OrganisationAdminInvite::class)->states('email')->create([
             'organisation_id' => $organisation->id,
         ]);
 
@@ -72,7 +72,7 @@ class OrganisationTest extends TestCase
     public function test_organisation_admin_invite_status_is_pending_when_invite_submitted()
     {
         $organisation = factory(Organisation::class)->create();
-        $pendingOrganisationAdmin = factory(PendingOrganisationAdmin::class)->create([
+        factory(PendingOrganisationAdmin::class)->create([
             'organisation_id' => $organisation->id,
         ]);
 
