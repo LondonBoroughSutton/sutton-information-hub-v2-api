@@ -51,4 +51,39 @@ class OrganisationTest extends TestCase
 
         $this->assertInstanceOf(Location::class, $organisation->location);
     }
+
+    public function test_organisation_admin_invite_status_is_none_when_created()
+    {
+        $organisation = factory(Organisation::class)->create();
+
+        $this->assertEquals(Organisation::ADMIN_INVITE_STATUS_NONE, $organisation->adminInviteStatus);
+    }
+
+    public function test_organisation_admin_invite_status_is_invited_when_invite_sent()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $organisation = factory(OrganisationAdminInvite::class)->states('email')->create([
+            'organisation_id' => $organisation->id,
+        ]);
+
+        $this->assertEquals(Organisation::ADMIN_INVITE_STATUS_INVITED, $organisation->fresh()->adminInviteStatus);
+    }
+
+    public function test_organisation_admin_invite_status_is_pending_when_invite_submitted()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $pendingOrganisationAdmin = factory(PendingOrganisationAdmin::class)->create([
+            'organisation_id' => $organisation->id,
+        ]);
+
+        $this->assertEquals(Organisation::ADMIN_INVITE_STATUS_PENDING, $organisation->fresh()->adminInviteStatus);
+    }
+
+    public function test_organisation_admin_invite_status_is_confirmed_when_pending_email_is_confirmed()
+    {
+        $organisation = factory(Organisation::class)->create();
+        factory(User::class)->create()->makeOrganisationAdmin($organisation);
+
+        $this->assertEquals(Organisation::ADMIN_INVITE_STATUS_CONFIRMED, $organisation->fresh()->adminInviteStatus);
+    }
 }

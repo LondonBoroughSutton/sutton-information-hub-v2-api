@@ -1281,4 +1281,32 @@ class OrganisationsTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonCount(5, 'data');
     }
+
+    public function test_organisation_admin_invite_status_is_none_when_created()
+    {
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
+    }
+
+    public function test_organisation_admin_invite_status_is_invited_when_invite_sent()
+    {
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
+    }
+
+    public function test_organisation_admin_invite_status_is_pending_when_invite_submitted()
+    {
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
+    }
+
+    public function test_organisation_admin_invite_status_is_confirmed_when_pending_email_is_confirmed()
+    {
+        $this->markTestIncomplete(
+            'This test has not been implemented yet.'
+        );
+    }
 }
