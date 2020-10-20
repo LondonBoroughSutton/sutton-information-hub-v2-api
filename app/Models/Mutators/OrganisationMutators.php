@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\DB;
 trait OrganisationMutators
 {
     /**
-     * Calculate the Admin Invite status of the Organisation
+     * Calculate the Admin Invite status of the Organisation.
      *
-     * @return String
-     **/
+     * @return string
+     */
     public function getAdminInviteStatusAttribute()
     {
         $organisationAdminExists = DB::table(table(UserRole::class))
