@@ -7,6 +7,7 @@ use App\Models\Audit;
 use App\Models\Location;
 use App\Models\Organisation;
 use App\Models\OrganisationAdminInvite;
+use App\Models\PendingOrganisationAdmin;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\SocialMedia;
@@ -1285,26 +1286,53 @@ class OrganisationsTest extends TestCase
 
     public function test_organisation_admin_invite_status_is_none_when_created()
     {
-        $organisation = factory(Organisation::class)->create();
+        $user = factory(User::class)->create()->makeSuperAdmin();
+        Passport::actingAs($user);
 
-        Passport::actingAs(factory(User::class)->create()->makeSuperAdmin());
+        $organisation = factory(Organisation::class)->create();
 
         $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
 
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonFragment([
-            'adminInviteStatus' => Organisation::ADMIN_INVITE_STATUS_NONE,
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_NONE,
+        ]);
+    }
+
+    public function test_organisation_admin_invite_status_is_none_when_no_email_provided()
+    {
+        $user = Factory(User::class)->create()->makeSuperAdmin();
+        Passport::actingAs($user);
+
+        $organisation = factory(Organisation::class)->create();
+
+        $this->postJson('/core/v1/organisation-admin-invites', [
+            'organisations' => [
+                [
+                    'organisation_id' => $organisation->id,
+                    'use_email' => true,
+                ],
+            ],
+        ]);
+
+        $this->assertDatabaseMissing(table(OrganisationAdminInvite::class), [
+            'organisation_id' => $organisation->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_NONE,
         ]);
     }
 
     public function test_organisation_admin_invite_status_is_invited_when_invite_sent()
     {
-        $organisation = factory(Organisation::class)->create();
-        $organisation = factory(OrganisationAdminInvite::class)->states('email')->create([
-            'organisation_id' => $organisation->id,
-        ]);
+        $user = Factory(User::class)->create()->makeSuperAdmin();
+        Passport::actingAs($user);
 
-        Passport::actingAs(Factory(User::class)->create()->makeSuperAdmin());
+        $organisation = factory(Organisation::class)->states('email')->create();
 
         $this->postJson('/core/v1/organisation-admin-invites', [
             'organisations' => [
@@ -1323,13 +1351,15 @@ class OrganisationsTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonFragment([
-            'adminInviteStatus' => Organisation::ADMIN_INVITE_STATUS_INVITED,
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_INVITED,
         ]);
     }
 
     public function test_organisation_admin_invite_status_is_pending_when_invite_submitted()
     {
-        $organisation = factory(Organisation::class)->create();
+        $user = Factory(User::class)->create()->makeSuperAdmin();
+
+        $organisation = factory(Organisation::class)->states('email')->create();
         $organisationAdminInvite = factory(OrganisationAdminInvite::class)->create([
             'organisation_id' => $organisation->id,
         ]);
@@ -1350,19 +1380,21 @@ class OrganisationsTest extends TestCase
             'organisation_id' => $organisation->id,
         ]);
 
-        Passport::actingAs(Factory(User::class)->create()->makeSuperAdmin());
+        Passport::actingAs($user);
 
         $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
 
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonFragment([
-            'adminInviteStatus' => Organisation::ADMIN_INVITE_STATUS_PENDING,
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_PENDING,
         ]);
     }
 
     public function test_organisation_admin_invite_status_is_confirmed_when_pending_email_is_confirmed()
     {
-        $organisation = factory(Organisation::class)->create();
+        $user = Factory(User::class)->create()->makeSuperAdmin();
+
+        $organisation = factory(Organisation::class)->states('email')->create();
         $pendingOrganisationAdmin = factory(PendingOrganisationAdmin::class)->create([
             'organisation_id' => $organisation->id,
         ]);
@@ -1373,13 +1405,13 @@ class OrganisationsTest extends TestCase
             'organisation_id' => $organisation->id,
         ]);
 
-        Passport::actingAs(Factory(User::class)->create()->makeSuperAdmin());
+        Passport::actingAs($user);
 
         $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
 
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonFragment([
-            'adminInviteStatus' => Organisation::ADMIN_INVITE_STATUS_CONFIRMED,
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_CONFIRMED,
         ]);
     }
 }

@@ -14,6 +14,11 @@ class Organisation extends Model
     use OrganisationRelationships;
     use OrganisationScopes;
 
+    const ADMIN_INVITE_STATUS_NONE = 'none';
+    const ADMIN_INVITE_STATUS_INVITED = 'invited';
+    const ADMIN_INVITE_STATUS_PENDING = 'pending';
+    const ADMIN_INVITE_STATUS_CONFIRMED = 'confirmed';
+
     /**
      * Custom logic for returning the data. Useful when wanting to transform
      * or modify the data before returning it, e.g. removing passwords.
