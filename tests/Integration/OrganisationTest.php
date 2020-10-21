@@ -89,4 +89,64 @@ class OrganisationTest extends TestCase
 
         $this->assertEquals(Organisation::ADMIN_INVITE_STATUS_CONFIRMED, $organisation->fresh()->admin_invite_status);
     }
+
+    public function test_organisation_scope_has_admin_returns_only_organisations_with_non_global_admins()
+    {
+        $organisations = factory(Organisation::class, 2)->create();
+        factory(User::class)->create()->makeGlobalAdmin();
+
+        factory(User::class)->create()->makeOrganisationAdmin($organisations->get(0));
+
+        $adminOrganisations = Organisation::select(table(Organisation::class, '*'))->hasAdmin()->get();
+
+        $this->assertCount(1, $adminOrganisations);
+
+        $this->assertEquals($organisations->get(0)->id, $adminOrganisations[0]->id);
+    }
+
+    public function test_organisation_scope_has_no_admin_returns_only_organisations_with_no_non_global_admins()
+    {
+        $organisations = factory(Organisation::class, 2)->create();
+        factory(User::class)->create()->makeGlobalAdmin();
+
+        factory(User::class)->create()->makeOrganisationAdmin($organisations->get(0));
+
+        $adminOrganisations = Organisation::select(table(Organisation::class, '*'))->hasNoAdmin()->get();
+
+        $this->assertCount(1, $adminOrganisations);
+
+        $this->assertEquals($organisations->get(1)->id, $adminOrganisations[0]->id);
+    }
+
+    public function test_organisation_scope_has_no_admin_invite_returns_only_organisations_with_no_admin_invites()
+    {
+        $organisations = factory(Organisation::class, 2)->create();
+        factory(User::class)->create()->makeGlobalAdmin();
+
+        factory(OrganisationAdminInvite::class)->states('email')->create([
+            'organisation_id' => $organisations->get(0)->id,
+        ]);
+
+        $adminOrganisations = Organisation::select(table(Organisation::class, '*'))->hasNoAdminInvite()->get();
+
+        $this->assertCount(1, $adminOrganisations);
+
+        $this->assertEquals($organisations->get(1)->id, $adminOrganisations[0]->id);
+    }
+
+    public function test_organisation_scope_has_no_pending_admin_invite_returns_only_organisations_with_no_pending_admin_invites()
+    {
+        $organisations = factory(Organisation::class, 2)->create();
+        factory(User::class)->create()->makeGlobalAdmin();
+
+        factory(PendingOrganisationAdmin::class)->create([
+            'organisation_id' => $organisations->get(0)->id,
+        ]);
+
+        $adminOrganisations = Organisation::select(table(Organisation::class, '*'))->hasNoPendingAdminInvite()->get();
+
+        $this->assertCount(1, $adminOrganisations);
+
+        $this->assertEquals($organisations->get(1)->id, $adminOrganisations[0]->id);
+    }
 }

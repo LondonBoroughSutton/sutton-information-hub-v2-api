@@ -1417,4 +1417,54 @@ class OrganisationsTest extends TestCase
             'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_CONFIRMED,
         ]);
     }
+
+    public function test_filter_organisations_by_admin_invite_status()
+    {
+        $user = Factory(User::class)->create()->makeSuperAdmin();
+
+        $organisationNone = factory(Organisation::class)->create();
+
+        $organisationInvited = factory(Organisation::class)->create();
+        factory(OrganisationAdminInvite::class)->states('email')->create([
+            'organisation_id' => $organisationInvited->id,
+        ]);
+
+        $organisationPending = factory(Organisation::class)->create();
+        factory(PendingOrganisationAdmin::class)->create([
+            'organisation_id' => $organisationPending->id,
+        ]);
+
+        $organisationConfirmed = factory(Organisation::class)->create();
+        factory(User::class)->create()->makeOrganisationAdmin($organisationConfirmed);
+
+        Passport::actingAs($user);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_admin_invite_status]=none');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'id' => $organisationNone->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_admin_invite_status]=invited');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'id' => $organisationInvited->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_admin_invite_status]=pending');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'id' => $organisationPending->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_admin_invite_status]=confirmed');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'id' => $organisationConfirmed->id,
+        ]);
+    }
 }
