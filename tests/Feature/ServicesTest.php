@@ -94,6 +94,7 @@ class ServicesTest extends TestCase
                 ],
             ],
             'gallery_items' => [],
+            'score' => null,
             'category_taxonomies' => [],
         ];
     }
@@ -142,6 +143,7 @@ class ServicesTest extends TestCase
             ],
             'useful_infos' => [],
             'social_medias' => [],
+            'score' => $service->score,
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
             'logo_file_id' => null,
         ];
@@ -230,6 +232,7 @@ class ServicesTest extends TestCase
                     'url' => 'https://www.instagram.com/ayupdigital/',
                 ],
             ],
+            'score' => $service->score,
             'gallery_items' => [],
             'category_taxonomies' => [
                 [
@@ -597,6 +600,56 @@ class ServicesTest extends TestCase
         $response->assertStatus(Response::HTTP_CREATED);
     }
 
+    public function test_super_admin_can_create_one_with_a_score_between_1_and_5()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $superAdmin = factory(User::class)->create()->makeSuperAdmin();
+        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
+        $orgAdmin = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+
+        $taxonomy = Taxonomy::category()
+            ->children()
+            ->firstOrFail();
+
+        $payload = $this->createServicePayload($organisation);
+        $payload['category_taxonomies'] = [$taxonomy->id];
+        $payload['score'] = 5;
+
+        Passport::actingAs($orgAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        Passport::actingAs($globalAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 0;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 6;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = -1;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 5;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
     /*
      * Get a specific service.
      */
@@ -681,6 +734,7 @@ class ServicesTest extends TestCase
                     'url' => 'https://www.instagram.com/ayupdigital/',
                 ],
             ],
+            'score' => $service->score,
             'category_taxonomies' => [
                 [
                     'id' => Taxonomy::category()->children()->first()->id,
@@ -777,6 +831,7 @@ class ServicesTest extends TestCase
                     'url' => 'https://www.instagram.com/ayupdigital/',
                 ],
             ],
+            'score' => $service->score,
             'category_taxonomies' => [
                 [
                     'id' => Taxonomy::category()->children()->first()->id,
@@ -982,6 +1037,7 @@ class ServicesTest extends TestCase
                     'url' => 'https://www.instagram.com/ayupdigital',
                 ],
             ],
+            'score' => $service->score,
             'gallery_items' => [],
             'category_taxonomies' => [
                 $taxonomy->id,
@@ -1408,6 +1464,53 @@ class ServicesTest extends TestCase
         ]);
     }
 
+    public function test_super_admin_can_update_score_between_1_and_5()
+    {
+        $service = factory(Service::class)->create([
+            'score' => 3,
+        ]);
+        $superAdmin = factory(User::class)->create()->makeSuperAdmin();
+        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
+        $orgAdmin = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
+
+        $payload = $this->updateServicePayload($service);
+        $payload['score'] = 5;
+
+        Passport::actingAs($orgAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        Passport::actingAs($globalAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 0;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 6;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = -1;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 5;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_OK);
+    }
+
     /*
      * Delete a specific service.
      */
@@ -1644,6 +1747,7 @@ class ServicesTest extends TestCase
                             'url',
                         ],
                     ],
+                    'score',
                     'gallery_items' => [
                         [
                             'file_id',

@@ -321,6 +321,23 @@ class UpdateRequest extends FormRequest
                 new FileIsMimeType(File::MIME_TYPE_PNG),
                 new FileIsPendingAssignment(),
             ],
+            'score' => [
+                'nullable',
+                'numeric',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    $this->service->score
+                ),
+                function ($attribute, $value, $fail) {
+                    if ($this->service->score !== $value && ($value < 1 || $value > 5)) {
+                        $fail($attribute . ' should be between 1 and 5');
+                    }
+                },
+            ],
         ];
     }
 
