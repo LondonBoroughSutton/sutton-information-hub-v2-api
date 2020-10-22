@@ -55,7 +55,7 @@ class SearchController extends Controller
             $search->applyRadius($location, $request->radius ?? config('hlp.search_distance'));
         } elseif ($request->has('is_national')) {
             // Apply filter on `is_national` field.
-            $search->applyIsNational((bool)$request->is_national);
+            $search->applyIsNational((bool) $request->is_national);
         }
 
         // Apply order.

@@ -98,6 +98,7 @@ class Service extends Model implements Notifiable
             'is_free' => ['type' => 'boolean'],
             'is_national' => ['type' => 'boolean'],
             'status' => ['type' => 'keyword'],
+            'score' => ['type' => 'integer'],
             'organisation_name' => [
                 'type' => 'text',
                 'fields' => [
@@ -147,6 +148,7 @@ class Service extends Model implements Notifiable
             'is_free' => $this->is_free,
             'is_national' => $this->is_national,
             'status' => $this->status,
+            'score' => $this->score,
             'organisation_name' => $this->organisation->name,
             'taxonomy_categories' => $this->taxonomies()->pluck('name')->toArray(),
             'collection_categories' => static::collections($this)->where('type', Collection::TYPE_CATEGORY)->pluck('name')->toArray(),
