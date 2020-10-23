@@ -42,6 +42,7 @@ class ElasticsearchSearch implements Search
             'size' => config('hlp.pagination_results'),
             'query' => [
                 'function_score' => [
+                    'boost_mode' => 'sum',
                     'query' => [
                         'bool' => [
                             'filter' => [
@@ -71,8 +72,8 @@ class ElasticsearchSearch implements Search
                         [
                             'field_value_factor' => [
                                 'field' => 'score',
-                                'factor' => 1,
-                                'missing' => 0,
+                                'modifier' => 'ln1p',
+                                'missing' => 1,
                             ],
                         ],
                     ],

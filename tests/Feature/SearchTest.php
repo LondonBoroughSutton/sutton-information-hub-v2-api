@@ -708,12 +708,16 @@ class SearchTest extends TestCase implements UsesElasticsearch
 
     public function test_services_with_a_higher_score_are_more_relevant()
     {
-        $service1 = factory(Service::class)->create(['name' => 'Testing Service', 'score' => 0]);
-        $service2 = factory(Service::class)->create(['name' => 'Testing Service', 'score' => 5]);
-        $service3 = factory(Service::class)->create(['name' => 'Testing Service', 'score' => 3]);
-        $service4 = factory(Service::class)->create(['name' => 'Testing Service', 'score' => 1]);
-        $service5 = factory(Service::class)->create(['name' => 'Testing Service', 'score' => 4]);
-        $service6 = factory(Service::class)->create(['name' => 'Testing Service', 'score' => 2]);
+        $organisation = factory(\App\Models\Organisation::class)->create();
+        $serviceParams = [
+            'organisation_id' => $organisation->id,
+            'name' => 'Testing Service',
+            'intro' => 'Service Intro',
+            'description' => 'Service description',
+        ];
+        $service5 = factory(Service::class)->create(array_merge($serviceParams, ['score' => 5]));
+        $service3 = factory(Service::class)->create(array_merge($serviceParams, ['score' => 3]));
+        $service0 = factory(Service::class)->create(array_merge($serviceParams, ['score' => 0]));
 
         $response = $this->json('POST', '/core/v1/search', [
             'query' => 'Testing Service',
@@ -722,21 +726,9 @@ class SearchTest extends TestCase implements UsesElasticsearch
         $response->assertStatus(Response::HTTP_OK);
         $data = $this->getResponseContent($response)['data'];
 
-        dump([
-            $service2->id,
-            $service5->id,
-            $service3->id,
-            $service6->id,
-            $service4->id,
-            $service1->id,
-        ]);
-        dump(collect($data)->pluck('id'));
+        $this->assertEquals($service5->id, $data[0]['id']);
+        $this->assertEquals($service3->id, $data[1]['id']);
+        $this->assertEquals($service0->id, $data[2]['id']);
 
-        $this->assertEquals($service2->id, $data[0]['id']);
-        $this->assertEquals($service5->id, $data[1]['id']);
-        $this->assertEquals($service3->id, $data[2]['id']);
-        $this->assertEquals($service6->id, $data[3]['id']);
-        $this->assertEquals($service4->id, $data[4]['id']);
-        $this->assertEquals($service1->id, $data[5]['id']);
     }
 }
