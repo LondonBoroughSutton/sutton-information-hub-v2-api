@@ -94,10 +94,10 @@ class StoreRequest extends FormRequest
             'url' => ['required', 'url', 'max:255'],
             'ios_app_url' => [
                 Rule::requiredIf($this->type === Service::TYPE_APP && !$this->android_app_url),
-                'present', 'nullable', 'url', 'max:255'],
+                'present', 'nullable', 'url', 'max:255', ],
             'android_app_url' => [
                 Rule::requiredIf($this->type === Service::TYPE_APP && !$this->ios_app_url),
-                'present', 'nullable', 'url', 'max:255'],
+                'present', 'nullable', 'url', 'max:255', ],
             'contact_name' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
             'contact_phone' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
             'contact_email' => ['present', 'nullable', 'email', 'max:255'],

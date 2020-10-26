@@ -747,11 +747,6 @@ class SearchTest extends TestCase implements UsesElasticsearch
         DB::table('locations')->where('id', $serviceLocation->location->id)->update(['lat' => 45.01, 'lon' => 90.01]);
         $service5->save();
 
-        $service3 = factory(Service::class)->create(array_merge($serviceParams, ['score' => 3]));
-        $serviceLocation2 = factory(ServiceLocation::class)->create(['service_id' => $service3->id]);
-        DB::table('locations')->where('id', $serviceLocation2->location->id)->update(['lat' => 45.01, 'lon' => 90.01]);
-        $service3->save();
-
         $service0 = factory(Service::class)->create(array_merge($serviceParams, ['score' => 0]));
         $serviceLocation3 = factory(ServiceLocation::class)->create(['service_id' => $service0->id]);
         DB::table('locations')->where('id', $serviceLocation3->location->id)->update(['lat' => 45, 'lon' => 90]);
@@ -759,7 +754,7 @@ class SearchTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search', [
             'query' => 'Testing Service',
-            'order' => 'relevance',
+            'order' => 'distance',
             'location' => [
                 'lat' => 45,
                 'lon' => 90,
@@ -771,6 +766,5 @@ class SearchTest extends TestCase implements UsesElasticsearch
 
         $this->assertEquals($service0->id, $data[0]['id']);
         $this->assertEquals($service5->id, $data[1]['id']);
-        $this->assertEquals($service3->id, $data[2]['id']);
     }
 }
