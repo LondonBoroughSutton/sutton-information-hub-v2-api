@@ -12,7 +12,7 @@ class UpdateServicesTableAddScoreColumn extends Migration
     public function up()
     {
         Schema::table('services', function (Blueprint $table) {
-            $table->tinyInteger('score')->nullable()->default(0);
+            $table->tinyInteger('score')->after('testimonial')->nullable()->default(0);
         });
     }
 

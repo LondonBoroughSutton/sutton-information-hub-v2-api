@@ -47,6 +47,12 @@ class Service extends Model implements Notifiable
     const REFERRAL_METHOD_EXTERNAL = 'external';
     const REFERRAL_METHOD_NONE = 'none';
 
+    const SCORE_POOR = 1;
+    const SCORE_BELOW_AVERAGE = 2;
+    const SCORE_AVERAGE = 3;
+    const SCORE_ABOVE_AVERAGE = 4;
+    const SCORE_EXCELLENT = 5;
+
     /**
      * The attributes that should be cast to native types.
      *

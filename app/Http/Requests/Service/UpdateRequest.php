@@ -333,7 +333,14 @@ class UpdateRequest extends FormRequest
                     $this->service->score
                 ),
                 function ($attribute, $value, $fail) {
-                    if ($this->service->score !== $value && ($value < 1 || $value > 5)) {
+                    if ($this->service->score !== $value &&
+                        !in_array($value, [
+                            Service::SCORE_POOR,
+                            Service::SCORE_BELOW_AVERAGE,
+                            Service::SCORE_AVERAGE,
+                            Service::SCORE_ABOVE_AVERAGE,
+                            Service::SCORE_EXCELLENT,
+                        ])) {
                         $fail($attribute . ' should be between 1 and 5');
                     }
                 },
