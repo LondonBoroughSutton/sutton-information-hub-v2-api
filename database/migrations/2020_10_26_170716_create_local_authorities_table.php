@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateLocalAuthoritiesTable extends Migration
 {
@@ -14,7 +14,10 @@ class CreateLocalAuthoritiesTable extends Migration
     public function up()
     {
         Schema::create('local_authorities', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->uuid('id')->primary();
+            $table->string('name');
+            $table->string('alt_name')->nullable();
+            $table->char('code', 10);
             $table->timestamps();
         });
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Integration\Models;
+namespace Tests\Integration;
 
 use App\Models\User;
 use Tests\TestCase;
@@ -28,7 +28,7 @@ class UserTest extends TestCase
             'local_authority_id' => factory(\App\Models\LocalAuthority::class)->create()->id,
         ]);
 
-        $this->assertInstanceOf(\App\Models\LocalAuthority::class, $user->local_authority);
+        $this->assertInstanceOf(\App\Models\LocalAuthority::class, $user->localAuthority);
     }
 
     /**

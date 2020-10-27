@@ -52,10 +52,10 @@ class LocalAuthorityTest extends TestCase
 
         ]);
         $this->assertTrue(method_exists($englishAuthority, 'region'));
-        $this->assertEquals(LocalAuthority::REGION_ENGLAND, $englishAuthority->region);
-        $this->assertEquals(LocalAuthority::REGION_SCOTLAND, $scottishAuthority->region);
-        $this->assertEquals(LocalAuthority::REGION_WALES, $welshAuthority->region);
-        $this->assertEquals(LocalAuthority::REGION_NORTHERN_IRELAND, $northernIrishAuthority->region);
+        $this->assertEquals(LocalAuthority::REGION_ENGLAND, $englishAuthority->region());
+        $this->assertEquals(LocalAuthority::REGION_SCOTLAND, $scottishAuthority->region());
+        $this->assertEquals(LocalAuthority::REGION_WALES, $welshAuthority->region());
+        $this->assertEquals(LocalAuthority::REGION_NORTHERN_IRELAND, $northernIrishAuthority->region());
     }
 
     /**

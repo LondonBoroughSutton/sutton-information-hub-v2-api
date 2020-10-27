@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Integration\Models;
+namespace Tests\Integration;
 
 use App\Models\LocalAuthority;
 use Tests\TestCase;

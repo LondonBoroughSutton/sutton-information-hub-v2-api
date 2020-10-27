@@ -3,6 +3,8 @@
 namespace App\Models\Relationships;
 
 use App\Models\Audit;
+use App\Models\LocalAuthority;
+use App\Models\Location;
 use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\Service;
@@ -73,5 +75,21 @@ trait UserRelationships
     {
         return $this->belongsToMany(Service::class, table(UserRole::class))
             ->distinct();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function localAuthority()
+    {
+        return $this->belongsTo(LocalAuthority::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 }
