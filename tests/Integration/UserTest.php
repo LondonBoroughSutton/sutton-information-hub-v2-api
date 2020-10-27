@@ -22,7 +22,7 @@ class UserTest extends TestCase
     /**
      * @test
      */
-    public function it_has_an_associated_organisation()
+    public function it_can_have_an_associated_organisation()
     {
         $user = factory(\App\Models\User::class)->create([
             'local_authority_id' => factory(\App\Models\LocalAuthority::class)->create()->id,
