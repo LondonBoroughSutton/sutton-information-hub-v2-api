@@ -2,6 +2,8 @@
 
 namespace Tests\Integration;
 
+use App\Models\LocalAuthority;
+use LocalAuthoritySeeder;
 use Tests\TestCase;
 
 class LocalAuthoritySeederTest extends TestCase
@@ -13,55 +15,49 @@ class LocalAuthoritySeederTest extends TestCase
      *
      * @return Array
      **/
-    public function csvImportMock()
+    public function jsonImportMock()
     {
-        return [
-            ['FID', 'LAD20CD', 'LAD20NM', 'LAD20NMW'],
-            ['105', 'E08000025', 'Birmingham'],
-            ['106', 'E08000026', 'Coventry'],
-            ['107', 'E08000027', 'Dudley'],
-            ['108', 'E08000028', 'Sandwell'],
-            ['109', 'E08000029', 'Solihull'],
-            ['110', 'E08000030', 'Walsall'],
-            ['111', 'E06000059', 'Dorset'],
-            ['112', 'E08000031', 'Wolverhampton'],
-            ['113', 'S12000014', 'Falkirk'],
-            ['114', 'S12000017', 'Highland'],
-            ['115', 'S12000018', 'Inverclyde'],
-            ['116', 'S12000019', 'Midlothian'],
-            ['144', 'W06000001', 'Isle of Anglesey', 'Ynys Môn'],
-            ['145', 'E07000012', 'South Cambridgeshire'],
-            ['146', 'W06000002', 'Gwynedd', 'Gwynedd'],
-            ['147', 'E07000026', 'Allerdale	'],
-            ['148', 'W06000003', 'Conwy', 'Conwy'],
-            ['149', 'E07000027', 'Barrow-in-Furness	'],
-            ['150', 'W06000004', 'Denbighshire', 'Sir Ddinbych'],
-            ['151', 'E07000028', 'Carlisle	'],
-            ['152', 'W06000005', 'Flintshire', 'Sir y Fflint'],
-            ['360', 'E09000030', 'Tower Hamlets'],
-            ['361', 'E09000031', 'Waltham Forest'],
-            ['362', 'E09000032', 'Wandsworth'],
-            ['363', 'E09000033', 'Westminster'],
-            ['364', 'N09000001', 'Antrim and Newtownabbey'],
-            ['365', 'N09000002', 'Armagh City, Banbridge and Craigavon'],
-            ['366', 'N09000003', 'Belfast'],
-            ['367', 'N09000004', 'Causeway Coast and Glens'],
-            ['368', 'N09000005', 'Derry City and Strabane'],
-            ['369', 'N09000006', 'Fermanagh and Omagh'],
-            ['370', 'N09000007', 'Lisburn and Castlereagh'],
-        ];
+        $json = <<<EOT
+[
+{ "type": "Feature", "properties": { "FID": 133, "LAD20CD": "S12000042", "LAD20NM": "Dundee City", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 134, "LAD20CD": "S12000045", "LAD20NM": "East Dunbartonshire", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 135, "LAD20CD": "E06000060", "LAD20NM": "Buckinghamshire", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 136, "LAD20CD": "S12000047", "LAD20NM": "Fife", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 137, "LAD20CD": "E07000008", "LAD20NM": "Cambridge", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 138, "LAD20CD": "S12000048", "LAD20NM": "Perth and Kinross", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 139, "LAD20CD": "E07000009", "LAD20NM": "East Cambridgeshire", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 140, "LAD20CD": "S12000049", "LAD20NM": "Glasgow City", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 141, "LAD20CD": "E07000010", "LAD20NM": "Fenland", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 142, "LAD20CD": "S12000050", "LAD20NM": "North Lanarkshire", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 143, "LAD20CD": "E07000011", "LAD20NM": "Huntingdonshire", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 144, "LAD20CD": "W06000001", "LAD20NM": "Isle of Anglesey", "LAD20NMW": "Ynys Môn" }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 145, "LAD20CD": "E07000012", "LAD20NM": "South Cambridgeshire", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 146, "LAD20CD": "W06000002", "LAD20NM": "Gwynedd", "LAD20NMW": "Gwynedd" }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 147, "LAD20CD": "E07000026", "LAD20NM": "Allerdale", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 148, "LAD20CD": "W06000003", "LAD20NM": "Conwy", "LAD20NMW": "Conwy" }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 371, "LAD20CD": "N09000008", "LAD20NM": "Mid and East Antrim", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 372, "LAD20CD": "N09000009", "LAD20NM": "Mid Ulster", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 373, "LAD20CD": "N09000010", "LAD20NM": "Newry, Mourne and Down", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 374, "LAD20CD": "N09000011", "LAD20NM": "Ards and North Down", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 375, "LAD20CD": "S12000005", "LAD20NM": "Clackmannanshire", "LAD20NMW": null }, "geometry": null },
+{ "type": "Feature", "properties": { "FID": 376, "LAD20CD": "S12000006", "LAD20NM": "Dumfries and Galloway", "LAD20NMW": null }, "geometry": null }
+]
+EOT;
+
+        return json_decode($json);
     }
     /**
      * @test
      */
     public function it_can_create_local_authorities_from_imported_data()
     {
-        (new LocalAuthoritySeeder())->createLocalAuthorityRecords($this->csvImportMock());
+        $json = $this->jsonImportMock();
+        (new LocalAuthoritySeeder())->createLocalAuthorityRecords($json);
 
         $this->assertDatabaseHas(table(LocalAuthority::class), [
-            'name' => 'Carlisle',
+            'name' => 'Cambridge',
             'alt_name' => null,
-            'code' => 'E07000028',
+            'code' => 'E07000008',
         ]);
 
         $this->assertDatabaseHas(table(LocalAuthority::class), [
@@ -71,31 +67,15 @@ class LocalAuthoritySeederTest extends TestCase
         ]);
 
         $this->assertDatabaseHas(table(LocalAuthority::class), [
-            'name' => 'Causeway Coast and Glens',
+            'name' => 'Mid and East Antrim',
             'alt_name' => null,
-            'code' => 'N09000004',
+            'code' => 'N09000008',
         ]);
 
         $this->assertDatabaseHas(table(LocalAuthority::class), [
-            'name' => 'Midlothian',
+            'name' => 'Dumfries and Galloway',
             'alt_name' => null,
-            'code' => 'S12000019',
+            'code' => 'S12000006',
         ]);
-
-        $this->assertDatabaseMissing(table(LocalAuthority::class), [
-            'name' => 'LAD20NM',
-            'alt_name' => 'LAD20NMW',
-            'code' => 'LAD20CD',
-        ]);
-    }
-
-    /**
-     * @test
-     */
-    public function it_throws_a_file_not_found_exception_on_error_getting_csv()
-    {
-        putenv('LOCAL_AUTHORITY_DATA_URL=http://example.org/this/file/does/not/exist.json');
-        $this->expectException(\Illuminate\Filesystem\FileNotFoundException::class);
-        $this->seed(LocalAuthoritySeeder::class);
     }
 }
