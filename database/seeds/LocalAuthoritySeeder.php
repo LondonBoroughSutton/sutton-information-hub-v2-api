@@ -24,9 +24,12 @@ class LocalAuthoritySeeder extends Seeder
      */
     public function run()
     {
-        $this->jsonRequestUrl = env('LOCAL_AUTHORITY_DATA_URL');
-        if ($localAuthorityRecords = $this->fetchLocalAuthorityRecords()) {
-            $this->createLocalAuthorityRecords($localAuthorityRecords);
+        $this->jsonRequestUrl = config('hlp.local_authority_data_url');
+        if ($this->jsonRequestUrl) {
+            $localAuthorityRecords = $this->fetchLocalAuthorityRecords();
+            if ($localAuthorityRecords) {
+                $this->createLocalAuthorityRecords($localAuthorityRecords);
+            }
         }
     }
 
@@ -34,18 +37,21 @@ class LocalAuthoritySeeder extends Seeder
      * Create the Local Authority records from imported data
      *
      * @param Array $localAuthoritiesJson
-     * @return Boolean
+     * @return Array || Null
      **/
     public function fetchLocalAuthorityRecords()
     {
         $client = new Client();
         try {
             $response = $client->get($this->jsonRequestUrl);
-            $jsonResponse = json_decode($response);
+            if (200 === $response->getStatusCode() && $response->getBody()->isReadable()) {
+                $jsonResponse = json_decode($response->getBody()->getContents());
+            }
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             if ($this->command) {
-                $this->command->getOutput()->writeln("<error>Fetch Local Authority Records:</error> {$e->getMessage()}");
+                $this->command->error("Error Fetching Local Authority Records:");
+                $this->command->error($e->getMessage());
             }
         }
 
@@ -75,7 +81,7 @@ class LocalAuthoritySeeder extends Seeder
             }
         });
         if ($this->command) {
-            $this->command->getOutput()->writeln("<info>Imported Local Authority Records:</info> {count($locaAuthorityJson)}");
+            $this->command->info('Imported ' . count($localAuthoritiesJson) . ' Local Authority Records');
         }
     }
 }
