@@ -2,6 +2,7 @@
 
 namespace App\Http\Filters\Organisation;
 
+use App\Models\Organisation;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\QueryBuilder\Filters\Filter;
 
@@ -15,16 +16,16 @@ class HasAdminInviteStatusFilter implements Filter
      */
     public function __invoke(Builder $query, $value, string $property): Builder
     {
-        if ($value === 'confirmed') {
+        if ($value === Organisation::ADMIN_INVITE_STATUS_CONFIRMED) {
             return $query->hasAdmin();
         }
-        if ($value === 'pending') {
+        if ($value === Organisation::ADMIN_INVITE_STATUS_PENDING) {
             return $query->hasPendingAdminInvite();
         }
-        if ($value === 'invited') {
+        if ($value === Organisation::ADMIN_INVITE_STATUS_INVITED) {
             return $query->hasAdminInvite();
         }
-        if ($value === 'none') {
+        if ($value === Organisation::ADMIN_INVITE_STATUS_NONE) {
             $query->hasNoAdmin()->hasNoPendingAdminInvite()->hasNoAdminInvite();
         }
 
