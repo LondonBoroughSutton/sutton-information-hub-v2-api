@@ -4,7 +4,7 @@ namespace App\Docs\Operations\Services;
 
 use App\Docs\Schemas\ResourceSchema;
 use App\Docs\Schemas\Service\ImportServiceSchema;
-use App\Docs\Schemas\SpreadsheetSchema;
+use App\Docs\Schemas\Service\ImportServicesResponseSchema;
 use App\Docs\Tags\ServicesTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
@@ -36,7 +36,7 @@ class ImportServicesOperation extends Operation
             ->responses(
                 Response::created()->content(
                     MediaType::json()->schema(
-                        ResourceSchema::create(null, SpreadsheetSchema::create())
+                        ResourceSchema::create(null, ImportServicesResponseSchema::create())
                     )
                 )
             );

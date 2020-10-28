@@ -22,6 +22,25 @@ use Tests\TestCase;
 
 class OrganisationsTest extends TestCase
 {
+    /**
+     * Create spreadsheets of organisations
+     *
+     * @param Array $organisations
+     * @return null
+     **/
+    public function createOrganisationSpreadsheets($organisations)
+    {
+        $headers = [
+            'name',
+            'description',
+            'url',
+            'email',
+            'phone',
+        ];
+
+        $spreadsheet = \Tests\Integration\SpreadsheetParserTest::createSpreadsheets(collect($organisations), $headers);
+        \Tests\Integration\SpreadsheetParserTest::writeSpreadsheetsToDisk($spreadsheet, 'test.xlsx', 'test.xls');
+    }
     /*
      * List all the organisations.
      */
@@ -916,8 +935,12 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
         $data = [
-            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls'))),
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
         ];
         $response = $this->json('POST', "/core/v1/organisations/import", $data);
 
@@ -928,8 +951,12 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
         $data = [
-            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls'))),
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
         ];
 
         $service = factory(Service::class)->create();
@@ -946,8 +973,12 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
         $data = [
-            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls'))),
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
         ];
 
         $service = factory(Service::class)->create();
@@ -963,8 +994,12 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
         $data = [
-            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls'))),
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
         ];
         $organisation = factory(Organisation::class)->create();
 
@@ -979,8 +1014,12 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
         $data = [
-            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls'))),
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
         ];
 
         Passport::actingAs($this->makeGlobalAdmin(factory(User::class)->create()));
@@ -994,8 +1033,12 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
         $data = [
-            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls'))),
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
         ];
 
         Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
@@ -1025,27 +1068,39 @@ class OrganisationsTest extends TestCase
             $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls')))]);
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
-                'imported_row_count' => 1,
+                'imported_row_count' => 2,
             ],
         ]);
 
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/octet-stream;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls')))]);
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/octet-stream;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
-                'imported_row_count' => 1,
+                'imported_row_count' => 2,
             ],
         ]);
 
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xlsx')))]);
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xlsx')))]);
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
-                'imported_row_count' => 1,
+                'imported_row_count' => 2,
             ],
         ]);
     }
@@ -1117,7 +1172,11 @@ class OrganisationsTest extends TestCase
 
         Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
 
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_100_good.xls')))]);
+        $organisations = factory(Organisation::class, 100)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
@@ -1125,7 +1184,11 @@ class OrganisationsTest extends TestCase
             ],
         ]);
 
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_100_good.xlsx')))]);
+        $organisations = factory(Organisation::class, 100)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xlsx')))]);
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
@@ -1143,7 +1206,11 @@ class OrganisationsTest extends TestCase
 
         Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
 
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_5000_good.xls')))]);
+        $organisations = factory(Organisation::class, 5000)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
@@ -1151,7 +1218,11 @@ class OrganisationsTest extends TestCase
             ],
         ]);
 
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_5000_good.xlsx')))]);
+        $organisations = factory(Organisation::class, 5000)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
@@ -1164,25 +1235,234 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $user = factory(User::class)->create(['first_name' => 'Super Admin'])->makeSuperAdmin();
 
-        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+        $admin1 = factory(User::class)->create(['first_name' => 'Global Admin 1'])->makeGlobalAdmin();
+        $admin2 = factory(User::class)->create(['first_name' => 'Global Admin 2'])->makeGlobalAdmin();
+        $admin3 = factory(User::class)->create(['first_name' => 'Global Admin 3'])->makeGlobalAdmin();
 
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/organisations_import_1_good.xls')))]);
+        Passport::actingAs($user);
+
+        $organisations = factory(Organisation::class, 10)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJson([
             'data' => [
-                'imported_row_count' => 1,
+                'imported_row_count' => 10,
             ],
         ]);
 
-        $organisationId = \DB::table('organisations')->latest()->pluck('id');
+        $organisationIds = \DB::table('organisations')->latest()->pluck('id');
 
         $this->assertDatabaseHas('user_roles', [
-            'user_id' => $admin->id,
-            'organisation_id' => $organisationId,
+            'user_id' => $admin1->id,
+            'organisation_id' => $organisationIds[0],
             'role_id' => Role::organisationAdmin()->id,
         ]);
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $admin2->id,
+            'organisation_id' => $organisationIds[0],
+            'role_id' => Role::organisationAdmin()->id,
+        ]);
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $admin3->id,
+            'organisation_id' => $organisationIds[0],
+            'role_id' => Role::organisationAdmin()->id,
+        ]);
+
+        $organisationAdminCount = \DB::select('select count(*) as total from user_roles where role_id = ?', [Role::organisationAdmin()->id]);
+
+        $this->assertEquals(40, $organisationAdminCount[0]->total);
+    }
+
+    /**
+     * @test
+     */
+    public function duplicate_import_organisations_are_detected()
+    {
+        Storage::fake('local');
+
+        $user = factory(User::class)->create()->makeSuperAdmin();
+
+        Passport::actingAs($user);
+
+        $organisation1 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current Organisation']);
+        $organisation2 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current  Organisation']);
+        $organisation3 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current "Organisation"']);
+        $organisation4 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current.Organisation']);
+        $organisation5 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current, Organisation']);
+        $organisation6 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current-Organisation']);
+
+        $organisations = collect([
+            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'Current Organisation']),
+            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'New Organisation']),
+            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'New Organisation']),
+        ]);
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+        ]);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $headers = [
+            'name',
+            'description',
+            'url',
+            'email',
+            'phone',
+        ];
+        $headersWithId = array_merge($headers, ['id']);
+
+        $response->assertJsonFragment([
+            collect($organisation1->getAttributes())->only($headersWithId)->all(),
+        ]);
+        $response->assertJsonFragment([
+            'row' => collect($organisations->get(0)->getAttributes())->only($headers)->put('index', 2)->all(),
+        ]);
+        $response->assertJsonFragment([
+            'email' => $organisations->get(2)->email,
+        ]);
+        $response->assertJsonFragment([
+            'row' => collect($organisations->get(1)->getAttributes())->only($headers)->put('index', 3)->all(),
+        ]);
+        $response->assertJsonStructure([
+            'data' => [
+                'duplicates' => [
+                    [
+                        'row',
+                        'originals' => [
+                            $headersWithId,
+                        ],
+                    ],
+                ],
+                'imported_row_count',
+            ],
+        ]);
+        $response->assertJsonFragment(collect($organisation1->getAttributes())->only($headersWithId)->all());
+        $response->assertJsonFragment(collect($organisation2->getAttributes())->only($headersWithId)->all());
+        $response->assertJsonFragment(collect($organisation3->getAttributes())->only($headersWithId)->all());
+        $response->assertJsonFragment(collect($organisation4->getAttributes())->only($headersWithId)->all());
+        $response->assertJsonFragment(collect($organisation5->getAttributes())->only($headersWithId)->all());
+        $response->assertJsonFragment(collect($organisation6->getAttributes())->only($headersWithId)->all());
+    }
+
+    /**
+     * @test
+     */
+    public function possible_duplicate_import_organisations_can_be_ignored()
+    {
+        Storage::fake('local');
+
+        $user = factory(User::class)->create()->makeSuperAdmin();
+
+        Passport::actingAs($user);
+
+        $organisation1 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current Organisation']);
+        $organisation2 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current  Organisation']);
+        $organisation3 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current "Organisation"']);
+        $organisation4 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current.Organisation']);
+        $organisation5 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current, Organisation']);
+        $organisation6 = factory(Organisation::class)->states('web', 'email', 'phone')->create(['name' => 'Current-Organisation']);
+        $organisations = collect([
+            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'Current Organisation']),
+            factory(Organisation::class)->states('web', 'email', 'phone')->make(['name' => 'New Organisation']),
+        ]);
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'ignore_duplicates' => [
+                $organisation1->id,
+                $organisation2->id,
+                $organisation3->id,
+                $organisation4->id,
+                $organisation5->id,
+                $organisation6->id,
+            ],
+        ]);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $this->assertDatabaseHas('organisations', [
+            'email' => $organisation1->email,
+        ]);
+        $this->assertDatabaseHas('organisations', [
+            'email' => $organisation2->email,
+        ]);
+        $this->assertDatabaseHas('organisations', [
+            'email' => $organisation3->email,
+        ]);
+        $this->assertDatabaseHas('organisations', [
+            'email' => $organisation4->email,
+        ]);
+        $this->assertDatabaseHas('organisations', [
+            'email' => $organisation5->email,
+        ]);
+        $this->assertDatabaseHas('organisations', [
+            'email' => $organisation6->email,
+        ]);
+    }
+
+    public function test_duplicate_rows_in_import_are_detected()
+    {
+        Storage::fake('local');
+
+        $user = factory(User::class)->create()->makeSuperAdmin();
+
+        Passport::actingAs($user);
+
+        $organisation = factory(Organisation::class)->states('web', 'email', 'phone')->create([
+            'name' => 'Current Organisation',
+            'description' => 'Original Organisation',
+        ]);
+
+        $organisations = collect([
+            factory(Organisation::class)->states('web', 'email', 'phone')->make([
+                'name' => 'Current Organisation',
+                'description' => 'Import Organisation 1',
+            ]),
+            factory(Organisation::class)->states('web', 'email', 'phone')->make([
+                'name' => 'Current Organisation',
+                'description' => 'Import Organisation 2',
+            ]),
+        ]);
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $response = $this->json('POST', "/core/v1/organisations/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+        ]);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $headers = [
+            'name',
+            'description',
+            'url',
+            'email',
+            'phone',
+        ];
+
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 0,
+            ],
+        ]);
+        $response->assertJsonFragment([
+            'row' => collect($organisations->get(0)->getAttributes())->only($headers)->put('index', 2)->all(),
+        ]);
+        $response->assertJsonCount(2, 'data.duplicates.*.originals.*');
+        $response->assertJsonFragment(collect($organisations->get(1)->getAttributes())->only($headers)->put('id', null)->all());
+        $response->assertJsonFragment(collect($organisation->getAttributes())->only(array_merge($headers, ['id']))->all());
     }
 
     public function test_filter_organisations_by_is_admin()
