@@ -26,6 +26,8 @@ class UserResource extends JsonResource
 
             // Relationships.
             'roles' => UserRoleResource::collection($this->whenLoaded('userRoles')),
+            'address' => $this->location_id ? new LocationResource($this->location) : null,
+            'local_authority' => $this->local_authority_id ? new LocalAuthorityResource($this->localAuthority) : null,
         ];
     }
 }

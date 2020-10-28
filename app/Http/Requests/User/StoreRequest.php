@@ -34,6 +34,8 @@ class StoreRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', new UserEmailNotTaken()],
             'phone' => ['present', 'nullable', 'string', 'min:1', 'max:255', new UkPhoneNumber()],
             'password' => ['required', 'string', 'min:8', 'max:255', new Password()],
+            'employer_name' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
+            'local_authority_id' => ['sometimes', 'nullable', 'exists:local_authorities,id'],
 
             'roles' => ['required', 'array'],
             'roles.*' => ['required', 'array', new CanAssignRoleToUser($this->user()->load('userRoles'))],

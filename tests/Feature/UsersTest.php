@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use App\Events\EndpointHit;
 use App\Models\Audit;
+use App\Models\LocalAuthority;
+use App\Models\Location;
 use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
 use Laravel\Passport\Passport;
@@ -479,12 +482,14 @@ class UsersTest extends TestCase
         $user = factory(User::class)->create()->makeGlobalAdmin();
         Passport::actingAs($user);
 
-        $response = $this->json('POST', '/core/v1/users', $this->getCreateUserPayload([
+        $payload = $this->getCreateUserPayload([
             [
                 'role' => Role::NAME_ORGANISATION_ADMIN,
                 'organisation_id' => $service->organisation->id,
             ],
-        ]));
+        ]);
+        $payload['employer_name'] = $service->organisation->name;
+        $response = $this->json('POST', '/core/v1/users', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
         $createdUserId = json_decode($response->getContent(), true)['data']['id'];
@@ -493,6 +498,7 @@ class UsersTest extends TestCase
         $this->assertTrue($createdUser->isServiceAdmin($service));
         $this->assertTrue($createdUser->isOrganisationAdmin($service->organisation));
         $this->assertEquals(3, $createdUser->roles()->count());
+        $this->assertEquals($service->organisation->name, $createdUser->employer_name);
     }
 
     public function test_global_admin_can_create_global_admin()
@@ -501,9 +507,11 @@ class UsersTest extends TestCase
         $user = factory(User::class)->create()->makeGlobalAdmin();
         Passport::actingAs($user);
 
-        $response = $this->json('POST', '/core/v1/users', $this->getCreateUserPayload([
+        $payload = $this->getCreateUserPayload([
             ['role' => Role::NAME_GLOBAL_ADMIN],
-        ]));
+        ]);
+        $payload['employer_name'] = $service->organisation->name;
+        $response = $this->json('POST', '/core/v1/users', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
         $createdUserId = json_decode($response->getContent(), true)['data']['id'];
@@ -513,6 +521,7 @@ class UsersTest extends TestCase
         $this->assertTrue($createdUser->isOrganisationAdmin($service->organisation));
         $this->assertTrue($createdUser->isGlobalAdmin());
         $this->assertEquals(4, $createdUser->roles()->count());
+        $this->assertEquals($service->organisation->name, $createdUser->employer_name);
     }
 
     public function test_global_admin_cannot_create_super_admin()
@@ -578,12 +587,14 @@ class UsersTest extends TestCase
         $user = factory(User::class)->create()->makeSuperAdmin();
         Passport::actingAs($user);
 
-        $response = $this->json('POST', '/core/v1/users', $this->getCreateUserPayload([
+        $payload = $this->getCreateUserPayload([
             [
                 'role' => Role::NAME_ORGANISATION_ADMIN,
                 'organisation_id' => $service->organisation->id,
             ],
-        ]));
+        ]);
+        $payload['employer_name'] = $service->organisation->name;
+        $response = $this->json('POST', '/core/v1/users', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
         $createdUserId = json_decode($response->getContent(), true)['data']['id'];
@@ -592,6 +603,7 @@ class UsersTest extends TestCase
         $this->assertTrue($createdUser->isServiceAdmin($service));
         $this->assertTrue($createdUser->isOrganisationAdmin($service->organisation));
         $this->assertEquals(3, $createdUser->roles()->count());
+        $this->assertEquals($service->organisation->name, $createdUser->employer_name);
     }
 
     public function test_super_admin_can_create_global_admin()
@@ -600,9 +612,11 @@ class UsersTest extends TestCase
         $user = factory(User::class)->create()->makeSuperAdmin();
         Passport::actingAs($user);
 
-        $response = $this->json('POST', '/core/v1/users', $this->getCreateUserPayload([
+        $payload = $this->getCreateUserPayload([
             ['role' => Role::NAME_GLOBAL_ADMIN],
-        ]));
+        ]);
+        $payload['employer_name'] = $service->organisation->name;
+        $response = $this->json('POST', '/core/v1/users', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
         $createdUserId = json_decode($response->getContent(), true)['data']['id'];
@@ -612,6 +626,7 @@ class UsersTest extends TestCase
         $this->assertTrue($createdUser->isOrganisationAdmin($service->organisation));
         $this->assertTrue($createdUser->isGlobalAdmin());
         $this->assertEquals(4, $createdUser->roles()->count());
+        $this->assertEquals($service->organisation->name, $createdUser->employer_name);
     }
 
     public function test_super_admin_can_create_super_admin()
@@ -1066,10 +1081,12 @@ class UsersTest extends TestCase
     public function test_organisation_admin_can_update_organisation_admin()
     {
         $service = factory(Service::class)->create();
+        $location = factory(Location::class)->create();
+        $localAuthority = factory(LocalAuthority::class)->create();
         $invoker = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
         Passport::actingAs($invoker);
 
-        $user = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
+        $user = factory(User::class)->states('employed')->create()->makeOrganisationAdmin($service->organisation);
 
         $response = $this->json('PUT', "/core/v1/users/{$user->id}", [
             'first_name' => $user->first_name,
@@ -1077,6 +1094,8 @@ class UsersTest extends TestCase
             'email' => $user->email,
             'phone' => $user->phone,
             'password' => 'Pa$$w0rd',
+            'location_id' => $location->id,
+            'local_authority_id' => $localAuthority->id,
             'roles' => [
                 [
                     'role' => Role::NAME_SERVICE_WORKER,
@@ -1099,6 +1118,37 @@ class UsersTest extends TestCase
             'last_name' => $user->last_name,
             'email' => $user->email,
             'phone' => $user->phone,
+        ]);
+        $response->assertJsonFragment([
+            'address' => [
+                'id' => $location->id,
+                'has_image' => $location->hasImage(),
+                'address_line_1' => $location->address_line_1,
+                'address_line_2' => $location->address_line_2,
+                'address_line_3' => $location->address_line_3,
+                'city' => $location->city,
+                'county' => $location->county,
+                'postcode' => $location->postcode,
+                'country' => $location->country,
+                'lat' => $location->lat,
+                'lon' => $location->lon,
+                'accessibility_info' => $location->accessibility_info,
+                'has_wheelchair_access' => $location->has_wheelchair_access,
+                'has_induction_loop' => $location->has_induction_loop,
+                'created_at' => $location->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => $location->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ]);
+        $response->assertJsonFragment([
+            'local_authority' => [
+                'id' => $localAuthority->id,
+                'name' => $localAuthority->name,
+                'alt_name' => $localAuthority->alt_name,
+                'code' => $localAuthority->code,
+                'region' => $localAuthority->region(),
+                'created_at' => $localAuthority->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => $localAuthority->updated_at->format(CarbonImmutable::ISO8601),
+            ],
         ]);
         $response->assertJsonFragment([
             [
@@ -1993,6 +2043,7 @@ class UsersTest extends TestCase
             'phone' => random_uk_phone(),
             'password' => 'Pa$$w0rd',
             'roles' => $roles,
+            'employer_name' => null,
         ];
     }
 
@@ -2008,6 +2059,7 @@ class UsersTest extends TestCase
             'email' => $this->faker->safeEmail,
             'phone' => random_uk_phone(),
             'roles' => $roles,
+            'employer_name' => null,
         ];
     }
 }

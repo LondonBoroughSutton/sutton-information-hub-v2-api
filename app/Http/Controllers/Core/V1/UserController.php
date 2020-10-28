@@ -104,6 +104,8 @@ class UserController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'password' => bcrypt($request->password),
+                'employer_name' => $request->input('employer_name', null),
+                'local_authority_id' => $request->input('local_authority_id', null)
             ]);
 
             foreach ($request->roles as $role) {
@@ -200,6 +202,9 @@ class UserController extends Controller
                 'last_name' => $request->last_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
+                'employer_name' => $request->input('employer_name', $user->employer_name),
+                'local_authority_id' => $request->input('local_authority_id', $user->local_authority_id),
+                'location_id' => $request->input('location_id', $user->location_id),
             ]);
 
             // Update the users password if provided in the request.
