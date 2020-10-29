@@ -36,6 +36,7 @@ class StoreRequest extends FormRequest
             'password' => ['required', 'string', 'min:8', 'max:255', new Password()],
             'employer_name' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
             'local_authority_id' => ['sometimes', 'nullable', 'exists:local_authorities,id'],
+            'location_id' => ['sometimes', 'nullable', 'exists:locations,id'],
 
             'roles' => ['required', 'array'],
             'roles.*' => ['required', 'array', new CanAssignRoleToUser($this->user()->load('userRoles'))],

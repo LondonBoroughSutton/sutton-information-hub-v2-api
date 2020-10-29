@@ -105,7 +105,8 @@ class UserController extends Controller
                 'phone' => $request->phone,
                 'password' => bcrypt($request->password),
                 'employer_name' => $request->input('employer_name', null),
-                'local_authority_id' => $request->input('local_authority_id', null)
+                'local_authority_id' => $request->input('local_authority_id', null),
+                'location_id' => $request->input('location_id', null),
             ]);
 
             foreach ($request->roles as $role) {

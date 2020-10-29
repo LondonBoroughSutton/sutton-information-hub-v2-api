@@ -609,6 +609,8 @@ class UsersTest extends TestCase
     public function test_super_admin_can_create_global_admin()
     {
         $service = factory(Service::class)->create();
+        $location = factory(Location::class)->create();
+        $localAuthority = factory(LocalAuthority::class)->create();
         $user = factory(User::class)->create()->makeSuperAdmin();
         Passport::actingAs($user);
 
@@ -616,6 +618,8 @@ class UsersTest extends TestCase
             ['role' => Role::NAME_GLOBAL_ADMIN],
         ]);
         $payload['employer_name'] = $service->organisation->name;
+        $payload['location_id'] = $location->id;
+        $payload['local_authority_id'] = $localAuthority->id;
         $response = $this->json('POST', '/core/v1/users', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
@@ -627,6 +631,39 @@ class UsersTest extends TestCase
         $this->assertTrue($createdUser->isGlobalAdmin());
         $this->assertEquals(4, $createdUser->roles()->count());
         $this->assertEquals($service->organisation->name, $createdUser->employer_name);
+
+        $response->assertJsonFragment([
+            'address' => [
+                'id' => $location->id,
+                'has_image' => $location->hasImage(),
+                'address_line_1' => $location->address_line_1,
+                'address_line_2' => $location->address_line_2,
+                'address_line_3' => $location->address_line_3,
+                'city' => $location->city,
+                'county' => $location->county,
+                'postcode' => $location->postcode,
+                'country' => $location->country,
+                'lat' => $location->lat,
+                'lon' => $location->lon,
+                'accessibility_info' => $location->accessibility_info,
+                'has_wheelchair_access' => $location->has_wheelchair_access,
+                'has_induction_loop' => $location->has_induction_loop,
+                'created_at' => $location->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => $location->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ]);
+
+        $response->assertJsonFragment([
+            'local_authority' => [
+                'id' => $localAuthority->id,
+                'name' => $localAuthority->name,
+                'alt_name' => $localAuthority->alt_name,
+                'code' => $localAuthority->code,
+                'region' => $localAuthority->region(),
+                'created_at' => $localAuthority->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => $localAuthority->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ]);
     }
 
     public function test_super_admin_can_create_super_admin()

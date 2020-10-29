@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'last_name' => $this->last_name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'employer_name' => $this->employer_name,
             'created_at' => $this->created_at->format(CarbonImmutable::ISO8601),
             'updated_at' => $this->updated_at->format(CarbonImmutable::ISO8601),
 
