@@ -1751,6 +1751,69 @@ class UsersTest extends TestCase
         ]);
     }
 
+    public function test_super_admin_can_remove_address_from_user()
+    {
+        $invoker = factory(User::class)->create()->makeSuperAdmin();
+        Passport::actingAs($invoker);
+
+        $user = factory(User::class)->states('address')->create()->makeGlobalAdmin();
+        $userLocationId = $user->location->id;
+
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'location_id' => null,
+            'roles' => [
+                ['role' => Role::NAME_GLOBAL_ADMIN],
+            ],
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'address' => null,
+        ]);
+
+        $this->assertDatabaseHas(table(User::class), [
+            'id' => $user->id,
+            'location_id' => null,
+        ]);
+
+        $this->assertDatabaseMissing(table(Location::class), [
+            'id' => $userLocationId,
+        ]);
+    }
+
+    public function test_super_admin_can_remove_local_authority_from_user()
+    {
+        $invoker = factory(User::class)->create()->makeSuperAdmin();
+        Passport::actingAs($invoker);
+
+        $user = factory(User::class)->states('localAuthority')->create()->makeGlobalAdmin();
+
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'local_authority_id' => null,
+            'roles' => [
+                ['role' => Role::NAME_GLOBAL_ADMIN],
+            ],
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'local_authority' => null,
+        ]);
+
+        $this->assertDatabaseHas(table(User::class), [
+            'id' => $user->id,
+            'local_authority_id' => null,
+        ]);
+    }
+
     /*
      * Audit.
      */

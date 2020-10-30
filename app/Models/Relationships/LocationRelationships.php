@@ -6,6 +6,7 @@ use App\Models\File;
 use App\Models\Organisation;
 use App\Models\Service;
 use App\Models\ServiceLocation;
+use App\Models\User;
 
 trait LocationRelationships
 {
@@ -39,5 +40,13 @@ trait LocationRelationships
     public function organisation()
     {
         return $this->hasOne(Organisation::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\hasMany
+     */
+    public function users()
+    {
+        return $this->hasMany(User::class);
     }
 }
