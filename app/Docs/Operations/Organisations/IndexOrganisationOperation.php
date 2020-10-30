@@ -10,6 +10,7 @@ use App\Docs\Parameters\SortParameter;
 use App\Docs\Schemas\Organisation\OrganisationSchema;
 use App\Docs\Schemas\PaginationSchema;
 use App\Docs\Tags\OrganisationsTag;
+use App\Models\Organisation;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Operation;
@@ -56,6 +57,15 @@ class IndexOrganisationOperation extends Operation
                 FilterParameter::create(null, 'has_services')
                     ->description('Filter out organisations that have no services')
                     ->schema(Schema::boolean()),
+                FilterParameter::create(null, 'has_admin_invite_status')
+                    ->description('Filter organisations to those with a given status of Admin invite')
+                    ->schema(Schema::string()
+                    ->enum(
+                                Organisation::ADMIN_INVITE_STATUS_NONE,
+                                Organisation::ADMIN_INVITE_STATUS_INVITED,
+                                Organisation::ADMIN_INVITE_STATUS_PENDING,
+                                Organisation::ADMIN_INVITE_STATUS_CONFIRMED
+                            )),
                 SortParameter::create(null, ['name'], 'name')
             )
             ->responses(
