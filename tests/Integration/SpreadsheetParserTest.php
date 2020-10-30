@@ -5,50 +5,72 @@ namespace Tests\Integration;
 use App\BatchUpload\SpreadsheetParser;
 use App\Models\Organisation;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Tests\TestCase;
 
 class SpreadsheetParserTest extends TestCase
 {
     private $spreadsheet;
 
-    private $xlsFilepath = 'batch-upload/test-spreadsheet.xls';
-    private $xlsxFilepath = 'batch-upload/test-spreadsheet.xlsx';
+    private $xlsFilepath = 'test-spreadsheet.xls';
+    private $xlsxFilepath = 'test-spreadsheet.xlsx';
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->createSpreadsheets();
+        Storage::fake('local');
+
+        $organisations = factory(Organisation::class, 20)->create();
+
+        $headers = [
+            'name',
+            'description',
+            'url',
+            'email',
+            'phone',
+        ];
+
+        $this->spreadsheet = self::createSpreadsheets($organisations, $headers);
+
+        self::writeSpreadsheetsToDisk($this->spreadsheet, $this->xlsxFilepath, $this->xlsFilepath);
     }
 
-    private function createSpreadsheets($maxRows = 20)
+    public static function createSpreadsheets(\Illuminate\Support\Collection $models, array $headers)
     {
         /** Create a new Spreadsheet Object **/
-        $this->spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $organisations = factory(Organisation::class, $maxRows)->create();
+        $spreadsheet = new Spreadsheet();
+        $columns = range('A', chr(count($headers) + 64));
 
-        $this->spreadsheet->getActiveSheet()->setCellValue('A1', 'name');
-        $this->spreadsheet->getActiveSheet()->setCellValue('B1', 'description');
-        $this->spreadsheet->getActiveSheet()->setCellValue('C1', 'url');
-        $this->spreadsheet->getActiveSheet()->setCellValue('D1', 'email');
-        $this->spreadsheet->getActiveSheet()->setCellValue('E1', 'phone');
-
-        $row = 1;
-        foreach ($organisations as $organisation) {
-            $row++;
-            $this->spreadsheet->getActiveSheet()->setCellValue('A' . $row, $organisation->name);
-            $this->spreadsheet->getActiveSheet()->setCellValue('B' . $row, $organisation->description);
-            $this->spreadsheet->getActiveSheet()->setCellValue('C' . $row, rand(0, 1) ? $organisation->url : '');
-            $this->spreadsheet->getActiveSheet()->setCellValue('D' . $row, rand(0, 1) ? $organisation->email : '');
-            $this->spreadsheet->getActiveSheet()->setCellValue('E' . $row, rand(0, 1) ? $organisation->phone : '');
+        /**
+         * Create the headers in row 1
+         */
+        foreach ($headers as $i => $header) {
+            $spreadsheet->getActiveSheet()->setCellValue($columns[$i] . '1', $header);
         }
 
-        $xlsxWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($this->spreadsheet, "Xlsx");
-        $xlsWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($this->spreadsheet, "Xls");
+        /**
+         * Populate all the other rows with data from the models
+         */
+        $row = 1;
+        foreach ($models as $model) {
+            $row++;
+            foreach ($headers as $i => $header) {
+                $spreadsheet->getActiveSheet()->setCellValue($columns[$i] . $row, $model->getAttribute($header));
+            }
+        }
+
+        return $spreadsheet;
+    }
+
+    public static function writeSpreadsheetsToDisk(Spreadsheet $spreadsheet, String $xlsxFilepath, String $xlsFilepath)
+    {
+        $xlsxWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $xlsWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xls");
 
         try {
-            $xlsxWriter->save(Storage::disk('local')->path($this->xlsxFilepath));
-            $xlsWriter->save(Storage::disk('local')->path($this->xlsFilepath));
+            $xlsxWriter->save(Storage::disk('local')->path($xlsxFilepath));
+            $xlsWriter->save(Storage::disk('local')->path($xlsFilepath));
         } catch (\PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
             dump($e->getMessage());
         }
@@ -109,3 +131,4 @@ class SpreadsheetParserTest extends TestCase
         }
     }
 }
+

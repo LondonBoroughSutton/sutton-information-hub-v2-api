@@ -3,8 +3,8 @@
 namespace App\Docs\Operations\Organisations;
 
 use App\Docs\Schemas\Organisation\ImportOrganisationSchema;
+use App\Docs\Schemas\Organisation\ImportOrganisationsResponseSchema;
 use App\Docs\Schemas\ResourceSchema;
-use App\Docs\Schemas\SpreadsheetSchema;
 use App\Docs\Tags\OrganisationsTag;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
@@ -36,7 +36,7 @@ class ImportOrganisationsOperation extends Operation
             ->responses(
                 Response::created()->content(
                     MediaType::json()->schema(
-                        ResourceSchema::create(null, SpreadsheetSchema::create())
+                        ResourceSchema::create(null, ImportOrganisationsResponseSchema::create())
                     )
                 )
             );
