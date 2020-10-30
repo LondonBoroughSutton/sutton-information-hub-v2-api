@@ -9,7 +9,6 @@ use App\Models\HolidayOpeningHour;
 use App\Models\Location;
 use App\Models\Organisation;
 use App\Models\RegularOpeningHour;
-use App\Models\Role;
 use App\Models\Service;
 use App\Models\ServiceLocation;
 use App\Models\ServiceRefreshToken;
@@ -2282,41 +2281,6 @@ class ServicesTest extends TestCase
             'data' => [
                 'imported_row_count' => 5000,
             ],
-        ]);
-    }
-
-    public function test_service_admins_created_on_import()
-    {
-        Storage::fake('local');
-
-        $organisation = factory(Organisation::class)->create();
-        $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
-
-        Passport::actingAs($user);
-
-        $response = $this->json('POST', "/core/v1/services/import", [
-            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/services_import_1_good.xls'))),
-            'organisation_id' => $organisation->id,
-        ]);
-        $response->assertStatus(Response::HTTP_CREATED);
-        $response->assertJson([
-            'data' => [
-                'imported_row_count' => 1,
-            ],
-        ]);
-
-        $serviceId = \DB::table('services')->latest()->pluck('id');
-
-        $this->assertDatabaseHas('user_roles', [
-            'user_id' => $user->id,
-            'service_id' => $serviceId,
-            'role_id' => Role::serviceAdmin()->id,
-        ]);
-
-        $this->assertDatabaseHas('user_roles', [
-            'user_id' => $user->id,
-            'service_id' => $serviceId,
-            'role_id' => Role::serviceWorker()->id,
         ]);
     }
 

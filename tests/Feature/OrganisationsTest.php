@@ -1231,55 +1231,6 @@ class OrganisationsTest extends TestCase
         ]);
     }
 
-    public function test_organisation_admins_created_on_import()
-    {
-        Storage::fake('local');
-
-        $user = factory(User::class)->create(['first_name' => 'Super Admin'])->makeSuperAdmin();
-
-        $admin1 = factory(User::class)->create(['first_name' => 'Global Admin 1'])->makeGlobalAdmin();
-        $admin2 = factory(User::class)->create(['first_name' => 'Global Admin 2'])->makeGlobalAdmin();
-        $admin3 = factory(User::class)->create(['first_name' => 'Global Admin 3'])->makeGlobalAdmin();
-
-        Passport::actingAs($user);
-
-        $organisations = factory(Organisation::class, 10)->states('web', 'email', 'phone')->make();
-
-        $this->createOrganisationSpreadsheets($organisations);
-
-        $response = $this->json('POST', "/core/v1/organisations/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
-        $response->assertStatus(Response::HTTP_CREATED);
-        $response->assertJson([
-            'data' => [
-                'imported_row_count' => 10,
-            ],
-        ]);
-
-        $organisationIds = \DB::table('organisations')->latest()->pluck('id');
-
-        $this->assertDatabaseHas('user_roles', [
-            'user_id' => $admin1->id,
-            'organisation_id' => $organisationIds[0],
-            'role_id' => Role::organisationAdmin()->id,
-        ]);
-
-        $this->assertDatabaseHas('user_roles', [
-            'user_id' => $admin2->id,
-            'organisation_id' => $organisationIds[0],
-            'role_id' => Role::organisationAdmin()->id,
-        ]);
-
-        $this->assertDatabaseHas('user_roles', [
-            'user_id' => $admin3->id,
-            'organisation_id' => $organisationIds[0],
-            'role_id' => Role::organisationAdmin()->id,
-        ]);
-
-        $organisationAdminCount = \DB::select('select count(*) as total from user_roles where role_id = ?', [Role::organisationAdmin()->id]);
-
-        $this->assertEquals(40, $organisationAdminCount[0]->total);
-    }
-
     /**
      * @test
      */
@@ -1287,7 +1238,7 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1361,7 +1312,7 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1416,7 +1367,7 @@ class OrganisationsTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
