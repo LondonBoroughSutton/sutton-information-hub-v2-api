@@ -9,11 +9,12 @@ use Illuminate\Support\Str;
 trait LocalAuthorityScopes
 {
     /**
-     * Filter Local Authorities by region
+     * Filter Local Authorities by region.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param mixed $regionSlug
      * @return \Illuminate\Database\Eloquent\Builder
-     **/
+     */
     public function scopeRegion(Builder $query, $regionSlug): Builder
     {
         $regions = [
@@ -24,11 +25,12 @@ trait LocalAuthorityScopes
         ];
         foreach ($regions as $region) {
             if ($regionSlug === Str::slug($region)) {
-                $regionChar = strtoupper(substr($region, 0, 1));
+                $regionChar = mb_strtoupper(mb_substr($region, 0, 1));
                 $query->where('code', 'like', "{$regionChar}%");
                 break;
             }
         }
+
         return $query;
     }
 }

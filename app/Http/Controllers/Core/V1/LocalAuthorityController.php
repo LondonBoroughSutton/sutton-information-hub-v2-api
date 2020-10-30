@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Core\V1;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\LocalAuthority\IndexRequest;
+use App\Http\Resources\LocalAuthorityResource;
 use App\Models\LocalAuthority;
 use Spatie\QueryBuilder\Filter;
-use App\Http\Controllers\Controller;
 use Spatie\QueryBuilder\QueryBuilder;
-use App\Http\Resources\LocalAuthorityResource;
-use App\Http\Requests\LocalAuthority\IndexRequest;
 
 class LocalAuthorityController extends Controller
 {

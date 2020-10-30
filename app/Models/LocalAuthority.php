@@ -18,10 +18,10 @@ class LocalAuthority extends Model
     const REGION_NORTHERN_IRELAND = 'Northern Ireland';
 
     /**
-     * Return the Region the Loal Authority is in
+     * Return the Region the Loal Authority is in.
      *
-     * @return String
-     **/
+     * @return string
+     */
     public function region()
     {
         return [
@@ -29,6 +29,6 @@ class LocalAuthority extends Model
             'S' => self::REGION_SCOTLAND,
             'W' => self::REGION_WALES,
             'N' => self::REGION_NORTHERN_IRELAND,
-        ][substr(strtoupper($this->code), 0, 1)];
+        ][mb_substr(mb_strtoupper($this->code), 0, 1)];
     }
 }

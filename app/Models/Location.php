@@ -119,15 +119,14 @@ class Location extends Model
     }
 
     /**
-     * Checks for dependant relationships, if noe found removes the Location
-     *
-     * @return null
-     **/
+     * Checks for dependant relationships, if noe found removes the Location.
+     */
     public function safeDelete()
     {
         if ($this->serviceLocations()->doesntExist() && $this->organisation()->doesntExist() && $this->users()->doesntExist()) {
             return $this->delete();
         }
+
         return false;
     }
 }

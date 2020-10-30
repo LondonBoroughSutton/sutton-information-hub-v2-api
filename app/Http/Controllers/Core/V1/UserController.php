@@ -2,32 +2,31 @@
 
 namespace App\Http\Controllers\Core\V1;
 
-use App\Models\Role;
-use App\Models\User;
-use App\Models\Service;
-use App\Models\Location;
 use App\Events\EndpointHit;
-use Illuminate\Support\Str;
-use App\Models\Organisation;
-use App\Models\ServiceLocation;
-use Spatie\QueryBuilder\Filter;
 use App\Events\UserRolesUpdated;
-use Illuminate\Support\Facades\DB;
+use App\Exceptions\CannotRevokeRoleException;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\UserResource;
-use Spatie\QueryBuilder\QueryBuilder;
-use App\Http\Requests\User\ShowRequest;
-use App\Http\Responses\ResourceDeleted;
+use App\Http\Filters\User\AtOrganisationFilter;
+use App\Http\Filters\User\AtServiceFilter;
+use App\Http\Filters\User\HasPermissionFilter;
+use App\Http\Filters\User\HighestRoleFilter;
+use App\Http\Requests\User\DestroyRequest;
 use App\Http\Requests\User\IndexRequest;
+use App\Http\Requests\User\ShowRequest;
 use App\Http\Requests\User\StoreRequest;
 use App\Http\Requests\User\UpdateRequest;
+use App\Http\Resources\UserResource;
+use App\Http\Responses\ResourceDeleted;
+use App\Models\Location;
+use App\Models\Organisation;
+use App\Models\Role;
+use App\Models\Service;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use App\Http\Filters\User\AtServiceFilter;
-use App\Http\Requests\User\DestroyRequest;
-use App\Http\Filters\User\HighestRoleFilter;
-use App\Exceptions\CannotRevokeRoleException;
-use App\Http\Filters\User\HasPermissionFilter;
-use App\Http\Filters\User\AtOrganisationFilter;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Spatie\QueryBuilder\Filter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class UserController extends Controller
 {
@@ -59,31 +58,31 @@ class UserController extends Controller
             });
 
         $users = QueryBuilder::for($baseQuery)
-                ->allowedFilters([
-                    Filter::exact('id'),
-                    'first_name',
-                    'last_name',
-                    'email',
-                    'phone',
-                    Filter::custom('highest_role', HighestRoleFilter::class),
-                    Filter::custom('has_permission', HasPermissionFilter::class),
-                    Filter::custom('at_organisation', AtOrganisationFilter::class),
-                    Filter::custom('at_service', AtServiceFilter::class),
-                ])
-                ->allowedIncludes([
-                    'user-roles.organisation',
-                    'user-roles.service',
-                ])
-                ->allowedSorts([
-                    'first_name',
-                    'last_name',
-                    'highest_role',
-                ])
-                ->defaultSorts([
-                    'first_name',
-                    'last_name',
-                ])
-                ->paginate(per_page($request->per_page));
+            ->allowedFilters([
+                Filter::exact('id'),
+                'first_name',
+                'last_name',
+                'email',
+                'phone',
+                Filter::custom('highest_role', HighestRoleFilter::class),
+                Filter::custom('has_permission', HasPermissionFilter::class),
+                Filter::custom('at_organisation', AtOrganisationFilter::class),
+                Filter::custom('at_service', AtServiceFilter::class),
+            ])
+            ->allowedIncludes([
+                'user-roles.organisation',
+                'user-roles.service',
+            ])
+            ->allowedSorts([
+                'first_name',
+                'last_name',
+                'highest_role',
+            ])
+            ->defaultSorts([
+                'first_name',
+                'last_name',
+            ])
+            ->paginate(per_page($request->per_page));
 
         event(EndpointHit::onRead($request, 'Viewed all users'));
 
@@ -164,11 +163,11 @@ class UserController extends Controller
             });
 
         $user = QueryBuilder::for($baseQuery)
-                ->allowedIncludes([
-                    'user-roles.organisation',
-                    'user-roles.service',
-                ])
-                ->firstOrFail();
+            ->allowedIncludes([
+                'user-roles.organisation',
+                'user-roles.service',
+            ])
+            ->firstOrFail();
 
         event(EndpointHit::onRead($request, "Viewed user [{$user->id}]", $user));
 

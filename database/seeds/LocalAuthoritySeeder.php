@@ -1,26 +1,23 @@
 <?php
 
 use App\Models\LocalAuthority;
-use function GuzzleHttp\json_decode;
 use GuzzleHttp\Client;
+use function GuzzleHttp\json_decode;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
 
 class LocalAuthoritySeeder extends Seeder
 {
-
     /**
-     * The URL to request Json Local Authority data from
+     * The URL to request Json Local Authority data from.
      *
-     * @var String
-     **/
+     * @var string
+     */
     protected $jsonRequestUrl;
 
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
     public function run()
     {
@@ -34,11 +31,11 @@ class LocalAuthoritySeeder extends Seeder
     }
 
     /**
-     * Create the Local Authority records from imported data
+     * Create the Local Authority records from imported data.
      *
-     * @param Array $localAuthoritiesJson
-     * @return Array || Null
-     **/
+     * @param array $localAuthoritiesJson
+     * @return array || Null
+     */
     public function fetchLocalAuthorityRecords()
     {
         $client = new Client();
@@ -50,7 +47,7 @@ class LocalAuthoritySeeder extends Seeder
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             if ($this->command) {
-                $this->command->error("Error Fetching Local Authority Records:");
+                $this->command->error('Error Fetching Local Authority Records:');
                 $this->command->error($e->getMessage());
             }
         }
@@ -59,11 +56,11 @@ class LocalAuthoritySeeder extends Seeder
     }
 
     /**
-     * Create the Local Authority records from imported data
+     * Create the Local Authority records from imported data.
      *
-     * @param Array $localAuthoritiesJson
-     * @return Boolean
-     **/
+     * @param array $localAuthoritiesJson
+     * @return bool
+     */
     public function createLocalAuthorityRecords(array $localAuthoritiesJson)
     {
         \DB::transaction(function () use ($localAuthoritiesJson) {

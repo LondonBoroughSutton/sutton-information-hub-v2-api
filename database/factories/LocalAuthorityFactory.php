@@ -5,6 +5,7 @@ use Faker\Generator as Faker;
 
 $factory->define(LocalAuthority::class, function (Faker $faker) {
     $faker = \Faker\Factory::create('en_GB');
+
     return [
         'name' => $faker->city,
         'code' => $faker->numerify('E060000##'),

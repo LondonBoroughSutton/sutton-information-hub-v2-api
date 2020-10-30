@@ -47,7 +47,7 @@ return [
     ],
 
     /**
-     * Local Authority data source
+     * Local Authority data source.
      */
     'local_authority_data_url' => env('LOCAL_AUTHORITY_DATA_URL'),
 
