@@ -425,13 +425,13 @@ class ElasticsearchSearch implements Search
 
         $term = $type === 'category' ? 'collection_categories' : 'collection_personas';
 
-        $should = &$this->query['query']['bool']['must']['bool']['should'];
+        $should = &$this->query['query']['function_score']['query']['bool']['must']['bool']['should'];
 
         foreach ($collectionModel->taxonomies as $taxonomy) {
             $should[] = $this->match('taxonomy_categories', $taxonomy->name);
         }
 
-        foreach ($this->query['query']['bool']['filter']['bool']['must'] as &$filter) {
+        foreach ($this->query['query']['function_score']['query']['bool']['filter']['bool']['must'] as &$filter) {
             if (is_array($filter) && array_key_exists('terms', $filter) && array_key_exists($term, $filter['terms'])) {
                 $filter['terms'][$term][] = $collectionModel->name;
 
@@ -439,7 +439,7 @@ class ElasticsearchSearch implements Search
             }
         }
 
-        $this->query['query']['bool']['filter']['bool']['must'][] = [
+        $this->query['query']['function_score']['query']['bool']['filter']['bool']['must'][] = [
             'terms' => [
                 $term => [$collectionModel->name],
             ],
