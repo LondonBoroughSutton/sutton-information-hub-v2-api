@@ -86,7 +86,7 @@ class UpdateServiceSchema extends Schema
                         Service::SCORE_BELOW_AVERAGE,
                         Service::SCORE_AVERAGE,
                         Service::SCORE_ABOVE_AVERAGE,
-                        Service::SCORE_EXCELLENT,
+                        Service::SCORE_EXCELLENT
                     ),
                 Schema::string('video_embed')
                     ->nullable(),
