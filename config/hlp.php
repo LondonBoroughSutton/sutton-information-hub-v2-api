@@ -46,6 +46,11 @@ return [
         'from' => env('TWILIO_FROM', 'NHS Connect'),
     ],
 
+    /**
+     * Local Authority data source.
+     */
+    'local_authority_data_url' => env('LOCAL_AUTHORITY_DATA_URL'),
+
     /*
      * The contact details for the global admin team.
      */

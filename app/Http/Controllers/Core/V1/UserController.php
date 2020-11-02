@@ -17,6 +17,7 @@ use App\Http\Requests\User\StoreRequest;
 use App\Http\Requests\User\UpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Http\Responses\ResourceDeleted;
+use App\Models\Location;
 use App\Models\Organisation;
 use App\Models\Role;
 use App\Models\Service;
@@ -104,15 +105,18 @@ class UserController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'password' => bcrypt($request->password),
+                'employer_name' => $request->input('employer_name', null),
+                'local_authority_id' => $request->input('local_authority_id', null),
+                'location_id' => $request->input('location_id', null),
             ]);
 
             foreach ($request->roles as $role) {
                 $service = isset($role['service_id'])
-                    ? Service::findOrFail($role['service_id'])
-                    : null;
+                ? Service::findOrFail($role['service_id'])
+                : null;
                 $organisation = isset($role['organisation_id'])
-                    ? Organisation::findOrFail($role['organisation_id'])
-                    : null;
+                ? Organisation::findOrFail($role['organisation_id'])
+                : null;
 
                 switch ($role['role']) {
                     case Role::NAME_SERVICE_WORKER:
@@ -194,12 +198,22 @@ class UserController extends Controller
             // Store the original user roles in case they have been updated in the request (used for notification).
             $originalRoles = $user->userRoles;
 
+            // Remove the User Location if not used by another entity
+            if (null === $request->input('location_id') && $user->location_id) {
+                $location = Location::find($user->location_id);
+                $user->location()->dissociate()->save();
+                $location->safeDelete();
+            }
+
             // Update the user record.
             $user->update([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
+                'employer_name' => $request->input('employer_name', $user->employer_name),
+                'local_authority_id' => $request->input('local_authority_id', $user->local_authority_id),
+                'location_id' => $request->input('location_id', $user->location_id),
             ]);
 
             // Update the users password if provided in the request.
