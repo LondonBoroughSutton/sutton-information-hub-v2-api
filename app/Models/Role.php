@@ -52,6 +52,16 @@ class Role extends Model
     /**
      * @return \App\Models\Role
      */
+    public static function localAdmin(): self
+    {
+        return cache()->rememberForever('Role::localAdmin', function () {
+            return static::query()->where('name', static::NAME_LOCAL_ADMIN)->firstOrFail();
+        });
+    }
+
+    /**
+     * @return \App\Models\Role
+     */
     public static function globalAdmin(): self
     {
         return cache()->rememberForever('Role::globalAdmin', function () {

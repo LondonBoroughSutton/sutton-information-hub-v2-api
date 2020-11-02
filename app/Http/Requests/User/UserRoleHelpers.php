@@ -30,6 +30,10 @@ trait UserRoleHelpers
                             'role_id' => Role::organisationAdmin()->id,
                             'organisation_id' => $role['organisation_id'],
                         ]);
+                    case Role::NAME_LOCAL_ADMIN:
+                        return new UserRole([
+                            'role_id' => Role::localAdmin()->id,
+                        ]);
                     case Role::NAME_GLOBAL_ADMIN:
                         return new UserRole([
                             'role_id' => Role::globalAdmin()->id,

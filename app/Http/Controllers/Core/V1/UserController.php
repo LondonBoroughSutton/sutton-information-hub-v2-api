@@ -2,27 +2,28 @@
 
 namespace App\Http\Controllers\Core\V1;
 
-use App\Events\EndpointHit;
-use App\Events\UserRolesUpdated;
-use App\Http\Controllers\Controller;
-use App\Http\Filters\User\AtOrganisationFilter;
-use App\Http\Filters\User\AtServiceFilter;
-use App\Http\Filters\User\HasPermissionFilter;
-use App\Http\Filters\User\HighestRoleFilter;
-use App\Http\Requests\User\DestroyRequest;
-use App\Http\Requests\User\IndexRequest;
-use App\Http\Requests\User\ShowRequest;
-use App\Http\Requests\User\StoreRequest;
-use App\Http\Requests\User\UpdateRequest;
-use App\Http\Resources\UserResource;
-use App\Http\Responses\ResourceDeleted;
 use App\Models\User;
-use App\RoleManagement\RoleManagerInterface;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
+use App\Models\Location;
+use App\Events\EndpointHit;
 use Illuminate\Support\Str;
 use Spatie\QueryBuilder\Filter;
+use App\Events\UserRolesUpdated;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Spatie\QueryBuilder\QueryBuilder;
+use App\Http\Requests\User\ShowRequest;
+use App\Http\Responses\ResourceDeleted;
+use App\Http\Requests\User\IndexRequest;
+use App\Http\Requests\User\StoreRequest;
+use App\Http\Requests\User\UpdateRequest;
+use Illuminate\Database\Eloquent\Builder;
+use App\Http\Filters\User\AtServiceFilter;
+use App\Http\Requests\User\DestroyRequest;
+use App\Http\Filters\User\HighestRoleFilter;
+use App\RoleManagement\RoleManagerInterface;
+use App\Http\Filters\User\HasPermissionFilter;
+use App\Http\Filters\User\AtOrganisationFilter;
 
 class UserController extends Controller
 {

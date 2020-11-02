@@ -493,9 +493,9 @@ class UsersTest extends TestCase
     public function test_global_admin_can_create_local_admin()
     {
         $service = factory(Service::class)->create();
-        $serviceAdmin = factory(User::class)->create()->makeServiceAdmin($service);
-        $organisationAdmin = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
-        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
+        $serviceAdmin = $this->makeServiceAdmin(factory(User::class)->create(), $service);
+        $organisationAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
 
         $payload = $this->getCreateUserPayload([
             ['role' => Role::NAME_LOCAL_ADMIN],
@@ -503,17 +503,14 @@ class UsersTest extends TestCase
 
         Passport::actingAs($serviceAdmin);
         $response = $this->json('POST', '/core/v1/users', $payload);
-        dump($response->json());
-        $response->assertStatus(Response::HTTP_FORBIDDEN);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         Passport::actingAs($organisationAdmin);
         $response = $this->json('POST', '/core/v1/users', $payload);
-        dump($response->json());
-        $response->assertStatus(Response::HTTP_FORBIDDEN);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         Passport::actingAs($globalAdmin);
         $response = $this->json('POST', '/core/v1/users', $payload);
-        dump($response->json());
         $response->assertStatus(Response::HTTP_CREATED);
 
         $createdUserId = $response->json('data.id');
@@ -626,10 +623,10 @@ class UsersTest extends TestCase
     public function test_only_super_admin_can_create_user_with_employer_name()
     {
         $service = factory(Service::class)->create();
-        $serviceAdmin = factory(User::class)->create()->makeServiceAdmin($service);
-        $orgAdmin = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
-        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
-        $superAdmin = factory(User::class)->create()->makeSuperAdmin();
+        $serviceAdmin = $this->makeServiceAdmin(factory(User::class)->create(), $service);
+        $orgAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $superAdmin = $this->makeSuperAdmin(factory(User::class)->create());
 
         $payload = $this->getCreateUserPayload([
             ['role' => Role::NAME_GLOBAL_ADMIN],
@@ -657,10 +654,10 @@ class UsersTest extends TestCase
     {
         $service = factory(Service::class)->create();
         $location = factory(Location::class)->create();
-        $serviceAdmin = factory(User::class)->create()->makeServiceAdmin($service);
-        $orgAdmin = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
-        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
-        $superAdmin = factory(User::class)->create()->makeSuperAdmin();
+        $serviceAdmin = $this->makeServiceAdmin(factory(User::class)->create(), $service);
+        $orgAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $superAdmin = $this->makeSuperAdmin(factory(User::class)->create());
 
         $payload = $this->getCreateUserPayload([
             ['role' => Role::NAME_GLOBAL_ADMIN],
@@ -688,10 +685,10 @@ class UsersTest extends TestCase
     {
         $service = factory(Service::class)->create();
         $localAuthority = factory(LocalAuthority::class)->create();
-        $serviceAdmin = factory(User::class)->create()->makeServiceAdmin($service);
-        $orgAdmin = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
-        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
-        $superAdmin = factory(User::class)->create()->makeSuperAdmin();
+        $serviceAdmin = $this->makeServiceAdmin(factory(User::class)->create(), $service);
+        $orgAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $superAdmin = $this->makeSuperAdmin(factory(User::class)->create());
 
         $payload = $this->getCreateUserPayload([
             ['role' => Role::NAME_GLOBAL_ADMIN],
@@ -718,6 +715,8 @@ class UsersTest extends TestCase
     public function test_super_admin_can_create_global_admin()
     {
         $service = factory(Service::class)->create();
+        $location = factory(Location::class)->create();
+        $localAuthority = factory(LocalAuthority::class)->create();
         $user = $this->makeSuperAdmin(factory(User::class)->create());
         Passport::actingAs($user);
 
@@ -1720,10 +1719,10 @@ class UsersTest extends TestCase
 
     public function test_super_admin_can_remove_address_from_user()
     {
-        $invoker = factory(User::class)->create()->makeSuperAdmin();
+        $invoker = $this->makeSuperAdmin(factory(User::class)->create());
         Passport::actingAs($invoker);
 
-        $user = factory(User::class)->states('address')->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->states('address')->create());
         $userLocationId = $user->location->id;
 
         $response = $this->json('PUT', "/core/v1/users/{$user->id}", [
@@ -1754,10 +1753,10 @@ class UsersTest extends TestCase
 
     public function test_super_admin_can_remove_local_authority_from_user()
     {
-        $invoker = factory(User::class)->create()->makeSuperAdmin();
+        $invoker = $this->makeSuperAdmin(factory(User::class)->create());
         Passport::actingAs($invoker);
 
-        $user = factory(User::class)->states('localAuthority')->create()->makeGlobalAdmin();
+        $user = $this->makeGlobalAdmin(factory(User::class)->states('localAuthority')->create());
 
         $response = $this->json('PUT', "/core/v1/users/{$user->id}", [
             'first_name' => $user->first_name,

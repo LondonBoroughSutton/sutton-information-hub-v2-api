@@ -229,7 +229,7 @@ class User extends Authenticatable implements Notifiable
     public function isServiceAdmin(Service $service = null): bool
     {
         return $this->hasRole(Role::serviceAdmin(), $service)
-            || $this->isOrganisationAdmin($service->organisation ?? null);
+        || $this->isOrganisationAdmin($service->organisation ?? null);
     }
 
     /**
@@ -239,6 +239,14 @@ class User extends Authenticatable implements Notifiable
     public function isOrganisationAdmin(Organisation $organisation = null): bool
     {
         return $this->hasRole(Role::organisationAdmin(), null, $organisation) || $this->isGlobalAdmin();
+    }
+
+    /**
+     * @return bool
+     */
+    public function islocalAdmin(): bool
+    {
+        return $this->hasRole(Role::localAdmin()) || $this->isGlobalAdmin();
     }
 
     /**

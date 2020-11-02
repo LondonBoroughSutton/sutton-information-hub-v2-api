@@ -95,6 +95,11 @@ class RoleAuthorizer implements RoleAuthorizerInterface
                     return false;
                 }
                 break;
+            case Role::localAdmin()->id:
+                if (!$this->canAssignLocalAdmin()) {
+                    return false;
+                }
+                break;
             case Role::globalAdmin()->id:
                 if (!$this->canAssignGlobalAdmin()) {
                     return false;
@@ -221,6 +226,14 @@ class RoleAuthorizer implements RoleAuthorizerInterface
     protected function canAssignOrganisationAdmin(UserRole $userRole): bool
     {
         return $this->invokingUserIsOrganisationAdmin($userRole);
+    }
+
+    /**
+     * @return bool
+     */
+    protected function canAssignLocalAdmin(): bool
+    {
+        return $this->invokingUserIsGlobalAdmin();
     }
 
     /**
