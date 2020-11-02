@@ -128,6 +128,63 @@ class OrganisationsTest extends TestCase
         $response->assertJsonFragment(['id' => $organisation->id]);
     }
 
+    public function test_guest_can_filter_by_type_of_social_medias()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisations = factory(Organisation::class, 4)->create();
+        $socialMedia = [
+            'facebook' => ['type' => SocialMedia::TYPE_FACEBOOK, 'url' => 'https://facebook.com/ExampleOrg'],
+            'twitter' => ['type' => SocialMedia::TYPE_TWITTER, 'url' => 'https://twitter.com/ExampleOrg'],
+            'instagram' => ['type' => SocialMedia::TYPE_INSTAGRAM, 'url' => 'https://instagram.com/ExampleOrg'],
+            'youtube' => ['type' => SocialMedia::TYPE_YOUTUBE, 'url' => 'https://youtube.com/ExampleOrg'],
+            'other' => ['type' => SocialMedia::TYPE_OTHER, 'url' => 'https://pinterest.com/ExampleOrg'],
+        ];
+
+        $organisations->get(0)->socialMedias()->create($socialMedia['facebook']);
+        $organisations->get(0)->socialMedias()->create($socialMedia['twitter']);
+        $organisations->get(0)->socialMedias()->create($socialMedia['instagram']);
+
+        $organisations->get(1)->socialMedias()->create($socialMedia['facebook']);
+        $organisations->get(1)->socialMedias()->create($socialMedia['youtube']);
+
+        $organisations->get(2)->socialMedias()->create($socialMedia['twitter']);
+        $organisations->get(2)->socialMedias()->create($socialMedia['other']);
+
+        factory(Organisation::class)->create();
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=any');
+        $response->assertJsonCount(3, 'data');
+        $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
+        $response->assertJsonFragment(['id' => $organisations->get(1)->id]);
+        $response->assertJsonFragment(['id' => $organisations->get(2)->id]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=none');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisations->get(3)->id]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=facebook');
+        $response->assertJsonCount(2, 'data');
+        $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
+        $response->assertJsonFragment(['id' => $organisations->get(1)->id]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=twitter');
+        $response->assertJsonCount(2, 'data');
+        $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
+        $response->assertJsonFragment(['id' => $organisations->get(2)->id]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=other');
+        $response->assertJsonCount(2, 'data');
+        $response->assertJsonFragment(['id' => $organisations->get(2)->id]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=youtube');
+        $response->assertJsonCount(2, 'data');
+        $response->assertJsonFragment(['id' => $organisations->get(1)->id]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=instagram');
+        $response->assertJsonCount(2, 'data');
+        $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
+    }
+
     public function test_guest_can_filter_by_has_phone()
     {
         /** @var \App\Models\Organisation $organisation */
@@ -141,6 +198,25 @@ class OrganisationsTest extends TestCase
         $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=true');
         $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisation->id]);
+    }
+
+    public function test_guest_can_filter_by_type_of_phone()
+    {
+        /** @var \App\Models\Organisation $organisation */
+        $organisationLandline = factory(Organisation::class)->create([
+            'phone' => '01130000000',
+        ]);
+        $organisationMobile = factory(Organisation::class)->create([
+            'phone' => '07123456789',
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=mobile');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisationMobile->id]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=landline');
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $organisationLandline->id]);
     }
 
     public function test_guest_can_filter_by_has_services()
