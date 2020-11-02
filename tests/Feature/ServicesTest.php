@@ -1301,25 +1301,50 @@ class ServicesTest extends TestCase
         $taxonomy = Taxonomy::category()->children()->firstOrFail();
         $service->syncServiceTaxonomies(new Collection([$taxonomy]));
         $user = factory(User::class)->create()->makeGlobalAdmin();
-        $image = Storage::disk('local')->get('/test-data/image.png');
+        $imagePng = Storage::disk('local')->get('/test-data/image.png');
+        $imageJpg = Storage::disk('local')->get('/test-data/image.jpg');
+        $imageJpeg = Storage::disk('local')->get('/test-data/image.jpeg');
 
         Passport::actingAs($user);
 
-        $imageResponse = $this->json('POST', '/core/v1/files', [
+        $imagePngResponse = $this->json('POST', '/core/v1/files', [
             'is_private' => false,
             'mime_type' => 'image/png',
-            'file' => 'data:image/png;base64,' . base64_encode($image),
+            'file' => 'data:image/png;base64,' . base64_encode($imagePng),
         ]);
+        $imagePngResponse->assertStatus(Response::HTTP_CREATED);
+
+        $imageJpgResponse = $this->json('POST', '/core/v1/files', [
+            'is_private' => false,
+            'mime_type' => 'image/jpg',
+            'file' => 'data:image/jpg;base64,' . base64_encode($imageJpg),
+        ]);
+        $imageJpgResponse->assertStatus(Response::HTTP_CREATED);
+
+        $imageJpegResponse = $this->json('POST', '/core/v1/files', [
+            'is_private' => false,
+            'mime_type' => 'image/jpeg',
+            'file' => 'data:image/jpeg;base64,' . base64_encode($imageJpeg),
+        ]);
+        $imageJpegResponse->assertStatus(Response::HTTP_CREATED);
 
         $response = $this->json('PUT', "/core/v1/services/{$service->id}", [
             'gallery_items' => [
                 [
-                    'file_id' => $this->getResponseContent($imageResponse, 'data.id'),
+                    'file_id' => $this->getResponseContent($imagePngResponse, 'data.id'),
+                ],
+                [
+                    'file_id' => $this->getResponseContent($imageJpgResponse, 'data.id'),
+                ],
+                [
+                    'file_id' => $this->getResponseContent($imageJpegResponse, 'data.id'),
                 ],
             ],
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonCount(3, 'data.gallery_items');
     }
 
     public function test_only_partial_fields_can_be_updated()
