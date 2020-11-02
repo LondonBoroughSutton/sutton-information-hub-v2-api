@@ -159,11 +159,8 @@ class OrganisationSignUpFormTest extends TestCase
     {
         /** @var \App\Models\Service $service */
         $service = factory(Service::class)->create();
-        /** @var \App\Models\User $user */
-        $user = factory(User::class)->create();
-        $user->makeServiceWorker($service);
 
-        Passport::actingAs($user);
+        Passport::actingAs($this->makeServiceWorker(factory(User::class)->create(), $service));
 
         $response = $this->json('POST', '/core/v1/organisation-sign-up-forms');
 
@@ -174,11 +171,8 @@ class OrganisationSignUpFormTest extends TestCase
     {
         /** @var \App\Models\Service $service */
         $service = factory(Service::class)->create();
-        /** @var \App\Models\User $user */
-        $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
 
-        Passport::actingAs($user);
+        Passport::actingAs($this->makeServiceAdmin(factory(User::class)->create(), $service));
 
         $response = $this->json('POST', '/core/v1/organisation-sign-up-forms');
 
@@ -189,11 +183,8 @@ class OrganisationSignUpFormTest extends TestCase
     {
         /** @var \App\Models\Organisation $organisation */
         $organisation = factory(Organisation::class)->create();
-        /** @var \App\Models\User $user */
-        $user = factory(User::class)->create();
-        $user->makeOrganisationAdmin($organisation);
 
-        Passport::actingAs($user);
+        Passport::actingAs($this->makeOrganisationAdmin(factory(User::class)->create(), $organisation));
 
         $response = $this->json('POST', '/core/v1/organisation-sign-up-forms');
 
@@ -202,13 +193,7 @@ class OrganisationSignUpFormTest extends TestCase
 
     public function test_global_admin_cannot_create_one()
     {
-        /**
-         * @var \App\Models\User $user
-         */
-        $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
-
-        Passport::actingAs($user);
+        Passport::actingAs($this->makeGlobalAdmin(factory(User::class)->create()));
 
         $response = $this->json('POST', '/core/v1/organisation-sign-up-forms');
 
@@ -217,13 +202,7 @@ class OrganisationSignUpFormTest extends TestCase
 
     public function test_super_admin_cannot_create_one()
     {
-        /**
-         * @var \App\Models\User $user
-         */
-        $user = factory(User::class)->create();
-        $user->makeSuperAdmin();
-
-        Passport::actingAs($user);
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
 
         $response = $this->json('POST', '/core/v1/organisation-sign-up-forms');
 
