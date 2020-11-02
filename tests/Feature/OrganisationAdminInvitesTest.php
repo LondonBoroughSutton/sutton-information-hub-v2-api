@@ -25,7 +25,7 @@ class OrganisationAdminInvitesTest extends TestCase
         $organisation = factory(Organisation::class)->create();
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeSuperAdmin()
+            $this->makeSuperAdmin(factory(User::class)->create())
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -52,7 +52,7 @@ class OrganisationAdminInvitesTest extends TestCase
         ]);
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeSuperAdmin()
+            $this->makeSuperAdmin(factory(User::class)->create())
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -78,7 +78,7 @@ class OrganisationAdminInvitesTest extends TestCase
         $organisationTwo = factory(Organisation::class)->create();
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeSuperAdmin()
+            $this->makeSuperAdmin(factory(User::class)->create())
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -114,7 +114,7 @@ class OrganisationAdminInvitesTest extends TestCase
         ]);
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeSuperAdmin()
+            $this->makeSuperAdmin(factory(User::class)->create())
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -149,7 +149,7 @@ class OrganisationAdminInvitesTest extends TestCase
         ]);
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeSuperAdmin()
+            $this->makeSuperAdmin(factory(User::class)->create())
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -168,7 +168,7 @@ class OrganisationAdminInvitesTest extends TestCase
     public function test_can_create_no_invites()
     {
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeSuperAdmin()
+            $this->makeSuperAdmin(factory(User::class)->create())
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -193,7 +193,7 @@ class OrganisationAdminInvitesTest extends TestCase
         $service = factory(Service::class)->create();
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeServiceWorker($service)
+            $this->makeServiceWorker(factory(User::class)->create(), $service)
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -208,7 +208,7 @@ class OrganisationAdminInvitesTest extends TestCase
         $service = factory(Service::class)->create();
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeServiceAdmin($service)
+            $this->makeServiceAdmin(factory(User::class)->create(), $service)
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -223,7 +223,7 @@ class OrganisationAdminInvitesTest extends TestCase
         $organisation = factory(Organisation::class)->create();
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeOrganisationAdmin($organisation)
+            $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation)
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -236,7 +236,7 @@ class OrganisationAdminInvitesTest extends TestCase
     public function test_global_admin_cannot_create_invite()
     {
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeGlobalAdmin()
+            $this->makeGlobalAdmin(factory(User::class)->create())
         );
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
@@ -253,7 +253,7 @@ class OrganisationAdminInvitesTest extends TestCase
         $organisation = factory(Organisation::class)->create();
 
         Passport::actingAs(
-            $user = factory(User::class)->create()->makeSuperAdmin()
+            $this->makeSuperAdmin(factory(User::class)->create())
         );
 
         $this->postJson('/core/v1/organisation-admin-invites', [
