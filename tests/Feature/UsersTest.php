@@ -499,6 +499,37 @@ class UsersTest extends TestCase
         $this->assertEquals(3, $createdUser->roles()->count());
     }
 
+    public function test_global_admin_can_create_local_admin()
+    {
+        $service = factory(Service::class)->create();
+        $serviceAdmin = factory(User::class)->create()->makeServiceAdmin($service);
+        $organisationAdmin = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
+        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
+
+        $payload = $this->getCreateUserPayload([
+            ['role' => Role::NAME_LOCAL_ADMIN],
+        ]);
+
+        Passport::actingAs($serviceAdmin);
+        $response = $this->json('POST', '/core/v1/users', $payload);
+        dump($response->json());
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($organisationAdmin);
+        $response = $this->json('POST', '/core/v1/users', $payload);
+        dump($response->json());
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($globalAdmin);
+        $response = $this->json('POST', '/core/v1/users', $payload);
+        dump($response->json());
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $createdUserId = $response->json('data.id');
+        $createdUser = User::findOrFail($createdUserId);
+        $this->assertTrue($createdUser->isLocalAdmin());
+    }
+
     public function test_global_admin_can_create_global_admin()
     {
         $service = factory(Service::class)->create();

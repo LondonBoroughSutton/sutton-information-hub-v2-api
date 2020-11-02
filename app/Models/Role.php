@@ -15,6 +15,7 @@ class Role extends Model
     const NAME_SERVICE_WORKER = 'Service Worker';
     const NAME_SERVICE_ADMIN = 'Service Admin';
     const NAME_ORGANISATION_ADMIN = 'Organisation Admin';
+    const NAME_LOCAL_ADMIN = 'Local Admin';
     const NAME_GLOBAL_ADMIN = 'Global Admin';
     const NAME_SUPER_ADMIN = 'Super Admin';
 
