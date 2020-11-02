@@ -61,10 +61,10 @@ class IndexOrganisationOperation extends Operation
                     ->description('Filter organisations to those with a given status of Admin invite')
                     ->schema(Schema::string()
                     ->enum(
-                                Organisation::ADMIN_INVITE_STATUS_NONE,
-                                Organisation::ADMIN_INVITE_STATUS_INVITED,
-                                Organisation::ADMIN_INVITE_STATUS_PENDING,
-                                Organisation::ADMIN_INVITE_STATUS_CONFIRMED
+                        Organisation::ADMIN_INVITE_STATUS_NONE,
+                        Organisation::ADMIN_INVITE_STATUS_INVITED,
+                        Organisation::ADMIN_INVITE_STATUS_PENDING,
+                        Organisation::ADMIN_INVITE_STATUS_CONFIRMED
                             )),
                 SortParameter::create(null, ['name'], 'name')
             )
