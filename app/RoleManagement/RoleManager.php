@@ -53,13 +53,14 @@ class RoleManager implements RoleManagerInterface
         )) {
             // Handle global admin roles.
             $insert[] = $this->getUserRolesForGlobalAdmin();
-        } elseif ($this->containsRole(
-            $this->makeLocalAdminUserRole(),
-            $userRoles
-        )) {
-            // Handle global admin roles.
-            $insert[] = $this->getUserRolesForLocalAdmin();
         } else {
+            // Handle Local Admin Roles
+            if ($this->containsRole(
+                $this->makeLocalAdminUserRole(),
+                $userRoles
+            )) {
+                $insert[] = $this->getUserRolesForLocalAdmin();
+            }
             // Handle organisation admin roles.
             $organisationAdminUserRoles = $this->extractOrganisationAdminUserRoles(
                 $userRoles
@@ -113,7 +114,7 @@ class RoleManager implements RoleManagerInterface
     protected function uniqueRoles(array $userRoles): array
     {
         return collect($userRoles)
-            ->unique(function (UserRole $userRole): array {
+            ->unique(function (UserRole $userRole): array{
                 return [
                     'role_id' => $userRole['role_id'],
                     'service_id' => $userRole['service_id'] ?? null,
@@ -204,7 +205,7 @@ class RoleManager implements RoleManagerInterface
     protected function removeServiceAdminRoles(
         array $haystack,
         array $organisationUserRoles
-    ): array {
+    ): array{
         if (count($organisationUserRoles) === 0) {
             return $haystack;
         }
@@ -238,7 +239,7 @@ class RoleManager implements RoleManagerInterface
         array $haystack,
         array $organisationUserRoles,
         array $serviceUserRoles
-    ): array {
+    ): array{
         if (count($organisationUserRoles) === 0 && count($serviceUserRoles) === 0) {
             return $haystack;
         }
@@ -435,7 +436,7 @@ class RoleManager implements RoleManagerInterface
      */
     protected function getUserRolesForOrganisationAdmin(
         array $organisationAdminUserRoles
-    ): array {
+    ): array{
         $organisationIds = collect($organisationAdminUserRoles)
             ->pluck('organisation_id')
             ->toArray();
@@ -445,7 +446,7 @@ class RoleManager implements RoleManagerInterface
             ->get('id');
 
         return $organisations->map(
-            function (Organisation $organisation): array {
+            function (Organisation $organisation): array{
                 return $this->getOrganisationAdminRole($organisation);
             }
         )->all();
@@ -457,7 +458,7 @@ class RoleManager implements RoleManagerInterface
      */
     protected function getUserRolesForServiceAdmin(
         array $serviceAdminUserRoles
-    ): array {
+    ): array{
         $serviceIds = collect($serviceAdminUserRoles)
             ->pluck('service_id')
             ->toArray();
@@ -467,7 +468,7 @@ class RoleManager implements RoleManagerInterface
             ->get('id');
 
         return $services->map(
-            function (Service $service): array {
+            function (Service $service): array{
                 return $this->getServiceAdminRole($service);
             }
         )->all();
@@ -479,7 +480,7 @@ class RoleManager implements RoleManagerInterface
      */
     protected function getUserRolesForServiceWorker(
         array $serviceWorkerUserRoles
-    ): array {
+    ): array{
         $serviceIds = collect($serviceWorkerUserRoles)
             ->pluck('service_id')
             ->toArray();
@@ -489,7 +490,7 @@ class RoleManager implements RoleManagerInterface
             ->get('id');
 
         return $services->map(
-            function (Service $service): array {
+            function (Service $service): array{
                 return $this->getServiceWorkerRole($service);
             }
         )->all();

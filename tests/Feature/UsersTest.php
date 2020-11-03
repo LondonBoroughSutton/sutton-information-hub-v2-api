@@ -549,6 +549,10 @@ class UsersTest extends TestCase
         $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
 
         $payload = $this->getCreateUserPayload([
+            [
+                'role' => Role::NAME_ORGANISATION_ADMIN,
+                'organisation_id' => $service->organisation->id,
+            ],
             ['role' => Role::NAME_LOCAL_ADMIN],
         ]);
 
@@ -570,6 +574,7 @@ class UsersTest extends TestCase
 
         $createdUserId = $response->json('data.id');
         $createdUser = User::findOrFail($createdUserId);
+        $this->assertTrue($createdUser->isOrganisationAdmin($service->organisation));
         $this->assertTrue($createdUser->isLocalAdmin());
     }
 
@@ -1547,6 +1552,10 @@ class UsersTest extends TestCase
             'phone' => '01228567890',
             'password' => 'Pa$$w0rd',
             'roles' => [
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $service->organisation->id,
+                ],
                 ['role' => Role::NAME_LOCAL_ADMIN],
             ],
         ];
@@ -1571,12 +1580,11 @@ class UsersTest extends TestCase
             'last_name' => $user->last_name,
             'email' => $user->email,
             'phone' => '01228567890',
-            'roles' => [
-                [
-                    'role' => Role::NAME_LOCAL_ADMIN,
-                ],
-            ],
         ]);
+        $createdUserId = $response->json('data.id');
+        $createdUser = User::findOrFail($createdUserId);
+        $this->assertTrue($createdUser->isOrganisationAdmin($service->organisation));
+        $this->assertTrue($createdUser->isLocalAdmin());
     }
 
     public function test_global_admin_can_update_global_admin()
