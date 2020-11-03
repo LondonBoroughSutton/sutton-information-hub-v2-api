@@ -324,7 +324,7 @@ class User extends Authenticatable implements Notifiable
             'userRoles' => $this->userRoles->all(),
         ]);
 
-        if ($roleChecker->isGlobalAdmin()) {
+        if ($roleChecker->isGlobalAdmin() || $roleChecker->isLocalAdmin()) {
             $serviceIds = Service::query()
                 ->pluck(table(Service::class, 'id'))
                 ->toArray();
