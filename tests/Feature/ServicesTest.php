@@ -503,6 +503,80 @@ class ServicesTest extends TestCase
         });
     }
 
+    public function test_local_admin_can_create_an_active_one_with_taxonomies()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $payload = $this->createServicePayload($organisation);
+        $payload['status'] = Service::STATUS_ACTIVE;
+        $payload['category_taxonomies'] = [Taxonomy::category()->children()->firstOrFail()->id];
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+        $responsePayload = $payload;
+        $responsePayload['category_taxonomies'] = [
+            [
+                'id' => Taxonomy::category()->children()->firstOrFail()->id,
+                'parent_id' => Taxonomy::category()->children()->firstOrFail()->parent_id,
+                'slug' => Taxonomy::category()->children()->firstOrFail()->slug,
+                'name' => Taxonomy::category()->children()->firstOrFail()->name,
+                'created_at' => Taxonomy::category()->children()->firstOrFail()->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => Taxonomy::category()->children()->firstOrFail()->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ];
+        $response->assertJsonFragment($responsePayload);
+    }
+
+    public function test_local_admin_can_create_one_accepting_referrals()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $payload = $this->createServicePayload($organisation);
+        $payload['status'] = Service::STATUS_ACTIVE;
+        $payload['show_referral_disclaimer'] = true;
+        $payload['referral_method'] = Service::REFERRAL_METHOD_INTERNAL;
+        $payload['referral_email'] = $this->faker->safeEmail;
+        $payload['category_taxonomies'] = [Taxonomy::category()->children()->firstOrFail()->id];
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+        $responsePayload = $payload;
+        $responsePayload['category_taxonomies'] = [
+            [
+                'id' => Taxonomy::category()->children()->firstOrFail()->id,
+                'parent_id' => Taxonomy::category()->children()->firstOrFail()->parent_id,
+                'slug' => Taxonomy::category()->children()->firstOrFail()->slug,
+                'name' => Taxonomy::category()->children()->firstOrFail()->name,
+                'created_at' => Taxonomy::category()->children()->firstOrFail()->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => Taxonomy::category()->children()->firstOrFail()->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ];
+        $response->assertJsonFragment($responsePayload);
+    }
+
+    public function test_local_admin_cannot_create_one_with_referral_disclaimer_showing()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $payload = $this->createServicePayload($organisation);
+        $payload['show_referral_disclaimer'] = true;
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
     public function test_global_admin_can_create_an_active_one_with_taxonomies()
     {
         $organisation = factory(Organisation::class)->create();
@@ -916,6 +990,26 @@ class ServicesTest extends TestCase
                 ],
             ]
         ));
+    }
+
+    public function test_local_admin_cannot_update_one()
+    {
+        $service = factory(Service::class)->create([
+            'slug' => 'test-service',
+            'status' => Service::STATUS_ACTIVE,
+        ]);
+        $taxonomy = Taxonomy::category()->children()->firstOrFail();
+        $service->syncServiceTaxonomies(new Collection([$taxonomy]));
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $payload = $this->updateServicePayload($service);
+        $payload['intro'] = 'New intro';
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
     }
 
     public function test_global_admin_can_update_most_fields_for_one()
@@ -1886,6 +1980,25 @@ class ServicesTest extends TestCase
         $response = $this->json('POST', "/core/v1/services/import", $data);
 
         $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
+    public function test_local_admin_can_bulk_import()
+    {
+        Storage::fake('local');
+
+        $organisation = factory(Organisation::class)->create();
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $data = [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/services_import_1_good.xls'))),
+            'organisation_id' => $organisation->id,
+        ];
+
+        $response = $this->json('POST', "/core/v1/services/import", $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
     }
 
     public function test_organisation_admin_can_bulk_import()
