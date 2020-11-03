@@ -384,7 +384,7 @@ class User extends Authenticatable implements Notifiable
             'userRoles' => $this->userRoles->all(),
         ]);
 
-        if ($roleChecker->isGlobalAdmin()) {
+        if ($roleChecker->isGlobalAdmin() || $roleChecker->isLocalAdmin()) {
             $organisationIds = Organisation::query()
                 ->pluck(table(Organisation::class, 'id'))
                 ->toArray();
