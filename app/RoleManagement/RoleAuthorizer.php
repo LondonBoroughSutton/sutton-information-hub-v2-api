@@ -291,6 +291,16 @@ class RoleAuthorizer implements RoleAuthorizerInterface
     /**
      * @return bool
      */
+    protected function invokingUserIsLocalAdmin(): bool
+    {
+        return $this->invokingUserHasRole(new UserRole([
+            'role_id' => Role::localAdmin()->id,
+        ]));
+    }
+
+    /**
+     * @return bool
+     */
     protected function invokingUserIsGlobalAdmin(): bool
     {
         return $this->invokingUserHasRole(new UserRole([
@@ -342,6 +352,16 @@ class RoleAuthorizer implements RoleAuthorizerInterface
             'role_id' => Role::organisationAdmin()->id,
             'organisation_id' => $userRole->organisation_id,
         ])) || $this->subjectUserIsGlobalAdmin();
+    }
+
+    /**
+     * @return bool
+     */
+    protected function subjectUserIsLocalAdmin(): bool
+    {
+        return $this->invokingUserHasRole(new UserRole([
+            'role_id' => Role::localAdmin()->id,
+        ]));
     }
 
     /**

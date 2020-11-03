@@ -23,6 +23,10 @@ class StoreRequest extends FormRequest
      */
     public function authorize()
     {
+        if ($this->user()->islocalAdmin()) {
+            return false;
+        }
+
         return true;
     }
 

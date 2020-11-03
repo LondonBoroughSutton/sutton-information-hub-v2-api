@@ -179,10 +179,17 @@ class User extends Authenticatable implements Notifiable
 
         /*
          * If the invoker is a global admin,
-         * and the subject is not a super admin.
+         * and the subject is not a super admin OR is a local admin.
          */
-        if ($this->isGlobalAdmin() && !$subject->isSuperAdmin()) {
+        if ($this->isGlobalAdmin() && (!$subject->isSuperAdmin() || $subject->isLocalAdmin())) {
             return true;
+        }
+
+        /*
+         * If the invoker is a local admin or the subject is a local admin.
+         */
+        if ($this->isLocalAdmin() || $subject->isLocalAdmin()) {
+            return false;
         }
 
         /*
@@ -244,9 +251,9 @@ class User extends Authenticatable implements Notifiable
     /**
      * @return bool
      */
-    public function islocalAdmin(): bool
+    public function isLocalAdmin(): bool
     {
-        return $this->hasRole(Role::localAdmin()) || $this->isGlobalAdmin();
+        return $this->hasRole(Role::localAdmin());
     }
 
     /**

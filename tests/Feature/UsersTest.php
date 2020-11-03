@@ -424,6 +424,56 @@ class UsersTest extends TestCase
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    /**
+     * Local Admin Invoked
+     */
+
+    public function test_local_admin_cannot_create_user_roles()
+    {
+        $invoker = $this->makeLocalAdmin(factory(User::class)->create());
+        Passport::actingAs($invoker);
+
+        $service = factory(Service::class)->create();
+
+        $response = $this->json('POST', "/core/v1/users", $this->getCreateUserPayload([
+            [
+                'role' => Role::NAME_SERVICE_WORKER,
+                'service_id' => $service->id,
+            ],
+        ]));
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $response = $this->json('POST', "/core/v1/users", $this->getCreateUserPayload([
+            [
+                'role' => Role::NAME_SERVICE_ADMIN,
+                'service_id' => $service->id,
+            ],
+        ]));
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $response = $this->json('POST', "/core/v1/users", $this->getCreateUserPayload([
+            [
+                'role' => Role::NAME_ORGANISATION_ADMIN,
+                'organisation_id' => $service->organisation->id,
+            ],
+        ]));
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $response = $this->json('POST', "/core/v1/users", $this->getCreateUserPayload([
+            [
+                'role' => Role::NAME_GLOBAL_ADMIN,
+            ],
+        ]));
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $response = $this->json('POST', "/core/v1/users", $this->getCreateUserPayload([
+            [
+                'role' => Role::NAME_SUPER_ADMIN,
+            ],
+        ]));
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
     /*
      * Global Admin Invoked.
      */
@@ -495,6 +545,7 @@ class UsersTest extends TestCase
         $service = factory(Service::class)->create();
         $serviceAdmin = $this->makeServiceAdmin(factory(User::class)->create(), $service);
         $organisationAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
+        $localAdmin = $this->makeLocalAdmin(factory(User::class)->create());
         $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
 
         $payload = $this->getCreateUserPayload([
@@ -508,6 +559,10 @@ class UsersTest extends TestCase
         Passport::actingAs($organisationAdmin);
         $response = $this->json('POST', '/core/v1/users', $payload);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        Passport::actingAs($localAdmin);
+        $response = $this->json('POST', '/core/v1/users', $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
 
         Passport::actingAs($globalAdmin);
         $response = $this->json('POST', '/core/v1/users', $payload);
@@ -1291,6 +1346,66 @@ class UsersTest extends TestCase
         $response->assertStatus(Response::HTTP_FORBIDDEN);
     }
 
+    /**
+     * Local Admin Invoked
+     */
+
+    public function test_local_admin_cannot_update_user_roles()
+    {
+        $invoker = $this->makeLocalAdmin(factory(User::class)->create());
+        Passport::actingAs($invoker);
+
+        $service = factory(Service::class)->create();
+        $user = factory(User::class)->create();
+
+        $payload = [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'password' => 'Pa$$w0rd',
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $service->id,
+                ],
+            ],
+        ];
+
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $payload['roles'] = [[
+            'role' => Role::NAME_SERVICE_ADMIN,
+            'service_id' => $service->id,
+        ]];
+
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $payload['roles'] = [[
+            'role' => Role::NAME_ORGANISATION_ADMIN,
+            'organisation_id' => $service->organisation->id,
+        ]];
+
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $payload['roles'] = [[
+            'role' => Role::NAME_GLOBAL_ADMIN,
+        ]];
+
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        $payload['roles'] = [[
+            'role' => Role::NAME_SUPER_ADMIN,
+        ]];
+
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
     /*
      * Global Admin Invoked.
      */
@@ -1413,6 +1528,54 @@ class UsersTest extends TestCase
         $response->assertJsonFragment([
             'role' => Role::NAME_ORGANISATION_ADMIN,
             'organisation_id' => $service->organisation->id,
+        ]);
+    }
+
+    public function test_global_admin_can_update_local_admin()
+    {
+        $service = factory(Service::class)->create();
+        $serviceAdmin = $this->makeServiceAdmin(factory(User::class)->create(), $service);
+        $organisationAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
+        $localAdmin = $this->makeLocalAdmin(factory(User::class)->create());
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        $payload = [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'phone' => '01228567890',
+            'password' => 'Pa$$w0rd',
+            'roles' => [
+                ['role' => Role::NAME_LOCAL_ADMIN],
+            ],
+        ];
+
+        Passport::actingAs($serviceAdmin);
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($organisationAdmin);
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($localAdmin);
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($globalAdmin);
+        $response = $this->json('PUT', "/core/v1/users/{$user->id}", $payload);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'phone' => '01228567890',
+            'roles' => [
+                [
+                    'role' => Role::NAME_LOCAL_ADMIN,
+                ],
+            ],
         ]);
     }
 
