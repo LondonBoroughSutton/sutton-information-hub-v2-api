@@ -7,7 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\PendingOrganisationAdmin\ConfirmRequest;
 use App\Http\Resources\UserResource;
 use App\Models\PendingOrganisationAdmin;
+use App\Models\Role;
 use App\Models\User;
+use App\Models\UserRole;
+use App\RoleManagement\RoleManagerInterface;
 use Illuminate\Support\Facades\DB;
 
 class ConfirmController extends Controller
@@ -27,7 +30,18 @@ class ConfirmController extends Controller
                 'phone' => $pendingOrganisationAdmin->phone,
                 'password' => $pendingOrganisationAdmin->password,
             ]);
-            $user = $user->makeOrganisationAdmin($pendingOrganisationAdmin->organisation);
+            /** @var \App\RoleManagement\RoleManagerInterface $roleManager */
+            $roleManager = app()->make(RoleManagerInterface::class, [
+                'user' => $user,
+            ]);
+
+            // Update the user roles.
+            $roleManager->updateRoles(array_merge($user->userRoles->all(), [
+                new UserRole([
+                    'role_id' => Role::organisationAdmin()->id,
+                    'organisation_id' => $pendingOrganisationAdmin->organisation->id,
+                ]),
+            ]));
 
             $pendingOrganisationAdmin->delete();
 

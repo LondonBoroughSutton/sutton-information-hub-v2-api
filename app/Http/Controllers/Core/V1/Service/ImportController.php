@@ -31,11 +31,11 @@ class ImportController extends Controller
     const ROW_IMPORT_BATCH_SIZE = 100;
 
     /**
-     * Organisation to which Services will be assigned.
+     * Organisation ID to which Services will be assigned.
      *
-     * @var App\Models\Organisation
+     * @var string
      */
-    protected $organisation;
+    protected $organisationId = null;
 
     /**
      * User requesting the import.
@@ -64,14 +64,14 @@ class ImportController extends Controller
         $this->user = $request->user('api');
         $this->organisation = Organisation::findOrFail($request->input('organisation_id'));
 
-        list('rejected' => $rejected, 'imported' => $imported) = $this->processSpreadsheet($request->input('spreadsheet'));
+        $this->processSpreadsheet($request->input('spreadsheet'));
 
         $responseStatus = 201;
-        $response = ['imported_row_count' => $imported];
+        $response = ['imported_row_count' => $this->imported];
 
-        if (count($rejected)) {
+        if (count($this->rejected)) {
             $responseStatus = 422;
-            $response = ['errors' => ['spreadsheet' => $rejected]];
+            $response = ['errors' => ['spreadsheet' => $this->rejected]];
         }
 
         return response()->json([
@@ -254,11 +254,8 @@ class ImportController extends Controller
         DB::transaction(function () use ($spreadsheetParser, &$importedRows) {
             $serviceAdminRoleId = Role::serviceAdmin()->id;
             $serviceWorkerRoleId = Role::serviceWorker()->id;
-            $organisationAdminIds = $this->organisation
-                ->users()
-                ->where('user_roles.role_id', Role::organisationAdmin()->id)
-                ->pluck('users.id');
-            $serviceRowBatch = $adminRowBatch = $criteriaRowBatch = [];
+
+            $serviceRowBatch = $criteriaRowBatch = [];
             $criteriaFields = [
                 'age_group',
                 'disability',
@@ -315,43 +312,21 @@ class ImportController extends Controller
                 $serviceRowBatch[] = $serviceRow;
 
                 /**
-                 * Create the user_roles rows for Service Admin and Service Worker
-                 * for each Organisation Admin.
-                 */
-                foreach ($organisationAdminIds as $organisationAdminId) {
-                    $adminRowBatch[] = [
-                        'id' => (string)Str::uuid(),
-                        'user_id' => $organisationAdminId,
-                        'role_id' => $serviceAdminRoleId,
-                        'service_id' => $serviceRow['id'],
-                        'created_at' => Date::now(),
-                        'updated_at' => Date::now(),
-                    ];
-                    $adminRowBatch[] = [
-                        'id' => (string)Str::uuid(),
-                        'user_id' => $organisationAdminId,
-                        'role_id' => $serviceWorkerRoleId,
-                        'service_id' => $serviceRow['id'],
-                        'created_at' => Date::now(),
-                        'updated_at' => Date::now(),
-                    ];
-                }
-
-                /**
                  * If the batch array has reach the import batch size create the insert queries.
                  */
                 if (count($serviceRowBatch) === self::ROW_IMPORT_BATCH_SIZE) {
                     DB::table('services')->insert($serviceRowBatch);
-                    DB::table('user_roles')->insert($adminRowBatch);
                     DB::table('service_criteria')->insert($criteriaRowBatch);
                     $importedRows += self::ROW_IMPORT_BATCH_SIZE;
-                    $serviceRowBatch = $adminRowBatch = $criteriaRowBatch = [];
+                    $serviceRowBatch = $criteriaRowBatch = [];
                 }
             }
 
+            /**
+             * If there are a final batch that did not meet the import batch size, create queries for these.
+             */
             if (count($serviceRowBatch) && count($serviceRowBatch) !== self::ROW_IMPORT_BATCH_SIZE) {
                 DB::table('services')->insert($serviceRowBatch);
-                DB::table('user_roles')->insert($adminRowBatch);
                 DB::table('service_criteria')->insert($criteriaRowBatch);
                 $importedRows += count($serviceRowBatch);
             }

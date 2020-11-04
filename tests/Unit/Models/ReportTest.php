@@ -29,7 +29,8 @@ class ReportTest extends TestCase
     public function test_users_export_works()
     {
         // Create a single user.
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = factory(User::class)->create();
+        $this->makeSuperAdmin($user);
 
         // Generate the report.
         $report = Report::generate(ReportType::usersExport());
@@ -69,7 +70,8 @@ class ReportTest extends TestCase
         $organisation = factory(Organisation::class)->create();
 
         // Create a single user.
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = factory(User::class)->create();
+        $this->makeOrganisationAdmin($user, $organisation);
 
         // Generate the report.
         $report = Report::generate(ReportType::usersExport());
@@ -109,7 +111,8 @@ class ReportTest extends TestCase
         $service = factory(Service::class)->create();
 
         // Create a single user.
-        $user = factory(User::class)->create()->makeServiceAdmin($service);
+        $user = factory(User::class)->create();
+        $this->makeServiceAdmin($user, $service);
 
         // Generate the report.
         $report = Report::generate(ReportType::usersExport());
@@ -208,8 +211,8 @@ class ReportTest extends TestCase
         $organisation = factory(Organisation::class)->create();
 
         // Create an admin and non-admin user.
-        factory(User::class)->create()->makeSuperAdmin();
-        factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $this->makeSuperAdmin(factory(User::class)->create());
+        $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         // Generate the report.
         $report = Report::generate(ReportType::organisationsExport());
@@ -333,7 +336,8 @@ class ReportTest extends TestCase
 
     public function test_referrals_export_works_when_completed()
     {
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = factory(User::class)->create();
+        $this->makeSuperAdmin($user);
 
         // Create a single referral.
         $referral = factory(Referral::class)->create(['referral_consented_at' => Date::now()]);
@@ -753,7 +757,7 @@ class ReportTest extends TestCase
     public function test_search_histories_without_query_are_omitted()
     {
         /** @var \App\Contracts\Search $search */
-        $search = resolve(Search::class)->applyCategory('Self Help');
+        $search = resolve(Search::class)->applyCategory('self-help');
 
         // Create a single search history.
         SearchHistory::create([

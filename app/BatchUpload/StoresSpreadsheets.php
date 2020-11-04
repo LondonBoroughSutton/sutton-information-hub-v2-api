@@ -13,6 +13,34 @@ use Symfony\Component\Mime\MimeTypes;
 trait StoresSpreadsheets
 {
     /**
+     * Total number of imported rows.
+     *
+     * @var int
+     */
+    protected $imported = 0;
+
+    /**
+     * Spreadsheet rows that were rejected by validation.
+     *
+     * @var array
+     */
+    protected $rejected = [];
+
+    /**
+     * Spreadsheet rows that are duplicates of existing entities.
+     *
+     * @var array
+     */
+    protected $duplicates = [];
+
+    /**
+     * Organisation Ids of duplicates that can be imported.
+     *
+     * @var array
+     */
+    protected $ignoreDuplicateIds = [];
+
+    /**
      * Import a base64 encode spreadsheet.
      *
      * @param string $spreadsheet
@@ -26,24 +54,22 @@ trait StoresSpreadsheets
             throw new FileNotFoundException($filePath);
         }
 
-        $rows = [
-            'rejected' => $this->validateSpreadsheet($filePath),
-            'imported' => 0,
-        ];
+        $this->rejected = $this->validateSpreadsheet($filePath);
 
-        if (!count($rows['rejected'])) {
+        if (!count($this->rejected)) {
             try {
-                $rows['imported'] = $this->importSpreadsheet($filePath);
+                $this->imported = $this->importSpreadsheet($filePath);
+            } catch (\App\Exceptions\DuplicateContentException $e) {
+                Storage::disk('local')->delete($filePath);
+                $this->imported = 0;
             } catch (\Exception $e) {
                 Storage::disk('local')->delete($filePath);
 
-                abort(500, $e->getMessage());
+                abort(500, $e->getMessage() . $e->getTraceAsString());
             }
         }
 
         Storage::disk('local')->delete($filePath);
-
-        return $rows;
     }
 
     /**

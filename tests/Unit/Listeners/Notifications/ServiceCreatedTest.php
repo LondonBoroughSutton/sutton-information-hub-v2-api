@@ -19,7 +19,8 @@ class ServiceCreatedTest extends TestCase
         Queue::fake();
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $user = factory(User::class)->create();
+        $this->makeOrganisationAdmin($user, $organisation);
 
         $request = Request::create('')->setUserResolver(function () use ($user) {
             return $user;
@@ -54,7 +55,8 @@ class ServiceCreatedTest extends TestCase
         Queue::fake();
 
         $organisation = factory(Organisation::class)->create();
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = factory(User::class)->create();
+        $this->makeGlobalAdmin($user);
 
         $request = Request::create('')->setUserResolver(function () use ($user) {
             return $user;
