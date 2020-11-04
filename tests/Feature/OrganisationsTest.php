@@ -1488,7 +1488,7 @@ class OrganisationsTest extends TestCase
 
     public function test_organisation_admin_invite_status_is_none_when_created()
     {
-        $user = factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
         Passport::actingAs($user);
 
         $organisation = factory(Organisation::class)->create();
@@ -1503,7 +1503,7 @@ class OrganisationsTest extends TestCase
 
     public function test_organisation_admin_invite_status_is_none_when_no_email_provided()
     {
-        $user = Factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
         Passport::actingAs($user);
 
         $organisation = factory(Organisation::class)->create();
@@ -1531,7 +1531,7 @@ class OrganisationsTest extends TestCase
 
     public function test_organisation_admin_invite_status_is_invited_when_invite_sent()
     {
-        $user = Factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
         Passport::actingAs($user);
 
         $organisation = factory(Organisation::class)->states('email')->create();
@@ -1559,7 +1559,7 @@ class OrganisationsTest extends TestCase
 
     public function test_organisation_admin_invite_status_is_pending_when_invite_submitted()
     {
-        $user = Factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
 
         $organisation = factory(Organisation::class)->states('email')->create();
         $organisationAdminInvite = factory(OrganisationAdminInvite::class)->create([
@@ -1594,7 +1594,7 @@ class OrganisationsTest extends TestCase
 
     public function test_organisation_admin_invite_status_is_confirmed_when_pending_email_is_confirmed()
     {
-        $user = Factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
 
         $organisation = factory(Organisation::class)->states('email')->create();
         $pendingOrganisationAdmin = factory(PendingOrganisationAdmin::class)->create([
@@ -1619,7 +1619,7 @@ class OrganisationsTest extends TestCase
 
     public function test_filter_organisations_by_admin_invite_status()
     {
-        $user = Factory(User::class)->create()->makeSuperAdmin();
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
 
         $organisationNone = factory(Organisation::class)->create();
 
@@ -1634,7 +1634,7 @@ class OrganisationsTest extends TestCase
         ]);
 
         $organisationConfirmed = factory(Organisation::class)->create();
-        factory(User::class)->create()->makeOrganisationAdmin($organisationConfirmed);
+        $this->makeOrganisationAdmin(factory(User::class)->create(), $organisationConfirmed);
 
         Passport::actingAs($user);
 
