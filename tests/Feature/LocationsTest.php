@@ -97,7 +97,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceWorker($service);
+        $this->makeServiceWorker($user, $service);
 
         Passport::actingAs($user);
 
@@ -114,7 +114,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
 
         Passport::actingAs($user);
 
@@ -157,7 +157,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
 
         Passport::actingAs($user);
 
@@ -247,7 +247,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceWorker($service);
+        $this->makeServiceWorker($user, $service);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -265,7 +265,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -308,7 +308,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -341,7 +341,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -377,7 +377,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceWorker($service);
+        $this->makeServiceWorker($user, $service);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -395,7 +395,7 @@ class LocationsTest extends TestCase
          */
         $service = factory(Service::class)->create();
         $user = factory(User::class)->create();
-        $user->makeServiceAdmin($service);
+        $this->makeServiceAdmin($user, $service);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -413,7 +413,7 @@ class LocationsTest extends TestCase
          */
         $organisation = factory(Organisation::class)->create();
         $user = factory(User::class)->create();
-        $user->makeOrganisationAdmin($organisation);
+        $this->makeOrganisationAdmin($user, $organisation);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -429,7 +429,7 @@ class LocationsTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
+        $this->makeGlobalAdmin($user);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -448,7 +448,7 @@ class LocationsTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
+        $this->makeGlobalAdmin($user);
         $location = factory(Location::class)->create();
 
         Passport::actingAs($user);
@@ -498,7 +498,8 @@ class LocationsTest extends TestCase
     public function test_organisation_admin_can_upload_image()
     {
         /** @var \App\Models\User $user */
-        $user = factory(User::class)->create()->makeGlobalAdmin();
+        $user = factory(User::class)->create();
+        $this->makeGlobalAdmin($user);
         $image = Storage::disk('local')->get('/test-data/image.png');
 
         Passport::actingAs($user);
@@ -551,7 +552,7 @@ class LocationsTest extends TestCase
          * @var \App\Models\User $user
          */
         $user = factory(User::class)->create();
-        $user->makeGlobalAdmin();
+        $this->makeGlobalAdmin($user);
         $location = factory(Location::class)->create([
             'image_file_id' => factory(File::class)->create()->id,
         ]);
