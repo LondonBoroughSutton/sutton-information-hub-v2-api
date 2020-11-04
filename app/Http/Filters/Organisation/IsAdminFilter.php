@@ -4,7 +4,6 @@ namespace App\Http\Filters\Organisation;
 
 use App\Models\Organisation;
 use App\Models\Role;
-use App\Models\UserRole;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\QueryBuilder\Filters\Filter;
 
@@ -22,13 +21,16 @@ class IsAdminFilter implements Filter
         $user = request()->user('api');
 
         if ($user) {
-            $organisationIds = $user->organisations()
-                ->join(table(Role::class), function ($join) {
-                    $join->on(table(UserRole::class, 'role_id'), '=', table(Role::class, 'id'))
-                        ->whereIn(table(Role::class, 'name'), [Role::NAME_ORGANISATION_ADMIN, Role::NAME_GLOBAL_ADMIN, Role::NAME_SUPER_ADMIN]);
-                })
-                ->pluck(table(Organisation::class, 'id'))
-                ->toArray();
+            if ($user->isGlobalAdmin()) {
+                $organisationIds = Organisation::query()
+                    ->pluck(table(Organisation::class, 'id'))
+                    ->toArray();
+            } else {
+                $organisationIds = $user->organisations()
+                    ->wherePivot('role_id', '=', Role::organisationAdmin()->id)
+                    ->pluck(table(Organisation::class, 'id'))
+                    ->toArray();
+            }
         }
 
         return $query->whereIn(table(Organisation::class, 'id'), $organisationIds);
