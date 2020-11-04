@@ -624,9 +624,9 @@ class ServicesTest extends TestCase
     public function test_super_admin_can_create_one_with_a_score_between_1_and_5()
     {
         $organisation = factory(Organisation::class)->create();
-        $superAdmin = factory(User::class)->create()->makeSuperAdmin();
-        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
-        $orgAdmin = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+        $superAdmin = $this->makeSuperAdmin(factory(User::class)->create());
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $orgAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
 
         $taxonomy = Taxonomy::category()
             ->children()
@@ -1490,9 +1490,9 @@ class ServicesTest extends TestCase
         $service = factory(Service::class)->create([
             'score' => 3,
         ]);
-        $superAdmin = factory(User::class)->create()->makeSuperAdmin();
-        $globalAdmin = factory(User::class)->create()->makeGlobalAdmin();
-        $orgAdmin = factory(User::class)->create()->makeOrganisationAdmin($service->organisation);
+        $superAdmin = $this->makeSuperAdmin(factory(User::class)->create());
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $orgAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
 
         $payload = $this->updateServicePayload($service);
         $payload['score'] = 5;
