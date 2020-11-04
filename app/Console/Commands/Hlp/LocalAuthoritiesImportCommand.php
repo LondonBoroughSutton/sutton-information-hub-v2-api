@@ -1,14 +1,29 @@
 <?php
 
+namespace App\Console\Commands\Hlp;
+
 use App\Models\LocalAuthority;
 use GuzzleHttp\Client;
-use function GuzzleHttp\json_decode;
-use Illuminate\Database\Seeder;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
 
-class LocalAuthoritySeeder extends Seeder
+class LocalAuthoritiesImportCommand extends Command
 {
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'hlp:la-import {json-url : The fully qualified URL of a .json file}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Import Local Authorities from .json file';
+
     /**
      * The URL to request Json Local Authority data from.
      *
@@ -17,16 +32,24 @@ class LocalAuthoritySeeder extends Seeder
     protected $jsonRequestUrl;
 
     /**
-     * Run the database seeds.
+     * Create a new command instance.
      */
-    public function run()
+    public function __construct()
     {
-        $this->jsonRequestUrl = config('hlp.local_authority_data_url');
-        if ($this->jsonRequestUrl) {
-            $localAuthorityRecords = $this->fetchLocalAuthorityRecords();
-            if ($localAuthorityRecords) {
-                $this->createLocalAuthorityRecords($localAuthorityRecords);
-            }
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function handle()
+    {
+        $this->jsonRequestUrl = $this->argument('json-url');
+        $localAuthorityRecords = $this->fetchLocalAuthorityRecords();
+        if ($localAuthorityRecords) {
+            $this->createLocalAuthorityRecords($localAuthorityRecords);
         }
     }
 
@@ -46,9 +69,9 @@ class LocalAuthoritySeeder extends Seeder
             }
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            if ($this->command) {
-                $this->command->error('Error Fetching Local Authority Records:');
-                $this->command->error($e->getMessage());
+            if ($this->output) {
+                $this->error('Error Fetching Local Authority Records:');
+                $this->error($e->getMessage());
             }
         }
 
@@ -77,8 +100,9 @@ class LocalAuthoritySeeder extends Seeder
                 );
             }
         });
-        if ($this->command) {
-            $this->command->info('Imported ' . count($localAuthoritiesJson) . ' Local Authority Records');
+        if ($this->output) {
+            $this->info('Success: Imported Local Authority Records');
+            $this->info(count($localAuthoritiesJson) . ' Local Authority records imported');
         }
     }
 }

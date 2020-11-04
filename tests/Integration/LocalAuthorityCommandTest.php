@@ -2,16 +2,22 @@
 
 namespace Tests\Integration;
 
+use App\Console\Commands\Hlp\LocalAuthoritiesImportCommand;
 use App\Models\LocalAuthority;
-use LocalAuthoritySeeder;
 use Tests\TestCase;
 
-class LocalAuthoritySeederTest extends TestCase
+class LocalAuthorityCommandTest extends TestCase
 {
+    /**
+     * The URL of the Local Authoriy data .json file
+     *
+     * @var String
+     **/
+    protected $jsonImportUrl = 'http://geoportal1-ons.opendata.arcgis.com/datasets/fe6bcee87d95476abc84e194fe088abb_0.geojson';
 
     /**
-     * Create an Object mocking the csv imported from:
-     * https://data.gov.uk/dataset/24d87ad2-0fa9-4b35-816a-89f9d92b0042/local-authority-districts-april-2020-names-and-codes-in-the-united-kingdom
+     * Create an Object mocking the csv imported from the json import URL
+     * See: https://data.gov.uk/dataset/24d87ad2-0fa9-4b35-816a-89f9d92b0042/local-authority-districts-april-2020-names-and-codes-in-the-united-kingdom
      *
      * @return Object
      **/
@@ -56,7 +62,7 @@ EOT;
     public function it_can_create_local_authorities_from_imported_data()
     {
         $json = $this->jsonImportMock();
-        (new LocalAuthoritySeeder())->createLocalAuthorityRecords($json->features);
+        (new LocalAuthoritiesImportCommand())->createLocalAuthorityRecords($json->features);
 
         $this->assertDatabaseHas(table(LocalAuthority::class), [
             'name' => 'Cambridge',
@@ -88,8 +94,7 @@ EOT;
      */
     public function it_displays_an_error_if_it_cannot_fetch_the_remote_file()
     {
-        config(['hlp.local_authority_data_url' => 'http://example.org/this/file/does/not/exist.json']);
-        $this->artisan('db:seed', ['--class' => 'LocalAuthoritySeeder'])
+        $this->artisan('hlp:la-import', ['json-url' => 'http://example.org/this/file/does/not/exist.json'])
             ->expectsOutput('Error Fetching Local Authority Records:')
             ->assertExitCode(0);
     }
@@ -99,8 +104,8 @@ EOT;
      */
     public function it_displays_a_success_message_on_import()
     {
-        $this->artisan('db:seed', ['--class' => 'LocalAuthoritySeeder'])
-            ->expectsOutput('Imported 379 Local Authority Records')
+        $this->artisan('hlp:la-import', ['json-url' => $this->jsonImportUrl])
+            ->expectsOutput('Success: Imported Local Authority Records')
             ->assertExitCode(0);
     }
 }
