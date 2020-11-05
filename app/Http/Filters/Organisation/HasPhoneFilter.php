@@ -16,10 +16,21 @@ class HasPhoneFilter implements Filter
      */
     public function __invoke(Builder $query, $value, string $property): Builder
     {
-        $hasPhone = (bool)$value;
+        switch ($value) {
+            case 'any':
+                $query = $query->whereNotNull(table(Organisation::class, 'phone'));
+                break;
+            case 'none':
+                $query = $query->whereNull(table(Organisation::class, 'phone'));
+                break;
+            case 'mobile':
+                $query = $query->whereRaw('LEFT(' . table(Organisation::class, 'phone') . ',2) = "07"');
+                break;
+            case 'landline':
+                $query = $query->whereRaw('LEFT(' . table(Organisation::class, 'phone') . ',2) <> "07"');
+                break;
+        }
 
-        return $hasPhone
-            ? $query->whereNotNull(table(Organisation::class, 'phone'))
-            : $query->whereNull(table(Organisation::class, 'phone'));
+        return $query;
     }
 }
