@@ -150,8 +150,6 @@ class OrganisationsTest extends TestCase
         $organisations->get(2)->socialMedias()->create($socialMedia['twitter']);
         $organisations->get(2)->socialMedias()->create($socialMedia['other']);
 
-        factory(Organisation::class)->create();
-
         $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=any');
         $response->assertJsonCount(3, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
@@ -173,15 +171,15 @@ class OrganisationsTest extends TestCase
         $response->assertJsonFragment(['id' => $organisations->get(2)->id]);
 
         $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=other');
-        $response->assertJsonCount(2, 'data');
+        $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(2)->id]);
 
         $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=youtube');
-        $response->assertJsonCount(2, 'data');
+        $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(1)->id]);
 
         $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=instagram');
-        $response->assertJsonCount(2, 'data');
+        $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
     }
 
