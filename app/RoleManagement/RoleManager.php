@@ -54,6 +54,13 @@ class RoleManager implements RoleManagerInterface
             // Handle global admin roles.
             $insert[] = $this->getUserRolesForGlobalAdmin();
         } else {
+            // Handle Local Admin Roles
+            if ($this->containsRole(
+                $this->makeLocalAdminUserRole(),
+                $userRoles
+            )) {
+                $insert[] = $this->getUserRolesForLocalAdmin();
+            }
             // Handle organisation admin roles.
             $organisationAdminUserRoles = $this->extractOrganisationAdminUserRoles(
                 $userRoles
@@ -291,6 +298,16 @@ class RoleManager implements RoleManagerInterface
     }
 
     /**
+     * @return \App\Models\UserRole
+     */
+    protected function makeLocalAdminUserRole(): UserRole
+    {
+        return new UserRole([
+            'role_id' => Role::localAdmin()->id,
+        ]);
+    }
+
+    /**
      * @return array
      */
     protected function getSuperAdminRole(): array
@@ -315,6 +332,22 @@ class RoleManager implements RoleManagerInterface
             'id' => uuid(),
             'user_id' => $this->user->id,
             'role_id' => Role::globalAdmin()->id,
+            'organisation_id' => null,
+            'service_id' => null,
+            'created_at' => Date::now(),
+            'updated_at' => Date::now(),
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    protected function getLocalAdminRole(): array
+    {
+        return [
+            'id' => uuid(),
+            'user_id' => $this->user->id,
+            'role_id' => Role::localAdmin()->id,
             'organisation_id' => null,
             'service_id' => null,
             'created_at' => Date::now(),
@@ -387,6 +420,14 @@ class RoleManager implements RoleManagerInterface
     protected function getUserRolesForGlobalAdmin(): array
     {
         return [$this->getGlobalAdminRole()];
+    }
+
+    /**
+     * @return array
+     */
+    protected function getUserRolesForLocalAdmin(): array
+    {
+        return [$this->getLocalAdminRole()];
     }
 
     /**

@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Docs\Schemas\User;
+namespace App\Docs\Schemas\LocalAuthority;
 
-use App\Docs\Schemas\LocalAuthority\LocalAuthoritySchema;
-use App\Docs\Schemas\Location\LocationSchema;
+use App\Models\LocalAuthority;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 
-class UserSchema extends Schema
+class LocalAuthoritySchema extends Schema
 {
     /**
      * @param string|null $objectId
@@ -20,17 +19,17 @@ class UserSchema extends Schema
             ->properties(
                 Schema::string('id')
                     ->format(Schema::FORMAT_UUID),
-                Schema::string('first_name'),
-                Schema::string('last_name'),
-                Schema::string('email'),
-                Schema::string('phone')
+                Schema::string('name'),
+                Schema::string('alt_name')
                     ->nullable(),
-                Schema::array('roles')
-                    ->items(RoleSchema::create()),
-                LocationSchema::create('address')
-                    ->nullable(),
-                LocalAuthoritySchema::create('local_authority')
-                    ->nullable(),
+                Schema::string('code'),
+                Schema::string('region')
+                    ->enum(
+                        LocalAuthority::REGION_ENGLAND,
+                        LocalAuthority::REGION_SCOTLAND,
+                        LocalAuthority::REGION_WALES,
+                        LocalAuthority::REGION_NORTHERN_IRELAND
+                    ),
                 Schema::string('created_at')
                     ->format(Schema::FORMAT_DATE_TIME)
                     ->nullable(),

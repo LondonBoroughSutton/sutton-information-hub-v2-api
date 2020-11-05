@@ -23,6 +23,10 @@ class UpdateUserSchema extends Schema
                 Schema::string('email'),
                 Schema::string('phone')
                     ->nullable(),
+                Schema::string('location_id')
+                    ->nullable(),
+                Schema::string('local_authority_id')
+                    ->nullable(),
                 Schema::string('password'),
                 Schema::array('roles')
                     ->items(

@@ -13,7 +13,7 @@ class StoreRequest extends FormRequest
      */
     public function authorize()
     {
-        if ($this->user()->isSuperAdmin()) {
+        if ($this->user()->isSuperAdmin() || $this->user()->isLocalAdmin()) {
             return true;
         }
 
@@ -28,7 +28,11 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'organisations' => ['present', 'array'],
+            'organisations' => ['present', 'array', function ($attribute, $value, $fail) {
+                if ($this->user()->isLocalAdmin() && count($value) > 1) {
+                    $fail('You may only invite one organisation at a time');
+                }
+            }],
             'organisations.*' => ['array'],
             'organisations.*.organisation_id' => ['required_with:organisations.*', 'exists:organisations,id'],
             'organisations.*.use_email' => ['required_with:organisations.*', 'boolean'],

@@ -30,7 +30,7 @@ class StoreRequest extends FormRequest
      */
     public function authorize()
     {
-        if ($this->user()->isOrganisationAdmin()) {
+        if ($this->user()->isOrganisationAdmin() || $this->user()->isLocalAdmin()) {
             return true;
         }
 
@@ -251,7 +251,7 @@ class StoreRequest extends FormRequest
     protected function categoryTaxonomiesRules(): array
     {
         // If global admin and above.
-        if ($this->user()->isGlobalAdmin()) {
+        if ($this->user()->isGlobalAdmin() || $this->user()->isLocalAdmin()) {
             return ['required', 'array'];
         }
 

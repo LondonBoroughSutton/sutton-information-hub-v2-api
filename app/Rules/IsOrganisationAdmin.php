@@ -39,7 +39,7 @@ class IsOrganisationAdmin implements Rule
 
         $organisation = Organisation::query()->find($value);
 
-        return $organisation ? $this->user->isOrganisationAdmin($organisation) : false;
+        return $organisation ? ($this->user->isOrganisationAdmin($organisation) || $this->user->isLocalAdmin()) : false;
     }
 
     /**

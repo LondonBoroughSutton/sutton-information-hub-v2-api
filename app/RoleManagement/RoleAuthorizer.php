@@ -95,6 +95,11 @@ class RoleAuthorizer implements RoleAuthorizerInterface
                     return false;
                 }
                 break;
+            case Role::localAdmin()->id:
+                if (!$this->canAssignLocalAdmin()) {
+                    return false;
+                }
+                break;
             case Role::globalAdmin()->id:
                 if (!$this->canAssignGlobalAdmin()) {
                     return false;
@@ -226,6 +231,14 @@ class RoleAuthorizer implements RoleAuthorizerInterface
     /**
      * @return bool
      */
+    protected function canAssignLocalAdmin(): bool
+    {
+        return $this->invokingUserIsGlobalAdmin();
+    }
+
+    /**
+     * @return bool
+     */
     protected function canAssignGlobalAdmin(): bool
     {
         return $this->invokingUserIsGlobalAdmin();
@@ -273,6 +286,16 @@ class RoleAuthorizer implements RoleAuthorizerInterface
             'role_id' => Role::organisationAdmin()->id,
             'organisation_id' => $userRole->organisation_id,
         ])) || $this->invokingUserIsGlobalAdmin();
+    }
+
+    /**
+     * @return bool
+     */
+    protected function invokingUserIsLocalAdmin(): bool
+    {
+        return $this->invokingUserHasRole(new UserRole([
+            'role_id' => Role::localAdmin()->id,
+        ]));
     }
 
     /**
@@ -329,6 +352,16 @@ class RoleAuthorizer implements RoleAuthorizerInterface
             'role_id' => Role::organisationAdmin()->id,
             'organisation_id' => $userRole->organisation_id,
         ])) || $this->subjectUserIsGlobalAdmin();
+    }
+
+    /**
+     * @return bool
+     */
+    protected function subjectUserIsLocalAdmin(): bool
+    {
+        return $this->invokingUserHasRole(new UserRole([
+            'role_id' => Role::localAdmin()->id,
+        ]));
     }
 
     /**
