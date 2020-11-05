@@ -117,4 +117,16 @@ class Location extends Model
     {
         return $this->image_file_id !== null;
     }
+
+    /**
+     * Checks for dependant relationships, if noe found removes the Location.
+     */
+    public function safeDelete()
+    {
+        if ($this->serviceLocations()->doesntExist() && $this->organisation()->doesntExist() && $this->users()->doesntExist()) {
+            return $this->delete();
+        }
+
+        return false;
+    }
 }
