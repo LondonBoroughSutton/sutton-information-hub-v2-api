@@ -23,10 +23,10 @@ class HasPhoneFilter implements Filter
             case 'none':
                 $query = $query->whereNull(table(Organisation::class, 'phone'));
                 break;
-            case 'mobile':
+            case Organisation::PHONE_TYPE_MOBILE:
                 $query = $query->whereRaw('LEFT(' . table(Organisation::class, 'phone') . ',2) = "07"');
                 break;
-            case 'landline':
+            case Organisation::PHONE_TYPE_LANDLINE:
                 $query = $query->whereRaw('LEFT(' . table(Organisation::class, 'phone') . ',2) <> "07"');
                 break;
         }

@@ -3,6 +3,7 @@
 namespace App\Http\Filters\Organisation;
 
 use App\Models\Organisation;
+use App\Models\SocialMedia;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\Filters\Filter;
@@ -24,11 +25,11 @@ class HasSocialMediasFilter implements Filter
             case 'none':
                 $query = $query->whereDoesntHave('socialMedias');
                 break;
-            case 'facebook':
-            case 'twitter':
-            case 'instagram':
-            case 'youtube':
-            case 'other':
+            case SocialMedia::TYPE_FACEBOOK:
+            case SocialMedia::TYPE_TWITTER:
+            case SocialMedia::TYPE_INSTAGRAM:
+            case SocialMedia::TYPE_YOUTUBE:
+            case SocialMedia::TYPE_OTHER:
                 $query = $query->whereExists(function ($query) use ($value) {
                     $query->select(DB::raw(1))
                         ->from('social_medias')

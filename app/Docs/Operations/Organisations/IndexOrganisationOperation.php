@@ -10,6 +10,7 @@ use App\Docs\Parameters\SortParameter;
 use App\Docs\Schemas\Organisation\OrganisationSchema;
 use App\Docs\Schemas\PaginationSchema;
 use App\Docs\Tags\OrganisationsTag;
+use App\Models\Organisation;
 use App\Models\SocialMedia;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\MediaType;
@@ -49,7 +50,7 @@ class IndexOrganisationOperation extends Operation
                     ->description('Filter out organisations that have no email')
                     ->schema(Schema::boolean()),
                 FilterParameter::create(null, 'has_social_medias')
-                    ->description('Filter out organisations by social media type, none or any')
+                    ->description('Filter organisations by social media type, none or any')
                     ->schema(
                         Schema::string()->enum(
                             'any',
@@ -62,8 +63,15 @@ class IndexOrganisationOperation extends Operation
                         )
                     ),
                 FilterParameter::create(null, 'has_phone')
-                    ->description('Filter out organisations that have no phone')
-                    ->schema(Schema::boolean()),
+                    ->description('Filter organisations by phone type, none or any')
+                    ->schema(
+                        Schema::string()->enum(
+                            'any',
+                            'none',
+                            Organisation::PHONE_TYPE_LANDLINE,
+                            Organisation::PHONE_TYPE_MOBILE
+                        )
+                    ),
                 FilterParameter::create(null, 'has_services')
                     ->description('Filter out organisations that have no services')
                     ->schema(Schema::boolean()),

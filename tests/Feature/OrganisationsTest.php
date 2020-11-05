@@ -162,25 +162,25 @@ class OrganisationsTest extends TestCase
         $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(3)->id]);
 
-        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=facebook');
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=' . SocialMedia::TYPE_FACEBOOK);
         $response->assertJsonCount(2, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
         $response->assertJsonFragment(['id' => $organisations->get(1)->id]);
 
-        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=twitter');
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=' . SocialMedia::TYPE_TWITTER);
         $response->assertJsonCount(2, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
         $response->assertJsonFragment(['id' => $organisations->get(2)->id]);
 
-        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=other');
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=' . SocialMedia::TYPE_OTHER);
         $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(2)->id]);
 
-        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=youtube');
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=' . SocialMedia::TYPE_YOUTUBE);
         $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(1)->id]);
 
-        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=instagram');
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_social_medias]=' . SocialMedia::TYPE_INSTAGRAM);
         $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisations->get(0)->id]);
     }
@@ -214,11 +214,11 @@ class OrganisationsTest extends TestCase
             'phone' => '07123456789',
         ]);
 
-        $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=mobile');
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=' . Organisation::PHONE_TYPE_MOBILE);
         $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisationMobile->id]);
 
-        $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=landline');
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_phone]=' . Organisation::PHONE_TYPE_LANDLINE);
         $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['id' => $organisationLandline->id]);
     }

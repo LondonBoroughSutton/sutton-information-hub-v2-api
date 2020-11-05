@@ -14,6 +14,9 @@ class Organisation extends Model
     use OrganisationRelationships;
     use OrganisationScopes;
 
+    const PHONE_TYPE_MOBILE = 'mobile';
+    const PHONE_TYPE_LANDLINE = 'landline';
+
     /**
      * Custom logic for returning the data. Useful when wanting to transform
      * or modify the data before returning it, e.g. removing passwords.
