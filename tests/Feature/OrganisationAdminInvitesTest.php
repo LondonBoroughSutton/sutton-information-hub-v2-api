@@ -72,6 +72,33 @@ class OrganisationAdminInvitesTest extends TestCase
         ]);
     }
 
+    public function test_local_admin_can_create_single_invite_with_email()
+    {
+        $organisation = factory(Organisation::class)->create([
+            'email' => 'john.doe@example.com',
+        ]);
+
+        Passport::actingAs(
+            $this->makeLocalAdmin(factory(User::class)->create())
+        );
+
+        $response = $this->postJson('/core/v1/organisation-admin-invites', [
+            'organisations' => [
+                [
+                    'organisation_id' => $organisation->id,
+                    'use_email' => true,
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'organisation_id' => $organisation->id,
+            'email' => 'john.doe@example.com',
+        ]);
+    }
+
     public function test_can_create_multiple_invites()
     {
         $organisationOne = factory(Organisation::class)->create();
@@ -104,6 +131,31 @@ class OrganisationAdminInvitesTest extends TestCase
             'organisation_id' => $organisationTwo->id,
             'email' => null,
         ]);
+    }
+
+    public function test_local_admin_cannot_create_multiple_invites()
+    {
+        $organisationOne = factory(Organisation::class)->create();
+        $organisationTwo = factory(Organisation::class)->create();
+
+        Passport::actingAs(
+            $this->makeLocalAdmin(factory(User::class)->create())
+        );
+
+        $response = $this->postJson('/core/v1/organisation-admin-invites', [
+            'organisations' => [
+                [
+                    'organisation_id' => $organisationOne->id,
+                    'use_email' => false,
+                ],
+                [
+                    'organisation_id' => $organisationTwo->id,
+                    'use_email' => false,
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
     public function test_can_create_multiple_invites_some_with_email()

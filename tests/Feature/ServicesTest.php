@@ -503,6 +503,33 @@ class ServicesTest extends TestCase
         });
     }
 
+    public function test_local_admin_can_create_an_inactive_one_with_taxonomies()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $payload = $this->createServicePayload($organisation);
+        $payload['category_taxonomies'] = [Taxonomy::category()->children()->firstOrFail()->id];
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+        $responsePayload = $payload;
+        $responsePayload['category_taxonomies'] = [
+            [
+                'id' => Taxonomy::category()->children()->firstOrFail()->id,
+                'parent_id' => Taxonomy::category()->children()->firstOrFail()->parent_id,
+                'slug' => Taxonomy::category()->children()->firstOrFail()->slug,
+                'name' => Taxonomy::category()->children()->firstOrFail()->name,
+                'created_at' => Taxonomy::category()->children()->firstOrFail()->created_at->format(CarbonImmutable::ISO8601),
+                'updated_at' => Taxonomy::category()->children()->firstOrFail()->updated_at->format(CarbonImmutable::ISO8601),
+            ],
+        ];
+        $response->assertJsonFragment($responsePayload);
+    }
+
     public function test_global_admin_can_create_an_active_one_with_taxonomies()
     {
         $organisation = factory(Organisation::class)->create();
@@ -918,6 +945,96 @@ class ServicesTest extends TestCase
         ));
     }
 
+    public function test_local_admin_can_update_most_fields_for_one()
+    {
+        $service = factory(Service::class)->create([
+            'slug' => 'test-service',
+            'status' => Service::STATUS_ACTIVE,
+        ]);
+        $taxonomy = Taxonomy::category()->children()->firstOrFail();
+        $service->syncServiceTaxonomies(new Collection([$taxonomy]));
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $payload = [
+            'slug' => 'test-service',
+            'name' => 'Test Service',
+            'type' => Service::TYPE_SERVICE,
+            'status' => Service::STATUS_ACTIVE,
+            'is_national' => false,
+            'intro' => 'This is a test intro',
+            'description' => 'Lorem ipsum',
+            'wait_time' => null,
+            'is_free' => true,
+            'fees_text' => null,
+            'fees_url' => null,
+            'testimonial' => null,
+            'video_embed' => null,
+            'url' => $this->faker->url,
+            'contact_name' => $this->faker->name,
+            'contact_phone' => random_uk_phone(),
+            'contact_email' => $this->faker->safeEmail,
+            'show_referral_disclaimer' => false,
+            'referral_method' => $service->referral_method,
+            'referral_button_text' => $service->referral_button_text,
+            'referral_email' => $service->referral_email,
+            'referral_url' => $service->referral_url,
+            'criteria' => [
+                'age_group' => '18+',
+                'disability' => null,
+                'employment' => null,
+                'gender' => null,
+                'housing' => null,
+                'income' => null,
+                'language' => null,
+                'other' => null,
+            ],
+            'useful_infos' => [
+                [
+                    'title' => 'Did you know?',
+                    'description' => 'Lorem ipsum',
+                    'order' => 1,
+                ],
+            ],
+            'offerings' => [
+                [
+                    'offering' => 'Weekly club',
+                    'order' => 1,
+                ],
+            ],
+            'social_medias' => [
+                [
+                    'type' => SocialMedia::TYPE_INSTAGRAM,
+                    'url' => 'https://www.instagram.com/ayupdigital',
+                ],
+            ],
+            'gallery_items' => [],
+            'category_taxonomies' => [
+                $taxonomy->id,
+            ],
+        ];
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment(array_merge(
+            $payload,
+            [
+                'category_taxonomies' => [
+                    [
+                        'id' => $taxonomy->id,
+                        'parent_id' => $taxonomy->parent_id,
+                        'slug' => $taxonomy->slug,
+                        'name' => $taxonomy->name,
+                        'created_at' => $taxonomy->created_at->format(CarbonImmutable::ISO8601),
+                        'updated_at' => $taxonomy->updated_at->format(CarbonImmutable::ISO8601),
+                    ],
+                ],
+            ]
+        ));
+    }
+
     public function test_global_admin_can_update_most_fields_for_one()
     {
         $service = factory(Service::class)->create([
@@ -1077,6 +1194,31 @@ class ServicesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    public function test_local_admin_can_update_taxonomies()
+    {
+        $service = factory(Service::class)->create();
+        $taxonomy = Taxonomy::category()->children()->firstOrFail();
+        $service->syncServiceTaxonomies(new Collection([$taxonomy]));
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $newTaxonomy = Taxonomy::category()
+            ->children()
+            ->where('id', '!=', $taxonomy->id)
+            ->firstOrFail();
+
+        $payload = $this->updateServicePayload($service);
+        $payload['category_taxonomies'] = [
+            $taxonomy->id,
+            $newTaxonomy->id,
+        ];
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+
+        $response->assertStatus(Response::HTTP_OK);
     }
 
     public function test_global_admin_can_update_taxonomies()
@@ -1449,6 +1591,18 @@ class ServicesTest extends TestCase
     {
         $service = factory(Service::class)->create();
         $user = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
+
+        Passport::actingAs($user);
+
+        $response = $this->json('DELETE', "/core/v1/services/{$service->id}");
+
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
+    public function test_local_admin_cannot_delete_one()
+    {
+        $service = factory(Service::class)->create();
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
 
         Passport::actingAs($user);
 
@@ -1886,6 +2040,25 @@ class ServicesTest extends TestCase
         $response = $this->json('POST', "/core/v1/services/import", $data);
 
         $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
+    public function test_local_admin_can_bulk_import()
+    {
+        Storage::fake('local');
+
+        $organisation = factory(Organisation::class)->create();
+        $user = $this->makeLocalAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $data = [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(base_path('tests/assets/services_import_1_good.xls'))),
+            'organisation_id' => $organisation->id,
+        ];
+
+        $response = $this->json('POST', "/core/v1/services/import", $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
     }
 
     public function test_organisation_admin_can_bulk_import()

@@ -32,7 +32,7 @@ class UpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        if ($this->user()->isServiceAdmin($this->service)) {
+        if ($this->user()->isServiceAdmin($this->service) || $this->user()->isLocalAdmin()) {
             return true;
         }
 

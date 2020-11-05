@@ -80,6 +80,7 @@ class UpdateRequest extends FormRequest
                 case Role::NAME_ORGANISATION_ADMIN:
                     unset($role['service_id']);
                     break;
+                case Role::NAME_LOCAL_ADMIN:
                 case Role::NAME_GLOBAL_ADMIN:
                 case Role::NAME_SUPER_ADMIN:
                     unset($role['service_id'], $role['organisation_id']);
