@@ -79,6 +79,7 @@ class ServiceController extends Controller
                 Sort::custom('organisation_name', OrganisationNameSort::class),
                 'status',
                 'referral_method',
+                'score',
             ])
             ->defaultSort('name')
             ->paginate(per_page($request->per_page));
@@ -141,6 +142,7 @@ class ServiceController extends Controller
                 'referral_email' => $request->referral_email,
                 'referral_url' => $request->referral_url,
                 'logo_file_id' => $request->logo_file_id,
+                'score' => $request->score,
                 'last_modified_at' => Date::now(),
             ]);
 
@@ -294,6 +296,7 @@ class ServiceController extends Controller
                 'referral_email' => $request->input('referral_email', $service->referral_email),
                 'referral_url' => $request->input('referral_url', $service->referral_url),
                 'logo_file_id' => $request->input('logo_file_id', $service->logo_file_id),
+                'score' => $request->input('score', $service->score),
                 // This must always be updated regardless of the fields changed.
                 'last_modified_at' => Date::now(),
             ]);

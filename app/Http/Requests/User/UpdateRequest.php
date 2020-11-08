@@ -10,6 +10,7 @@ use App\Rules\CanRevokeRoleFromUser;
 use App\Rules\Password;
 use App\Rules\UkPhoneNumber;
 use App\Rules\UserEmailNotTaken;
+use App\Rules\UserHasRole;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateRequest extends FormRequest
@@ -79,6 +80,7 @@ class UpdateRequest extends FormRequest
                 case Role::NAME_ORGANISATION_ADMIN:
                     unset($role['service_id']);
                     break;
+                case Role::NAME_LOCAL_ADMIN:
                 case Role::NAME_GLOBAL_ADMIN:
                 case Role::NAME_SUPER_ADMIN:
                     unset($role['service_id'], $role['organisation_id']);
@@ -143,6 +145,47 @@ class UpdateRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', new UserEmailNotTaken($this->user)],
             'phone' => ['present', 'nullable', 'string', 'min:1', 'max:255', new UkPhoneNumber()],
             'password' => ['string', 'min:8', 'max:255', new Password()],
+            'employer_name' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'min:1',
+                'max:255',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    $this->user->employer_name
+                ),
+            ],
+            'local_authority_id' => [
+                'sometimes',
+                'nullable',
+                'exists:local_authorities,id',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    $this->user->local_authority_id
+                ),
+            ],
+            'location_id' => [
+                'sometimes',
+                'nullable',
+                'exists:locations,id',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    $this->user->location_id
+                ),
+            ],
 
             'roles' => ['required', 'array'],
             'roles.*' => [

@@ -34,6 +34,11 @@ interface RoleCheckerInterface
     /**
      * @return bool
      */
+    public function isLocalAdmin(): bool;
+
+    /**
+     * @return bool
+     */
     public function isGlobalAdmin(): bool;
 
     /**

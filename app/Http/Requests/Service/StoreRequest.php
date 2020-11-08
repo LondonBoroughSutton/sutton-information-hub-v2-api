@@ -30,7 +30,7 @@ class StoreRequest extends FormRequest
      */
     public function authorize()
     {
-        if ($this->user()->isOrganisationAdmin()) {
+        if ($this->user()->isOrganisationAdmin() || $this->user()->isLocalAdmin()) {
             return true;
         }
 
@@ -223,6 +223,25 @@ class StoreRequest extends FormRequest
                 new FileIsMimeType(File::MIME_TYPE_PNG),
                 new FileIsPendingAssignment(),
             ],
+            'score' => [
+                'nullable',
+                'numeric',
+                Rule::in([
+                    Service::SCORE_POOR,
+                    Service::SCORE_BELOW_AVERAGE,
+                    Service::SCORE_AVERAGE,
+                    Service::SCORE_ABOVE_AVERAGE,
+                    Service::SCORE_EXCELLENT,
+                ]),
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    null
+                ),
+            ],
         ];
     }
 
@@ -232,7 +251,7 @@ class StoreRequest extends FormRequest
     protected function categoryTaxonomiesRules(): array
     {
         // If global admin and above.
-        if ($this->user()->isGlobalAdmin()) {
+        if ($this->user()->isGlobalAdmin() || $this->user()->isLocalAdmin()) {
             return ['required', 'array'];
         }
 
