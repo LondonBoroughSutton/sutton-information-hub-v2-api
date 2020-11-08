@@ -30,7 +30,7 @@ class StoreRequest extends FormRequest
      */
     public function authorize()
     {
-        if ($this->user()->isOrganisationAdmin()) {
+        if ($this->user()->isOrganisationAdmin() || $this->user()->isLocalAdmin()) {
             return true;
         }
 
@@ -211,7 +211,7 @@ class StoreRequest extends FormRequest
             'gallery_items.*.file_id' => [
                 'required_with:gallery_items.*',
                 'exists:files,id',
-                new FileIsMimeType(File::MIME_TYPE_PNG),
+                new FileIsMimeType(File::MIME_TYPE_PNG, File::MIME_TYPE_JPG, File::MIME_TYPE_JPEG),
                 new FileIsPendingAssignment(),
             ],
 
@@ -220,8 +220,27 @@ class StoreRequest extends FormRequest
             'logo_file_id' => [
                 'nullable',
                 'exists:files,id',
-                new FileIsMimeType(File::MIME_TYPE_PNG),
+                new FileIsMimeType(File::MIME_TYPE_PNG, File::MIME_TYPE_JPG, File::MIME_TYPE_JPEG),
                 new FileIsPendingAssignment(),
+            ],
+            'score' => [
+                'nullable',
+                'numeric',
+                Rule::in([
+                    Service::SCORE_POOR,
+                    Service::SCORE_BELOW_AVERAGE,
+                    Service::SCORE_AVERAGE,
+                    Service::SCORE_ABOVE_AVERAGE,
+                    Service::SCORE_EXCELLENT,
+                ]),
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    null
+                ),
             ],
         ];
     }
@@ -232,7 +251,7 @@ class StoreRequest extends FormRequest
     protected function categoryTaxonomiesRules(): array
     {
         // If global admin and above.
-        if ($this->user()->isGlobalAdmin()) {
+        if ($this->user()->isGlobalAdmin() || $this->user()->isLocalAdmin()) {
             return ['required', 'array'];
         }
 

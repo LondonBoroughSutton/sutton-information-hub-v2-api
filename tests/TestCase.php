@@ -269,6 +269,26 @@ abstract class TestCase extends BaseTestCase
      * @param \App\Models\User $user
      * @return \App\Models\User
      */
+    public function makeLocalAdmin(User $user): User
+    {
+        /** @var \App\RoleManagement\RoleManagerInterface $roleManager */
+        $roleManager = app()->make(RoleManagerInterface::class, [
+            'user' => $user,
+        ]);
+
+        $roleManager->updateRoles([
+            new UserRole([
+                'role_id' => Role::localAdmin()->id,
+            ]),
+        ]);
+
+        return $user;
+    }
+
+    /**
+     * @param \App\Models\User $user
+     * @return \App\Models\User
+     */
     public function makeGlobalAdmin(User $user): User
     {
         /** @var \App\RoleManagement\RoleManagerInterface $roleManager */

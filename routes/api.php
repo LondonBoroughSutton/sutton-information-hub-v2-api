@@ -55,6 +55,9 @@ Route::prefix('core/v1')
             Route::apiResource('/files', 'FileController')
                 ->only('store');
 
+            // Local Authorities.
+            Route::get('/local-authorities', 'LocalAuthorityController');
+
             // Locations.
             Route::match(['GET', 'POST'], '/locations/index', 'LocationController@index');
             Route::apiResource('/locations', 'LocationController');

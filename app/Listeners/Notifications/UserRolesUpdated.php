@@ -36,6 +36,8 @@ class UserRolesUpdated
                     return 'Super admin';
                 case Role::globalAdmin()->id:
                     return 'Global admin';
+                case Role::localAdmin()->id:
+                    return 'Local admin';
                 case Role::organisationAdmin()->id:
                     return "Organisation admin for {$userRole->organisation->name}";
                 case Role::serviceAdmin()->id:
@@ -120,6 +122,9 @@ class UserRolesUpdated
             $isGlobalAdmin = $roles->first(function (UserRole $userRole) {
                 return $userRole->isGlobalAdmin();
             }) !== null;
+            $isLocalAdmin = $roles->first(function (UserRole $userRole) {
+                return $userRole->isLocalAdmin();
+            }) !== null;
             $isOrganisationAdmin = function (UserRole $userRole) use ($roles) {
                 return $roles->first(function (UserRole $userRoleIteration) use ($userRole) {
                     return $userRoleIteration->isOrganisationAdmin($userRole->service->organisation);
@@ -141,6 +146,11 @@ class UserRolesUpdated
                 return !$isSuperAdmin;
             }
 
+            // Only allow local admin if not also super admin or global admin.
+            if ($userRole->isLocalAdmin()) {
+                return !$isSuperAdmin && !$isGlobalAdmin;
+            }
+
             // Only allow organisation admin if not also super admin or global admin.
             if ($userRole->isOrganisationAdmin()) {
                 return !$isSuperAdmin && !$isGlobalAdmin;
@@ -149,16 +159,16 @@ class UserRolesUpdated
             // Only allow service admin if not also super admin, global admin or organisation admin.
             if ($userRole->isServiceAdmin()) {
                 return !$isSuperAdmin
-                    && !$isGlobalAdmin
-                    && !$isOrganisationAdmin($userRole);
+                && !$isGlobalAdmin
+                && !$isOrganisationAdmin($userRole);
             }
 
             // Only allow service worker if not also super admin, global admin, organisation admin or service admin.
             if ($userRole->isServiceWorker()) {
                 return !$isSuperAdmin
-                    && !$isGlobalAdmin
-                    && !$isOrganisationAdmin($userRole)
-                    && !$isServiceAdmin($userRole);
+                && !$isGlobalAdmin
+                && !$isOrganisationAdmin($userRole)
+                && !$isServiceAdmin($userRole);
             }
 
             throw new \Exception("User role invalid [{$userRole->role->name}]");

@@ -47,6 +47,12 @@ class Service extends Model implements Notifiable
     const REFERRAL_METHOD_EXTERNAL = 'external';
     const REFERRAL_METHOD_NONE = 'none';
 
+    const SCORE_POOR = 1;
+    const SCORE_BELOW_AVERAGE = 2;
+    const SCORE_AVERAGE = 3;
+    const SCORE_ABOVE_AVERAGE = 4;
+    const SCORE_EXCELLENT = 5;
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -98,6 +104,7 @@ class Service extends Model implements Notifiable
             'is_free' => ['type' => 'boolean'],
             'is_national' => ['type' => 'boolean'],
             'status' => ['type' => 'keyword'],
+            'score' => ['type' => 'integer'],
             'organisation_name' => [
                 'type' => 'text',
                 'fields' => [
@@ -147,6 +154,7 @@ class Service extends Model implements Notifiable
             'is_free' => $this->is_free,
             'is_national' => $this->is_national,
             'status' => $this->status,
+            'score' => $this->score,
             'organisation_name' => $this->organisation->name,
             'taxonomy_categories' => $this->taxonomies()->pluck('name')->toArray(),
             'collection_categories' => static::collections($this)->where('type', Collection::TYPE_CATEGORY)->pluck('name')->toArray(),

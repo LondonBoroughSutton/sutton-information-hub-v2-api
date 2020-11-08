@@ -32,7 +32,7 @@ class UpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        if ($this->user()->isServiceAdmin($this->service)) {
+        if ($this->user()->isServiceAdmin($this->service) || $this->user()->isLocalAdmin()) {
             return true;
         }
 
@@ -300,7 +300,7 @@ class UpdateRequest extends FormRequest
             'gallery_items.*.file_id' => [
                 'required_with:gallery_items.*',
                 'exists:files,id',
-                new FileIsMimeType(File::MIME_TYPE_PNG),
+                new FileIsMimeType(File::MIME_TYPE_PNG, File::MIME_TYPE_JPG, File::MIME_TYPE_JPEG),
                 new FileIsPendingAssignment(function (File $file) {
                     return $this->service
                         ->serviceGalleryItems()
@@ -318,8 +318,32 @@ class UpdateRequest extends FormRequest
             'logo_file_id' => [
                 'nullable',
                 'exists:files,id',
-                new FileIsMimeType(File::MIME_TYPE_PNG),
+                new FileIsMimeType(File::MIME_TYPE_PNG, File::MIME_TYPE_JPG, File::MIME_TYPE_JPEG),
                 new FileIsPendingAssignment(),
+            ],
+            'score' => [
+                'nullable',
+                'numeric',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    $this->service->score
+                ),
+                function ($attribute, $value, $fail) {
+                    if ($this->service->score !== $value &&
+                        !in_array($value, [
+                            Service::SCORE_POOR,
+                            Service::SCORE_BELOW_AVERAGE,
+                            Service::SCORE_AVERAGE,
+                            Service::SCORE_ABOVE_AVERAGE,
+                            Service::SCORE_EXCELLENT,
+                        ])) {
+                        $fail($attribute . ' should be between 1 and 5');
+                    }
+                },
             ],
         ];
     }

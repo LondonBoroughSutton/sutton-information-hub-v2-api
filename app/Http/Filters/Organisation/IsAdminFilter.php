@@ -21,7 +21,7 @@ class IsAdminFilter implements Filter
         $user = request()->user('api');
 
         if ($user) {
-            if ($user->isGlobalAdmin()) {
+            if ($user->isGlobalAdmin() || $user->isLocalAdmin()) {
                 $organisationIds = Organisation::query()
                     ->pluck(table(Organisation::class, 'id'))
                     ->toArray();
