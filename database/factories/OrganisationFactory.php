@@ -13,6 +13,11 @@ $factory->define(Organisation::class, function (Faker $faker) {
     return [
         'slug' => Str::slug($name) . '-' . mt_rand(1, 1000),
         'name' => $name,
+    ];
+});
+
+$factory->state(Organisation::class, 'description', function (Faker $faker) {
+    return [
         'description' => 'This organisation provides x service.',
     ];
 });

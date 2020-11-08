@@ -44,7 +44,7 @@ class UpdateRequest extends FormRequest
                 new Slug(),
             ],
             'name' => ['string', 'min:1', 'max:255'],
-            'description' => ['string', 'min:1', 'max:10000'],
+            'description' => ['nullable', 'string', 'min:1', 'max:10000'],
             'url' => ['nullable', 'url', 'max:255'],
             'email' => [
                 'nullable',
