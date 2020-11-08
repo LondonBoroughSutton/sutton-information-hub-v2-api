@@ -13,8 +13,11 @@ trait SearchHistoryScopes
      */
     public function scopeWithFilledQuery(Builder $query): Builder
     {
+        /**
+         * Look for legacy non-function_score path and function_score path.
+         */
         return $query->whereNotNull(
-            DB::raw('JSON_EXTRACT(`query`, "$.query.bool.must.bool.should[0].match.name.query")')
+            DB::raw('IFNULL(JSON_EXTRACT(`query`, "$.query.bool.must.bool.should[0].match.name.query"),JSON_EXTRACT(`query`, "$.query.function_score.query.bool.must.bool.should[0].match.name.query"))')
         );
     }
 }

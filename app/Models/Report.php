@@ -128,8 +128,8 @@ class Report extends Model
                             })
                             ->each(function (Service $service) use ($user, &$allPermissions, &$allIds) {
                                 $allPermissions[] = $user->hasRoleCached(Role::serviceAdmin(), $service)
-                                    ? Role::NAME_SERVICE_ADMIN
-                                    : Role::NAME_SERVICE_WORKER;
+                                ? Role::NAME_SERVICE_ADMIN
+                                : Role::NAME_SERVICE_WORKER;
                                 $allIds[] = $service->id;
                             });
                     }
@@ -340,8 +340,8 @@ class Report extends Model
                         $referral->service->name,
                         optional($referral->created_at)->format(CarbonImmutable::ISO8601),
                         $referral->isCompleted()
-                            ? $referral->latestCompletedStatusUpdate->created_at->format(CarbonImmutable::ISO8601)
-                            : '',
+                        ? $referral->latestCompletedStatusUpdate->created_at->format(CarbonImmutable::ISO8601)
+                        : '',
                         $referral->isSelfReferral() ? 'Self' : 'Champion',
                         $referral->isSelfReferral() ? null : $referral->organisationName(),
                         optional($referral->referral_consented_at)->format(CarbonImmutable::ISO8601),
@@ -495,7 +495,12 @@ class Report extends Model
                 $searchHistories->each(function (SearchHistory $searchHistory) use (&$data) {
                     $query = Arr::dot($searchHistory->query);
 
-                    $searchQuery = $query['query.bool.must.bool.should.0.match.name.query'] ?? null;
+                    /**
+                     * Look for legacy non-function_score path and function_score path.
+                     */
+                    $searchQuery = $query['query.bool.must.bool.should.0.match.name.query'] ??
+                    $query['query.function_score.query.bool.must.bool.should.0.match.name.query'] ??
+                        null;
                     $lat = $query['sort.0._geo_distance.service_locations.location.lat'] ?? null;
                     $lon = $query['sort.0._geo_distance.service_locations.location.lon'] ?? null;
                     $coordinate = (!$lat !== null && $lon !== null) ? implode(',', [$lat, $lon]) : null;

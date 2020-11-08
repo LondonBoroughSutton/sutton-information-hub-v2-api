@@ -222,6 +222,29 @@ class OrganisationsTest extends TestCase
         $response->assertStatus(Response::HTTP_FORBIDDEN);
     }
 
+    public function test_local_admin_can_create_one()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $this->makeLocalAdmin($user);
+        $payload = [
+            'slug' => 'test-org',
+            'name' => 'Test Org',
+            'description' => 'Test description',
+            'url' => 'http://test-org.example.com',
+            'email' => 'info@test-org.example.com',
+            'phone' => '07700000000',
+        ];
+
+        Passport::actingAs($user);
+
+        $response = $this->json('POST', '/core/v1/organisations', $payload);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJsonFragment($payload);
+    }
+
     public function test_global_admin_can_create_one()
     {
         /**
@@ -416,6 +439,25 @@ class OrganisationsTest extends TestCase
         Passport::actingAs($user);
 
         $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}");
+
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
+    public function test_local_admin_cannot_update_one()
+    {
+        $organisation = factory(Organisation::class)->create();
+
+        Passport::actingAs($this->makeLocalAdmin(factory(User::class)->create()));
+
+        $response = $this->json('PUT', "/core/v1/organisations/{$organisation->id}", [
+            'slug' => 'test-org',
+            'name' => 'Test Org',
+            'description' => 'Test description',
+            'url' => 'http://test-org.example.com',
+            'email' => 'info@test-org.example.com',
+            'phone' => '07700000000',
+            'location_id' => null,
+        ]);
 
         $response->assertStatus(Response::HTTP_FORBIDDEN);
     }
@@ -771,6 +813,19 @@ class OrganisationsTest extends TestCase
         $response->assertStatus(Response::HTTP_FORBIDDEN);
     }
 
+    public function test_local_admin_cannot_delete_one()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $user = factory(User::class)->create();
+        $this->makeLocalAdmin($user);
+
+        Passport::actingAs($user);
+
+        $response = $this->json('DELETE', "/core/v1/organisations/{$organisation->id}");
+
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
     public function test_global_admin_cannot_delete_one()
     {
         $organisation = factory(Organisation::class)->create();
@@ -1004,6 +1059,25 @@ class OrganisationsTest extends TestCase
         $organisation = factory(Organisation::class)->create();
 
         Passport::actingAs($this->makeOrganisationAdmin(factory(User::class)->create(), $organisation));
+
+        $response = $this->json('POST', "/core/v1/organisations/import", $data);
+
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
+    public function test_local_admin_cannot_bulk_import()
+    {
+        Storage::fake('local');
+
+        $organisations = factory(Organisation::class, 2)->states('web', 'email', 'phone')->make();
+
+        $this->createOrganisationSpreadsheets($organisations);
+
+        $data = [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+        ];
+
+        Passport::actingAs($this->makeLocalAdmin(factory(User::class)->create()));
 
         $response = $this->json('POST', "/core/v1/organisations/import", $data);
 

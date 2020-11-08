@@ -2,6 +2,8 @@
 
 namespace App\Docs\Schemas\User;
 
+use App\Docs\Schemas\LocalAuthority\LocalAuthoritySchema;
+use App\Docs\Schemas\Location\LocationSchema;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\Schema;
 
@@ -25,6 +27,10 @@ class UserSchema extends Schema
                     ->nullable(),
                 Schema::array('roles')
                     ->items(RoleSchema::create()),
+                LocationSchema::create('address')
+                    ->nullable(),
+                LocalAuthoritySchema::create('local_authority')
+                    ->nullable(),
                 Schema::string('created_at')
                     ->format(Schema::FORMAT_DATE_TIME)
                     ->nullable(),

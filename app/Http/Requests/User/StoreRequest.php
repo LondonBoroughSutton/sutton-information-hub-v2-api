@@ -3,11 +3,13 @@
 namespace App\Http\Requests\User;
 
 use App\Models\Role;
+use App\Models\UserRole;
 use App\RoleManagement\RoleAuthorizerInterface;
 use App\Rules\CanAssignRoleToUser;
 use App\Rules\Password;
 use App\Rules\UkPhoneNumber;
 use App\Rules\UserEmailNotTaken;
+use App\Rules\UserHasRole;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRequest extends FormRequest
@@ -21,6 +23,10 @@ class StoreRequest extends FormRequest
      */
     public function authorize()
     {
+        if ($this->user()->islocalAdmin()) {
+            return false;
+        }
+
         return true;
     }
 
@@ -43,6 +49,47 @@ class StoreRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', new UserEmailNotTaken()],
             'phone' => ['present', 'nullable', 'string', 'min:1', 'max:255', new UkPhoneNumber()],
             'password' => ['required', 'string', 'min:8', 'max:255', new Password()],
+            'employer_name' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'min:1',
+                'max:255',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    null
+                ),
+            ],
+            'local_authority_id' => [
+                'sometimes',
+                'nullable',
+                'exists:local_authorities,id',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    null
+                ),
+            ],
+            'location_id' => [
+                'sometimes',
+                'nullable',
+                'exists:locations,id',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::superAdmin()->id,
+                    ]),
+                    null
+                ),
+            ],
 
             'roles' => ['required', 'array'],
             'roles.*' => ['required', 'array', $canAssignRoleToUserRule],

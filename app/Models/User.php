@@ -179,10 +179,17 @@ class User extends Authenticatable implements Notifiable
 
         /*
          * If the invoker is a global admin,
-         * and the subject is not a super admin.
+         * and the subject is not a super admin OR is a local admin.
          */
-        if ($this->isGlobalAdmin() && !$subject->isSuperAdmin()) {
+        if ($this->isGlobalAdmin() && (!$subject->isSuperAdmin() || $subject->isLocalAdmin())) {
             return true;
+        }
+
+        /*
+         * If the invoker is a local admin or the subject is a local admin.
+         */
+        if ($this->isLocalAdmin() || $subject->isLocalAdmin()) {
+            return false;
         }
 
         /*
@@ -229,7 +236,7 @@ class User extends Authenticatable implements Notifiable
     public function isServiceAdmin(Service $service = null): bool
     {
         return $this->hasRole(Role::serviceAdmin(), $service)
-            || $this->isOrganisationAdmin($service->organisation ?? null);
+        || $this->isOrganisationAdmin($service->organisation ?? null);
     }
 
     /**
@@ -239,6 +246,14 @@ class User extends Authenticatable implements Notifiable
     public function isOrganisationAdmin(Organisation $organisation = null): bool
     {
         return $this->hasRole(Role::organisationAdmin(), null, $organisation) || $this->isGlobalAdmin();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isLocalAdmin(): bool
+    {
+        return $this->hasRole(Role::localAdmin());
     }
 
     /**
@@ -309,7 +324,7 @@ class User extends Authenticatable implements Notifiable
             'userRoles' => $this->userRoles->all(),
         ]);
 
-        if ($roleChecker->isGlobalAdmin()) {
+        if ($roleChecker->isGlobalAdmin() || $roleChecker->isLocalAdmin()) {
             $serviceIds = Service::query()
                 ->pluck(table(Service::class, 'id'))
                 ->toArray();
@@ -369,7 +384,7 @@ class User extends Authenticatable implements Notifiable
             'userRoles' => $this->userRoles->all(),
         ]);
 
-        if ($roleChecker->isGlobalAdmin()) {
+        if ($roleChecker->isGlobalAdmin() || $roleChecker->isLocalAdmin()) {
             $organisationIds = Organisation::query()
                 ->pluck(table(Organisation::class, 'id'))
                 ->toArray();

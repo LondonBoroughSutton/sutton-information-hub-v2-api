@@ -98,6 +98,16 @@ class RoleChecker implements RoleCheckerInterface
     /**
      * @inheritDoc
      */
+    public function isLocalAdmin(): bool
+    {
+        return $this->hasRole(new UserRole([
+            'role_id' => Role::localAdmin()->id,
+        ]));
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function isGlobalAdmin(): bool
     {
         return $this->hasRole(new UserRole([
