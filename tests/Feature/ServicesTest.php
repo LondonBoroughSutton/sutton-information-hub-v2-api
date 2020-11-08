@@ -93,6 +93,7 @@ class ServicesTest extends TestCase
                 ],
             ],
             'gallery_items' => [],
+            'score' => null,
             'category_taxonomies' => [],
         ];
     }
@@ -141,6 +142,7 @@ class ServicesTest extends TestCase
             ],
             'useful_infos' => [],
             'social_medias' => [],
+            'score' => $service->score,
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
             'logo_file_id' => null,
         ];
@@ -229,6 +231,7 @@ class ServicesTest extends TestCase
                     'url' => 'https://www.instagram.com/ayupdigital/',
                 ],
             ],
+            'score' => $service->score,
             'gallery_items' => [],
             'category_taxonomies' => [
                 [
@@ -362,6 +365,27 @@ class ServicesTest extends TestCase
 
         $this->assertEquals($serviceOne->organisation_id, $data['data'][1]['organisation_id']);
         $this->assertEquals($serviceTwo->organisation_id, $data['data'][0]['organisation_id']);
+    }
+
+    public function test_guest_can_sort_by_score()
+    {
+        $service1 = factory(Service::class)->create(['score' => 0]);
+        $service2 = factory(Service::class)->create(['score' => 5]);
+        $service3 = factory(Service::class)->create(['score' => 3]);
+        $service4 = factory(Service::class)->create(['score' => 1]);
+        $service5 = factory(Service::class)->create(['score' => 4]);
+        $service6 = factory(Service::class)->create(['score' => 2]);
+
+        $response = $this->json('GET', '/core/v1/services?sort=-score');
+        $response->assertStatus(Response::HTTP_OK);
+        $data = $this->getResponseContent($response);
+
+        $this->assertEquals($service2->id, $data['data'][0]['id']);
+        $this->assertEquals($service5->id, $data['data'][1]['id']);
+        $this->assertEquals($service3->id, $data['data'][2]['id']);
+        $this->assertEquals($service6->id, $data['data'][3]['id']);
+        $this->assertEquals($service4->id, $data['data'][4]['id']);
+        $this->assertEquals($service1->id, $data['data'][5]['id']);
     }
 
     /*
@@ -624,6 +648,56 @@ class ServicesTest extends TestCase
         $response->assertStatus(Response::HTTP_CREATED);
     }
 
+    public function test_super_admin_can_create_one_with_a_score_between_1_and_5()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $superAdmin = $this->makeSuperAdmin(factory(User::class)->create());
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $orgAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $organisation);
+
+        $taxonomy = Taxonomy::category()
+            ->children()
+            ->firstOrFail();
+
+        $payload = $this->createServicePayload($organisation);
+        $payload['category_taxonomies'] = [$taxonomy->id];
+        $payload['score'] = 5;
+
+        Passport::actingAs($orgAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        Passport::actingAs($globalAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 0;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 6;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = -1;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 5;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('POST', '/core/v1/services', $payload);
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
     /*
      * Get a specific service.
      */
@@ -708,6 +782,7 @@ class ServicesTest extends TestCase
                     'url' => 'https://www.instagram.com/ayupdigital/',
                 ],
             ],
+            'score' => $service->score,
             'category_taxonomies' => [
                 [
                     'id' => Taxonomy::category()->children()->first()->id,
@@ -804,6 +879,7 @@ class ServicesTest extends TestCase
                     'url' => 'https://www.instagram.com/ayupdigital/',
                 ],
             ],
+            'score' => $service->score,
             'category_taxonomies' => [
                 [
                     'id' => Taxonomy::category()->children()->first()->id,
@@ -1099,6 +1175,7 @@ class ServicesTest extends TestCase
                     'url' => 'https://www.instagram.com/ayupdigital',
                 ],
             ],
+            'score' => $service->score,
             'gallery_items' => [],
             'category_taxonomies' => [
                 $taxonomy->id,
@@ -1550,6 +1627,53 @@ class ServicesTest extends TestCase
         ]);
     }
 
+    public function test_super_admin_can_update_score_between_1_and_5()
+    {
+        $service = factory(Service::class)->create([
+            'score' => 3,
+        ]);
+        $superAdmin = $this->makeSuperAdmin(factory(User::class)->create());
+        $globalAdmin = $this->makeGlobalAdmin(factory(User::class)->create());
+        $orgAdmin = $this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation);
+
+        $payload = $this->updateServicePayload($service);
+        $payload['score'] = 5;
+
+        Passport::actingAs($orgAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        Passport::actingAs($globalAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 0;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 6;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = -1;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $payload['score'] = 5;
+        Passport::actingAs($superAdmin);
+
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+        $response->assertStatus(Response::HTTP_OK);
+    }
+
     /*
      * Delete a specific service.
      */
@@ -1798,6 +1922,7 @@ class ServicesTest extends TestCase
                             'url',
                         ],
                     ],
+                    'score',
                     'gallery_items' => [
                         [
                             'file_id',

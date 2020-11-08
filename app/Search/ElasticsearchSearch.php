@@ -41,25 +41,39 @@ class ElasticsearchSearch implements Search
             'from' => 0,
             'size' => config('hlp.pagination_results'),
             'query' => [
-                'bool' => [
-                    'filter' => [
+                'function_score' => [
+                    'boost_mode' => 'sum',
+                    'query' => [
                         'bool' => [
-                            'must' => [
-                                [
-                                    'term' => [
-                                        'status' => Service::STATUS_ACTIVE,
+                            'filter' => [
+                                'bool' => [
+                                    'must' => [
+                                        [
+                                            'term' => [
+                                                'status' => Service::STATUS_ACTIVE,
+                                            ],
+                                        ],
+                                    ],
+                                    'should' => [
+                                        //
                                     ],
                                 ],
                             ],
-                            'should' => [
-                                //
+                            'must' => [
+                                'bool' => [
+                                    'should' => [
+                                        //
+                                    ],
+                                ],
                             ],
                         ],
                     ],
-                    'must' => [
-                        'bool' => [
-                            'should' => [
-                                //
+                    'functions' => [
+                        [
+                            'field_value_factor' => [
+                                'field' => 'score',
+                                'modifier' => 'ln1p',
+                                'missing' => 1,
                             ],
                         ],
                     ],
@@ -73,7 +87,7 @@ class ElasticsearchSearch implements Search
      */
     public function applyQuery(string $term): Search
     {
-        $should = &$this->query['query']['bool']['must']['bool']['should'];
+        $should = &$this->query['query']['function_score']['query']['bool']['must']['bool']['should'];
 
         $should[] = $this->match('name', $term, 3);
         $should[] = $this->match('intro', $term, 2);
@@ -89,7 +103,7 @@ class ElasticsearchSearch implements Search
      */
     public function applyType(string $type): Search
     {
-        $this->query['query']['bool']['filter']['bool']['must'][] = [
+        $this->query['query']['function_score']['query']['bool']['filter']['bool']['must'][] = [
             'term' => [
                 'type' => $type,
             ],
@@ -189,7 +203,7 @@ class ElasticsearchSearch implements Search
                 break;
         }
 
-        $this->query['query']['bool']['filter']['bool']['should'][] = $criteria;
+        $this->query['query']['function_score']['query']['bool']['filter']['bool']['should'][] = $criteria;
 
         return $this;
     }
@@ -199,7 +213,7 @@ class ElasticsearchSearch implements Search
      */
     public function applyIsFree(bool $isFree): Search
     {
-        $this->query['query']['bool']['filter']['bool']['must'][] = [
+        $this->query['query']['function_score']['query']['bool']['filter']['bool']['must'][] = [
             'term' => [
                 'is_free' => $isFree,
             ],
@@ -213,7 +227,7 @@ class ElasticsearchSearch implements Search
      */
     public function applyIsNational(bool $isNational): Search
     {
-        $this->query['query']['bool']['filter']['bool']['must'][] = [
+        $this->query['query']['function_score']['query']['bool']['filter']['bool']['must'][] = [
             'term' => [
                 'is_national' => $isNational,
             ],
@@ -246,7 +260,7 @@ class ElasticsearchSearch implements Search
      */
     public function applyRadius(Coordinate $location, int $radius): Search
     {
-        $this->query['query']['bool']['filter']['bool']['must'][] = [
+        $this->query['query']['function_score']['query']['bool']['filter']['bool']['must'][] = [
             'nested' => [
                 'path' => 'service_locations',
                 'query' => [
@@ -411,13 +425,13 @@ class ElasticsearchSearch implements Search
 
         $term = $type === 'category' ? 'collection_categories' : 'collection_personas';
 
-        $should = &$this->query['query']['bool']['must']['bool']['should'];
+        $should = &$this->query['query']['function_score']['query']['bool']['must']['bool']['should'];
 
         foreach ($collectionModel->taxonomies as $taxonomy) {
             $should[] = $this->match('taxonomy_categories', $taxonomy->name);
         }
 
-        foreach ($this->query['query']['bool']['filter']['bool']['must'] as &$filter) {
+        foreach ($this->query['query']['function_score']['query']['bool']['filter']['bool']['must'] as &$filter) {
             if (is_array($filter) && array_key_exists('terms', $filter) && array_key_exists($term, $filter['terms'])) {
                 $filter['terms'][$term][] = $collectionModel->name;
 
@@ -425,7 +439,7 @@ class ElasticsearchSearch implements Search
             }
         }
 
-        $this->query['query']['bool']['filter']['bool']['must'][] = [
+        $this->query['query']['function_score']['query']['bool']['filter']['bool']['must'][] = [
             'terms' => [
                 $term => [$collectionModel->name],
             ],

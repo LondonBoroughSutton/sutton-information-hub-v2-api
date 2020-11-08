@@ -80,6 +80,14 @@ class UpdateServiceSchema extends Schema
                     ->nullable(),
                 Schema::string('testimonial')
                     ->nullable(),
+                Schema::integer('score')
+                    ->enum(
+                        Service::SCORE_POOR,
+                        Service::SCORE_BELOW_AVERAGE,
+                        Service::SCORE_AVERAGE,
+                        Service::SCORE_ABOVE_AVERAGE,
+                        Service::SCORE_EXCELLENT
+                    ),
                 Schema::string('video_embed')
                     ->nullable(),
                 Schema::string('url')
