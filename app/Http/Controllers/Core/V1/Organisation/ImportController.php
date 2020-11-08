@@ -7,7 +7,6 @@ use App\BatchUpload\StoresSpreadsheets;
 use App\Exceptions\DuplicateContentException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organisation\ImportRequest;
-use App\Models\Role;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -86,7 +85,7 @@ class ImportController extends Controller
         foreach ($spreadsheetParser->readRows() as $i => $row) {
             $validator = Validator::make($row, [
                 'name' => ['required', 'string', 'min:1', 'max:255'],
-                'description' => ['required', 'string', 'min:1', 'max:10000'],
+                'description' => ['present', 'nullable', 'string', 'min:1', 'max:10000'],
                 'url' => ['present', 'url', 'max:255'],
                 'email' => ['present', 'nullable', 'required_without:phone', 'email', 'max:255'],
                 'phone' => [
@@ -261,12 +260,9 @@ class ImportController extends Controller
         $spreadsheetParser->readHeaders();
 
         $importedRows = 0;
-        $adminRowBatch = [];
 
-        DB::transaction(function () use ($spreadsheetParser, &$importedRows, &$adminRowBatch) {
-            $organisationAdminRoleId = Role::organisationAdmin()->id;
-            $globalAdminIds = Role::globalAdmin()->users()->pluck('users.id');
-            $organisationRowBatch = $adminRowBatch = $nameIndex = [];
+        DB::transaction(function () use ($spreadsheetParser, &$importedRows) {
+            $organisationRowBatch = $nameIndex = [];
             foreach ($spreadsheetParser->readRows() as $i => $organisationRow) {
                 /**
                  * Generate a new Organisation ID, normalise the Organistion name
@@ -294,27 +290,12 @@ class ImportController extends Controller
                 $organisationRowBatch[] = $organisationRow;
 
                 /**
-                 * Create the user_roles rows for Organisation Admin for each Global Admin.
-                 */
-                foreach ($globalAdminIds as $globalAdminId) {
-                    $adminRowBatch[] = [
-                        'id' => (string)Str::uuid(),
-                        'user_id' => $globalAdminId,
-                        'role_id' => $organisationAdminRoleId,
-                        'organisation_id' => $organisationRow['id'],
-                        'created_at' => Date::now(),
-                        'updated_at' => Date::now(),
-                    ];
-                }
-
-                /**
                  * If the batch array has reach the import batch size create the insert queries.
                  */
                 if (count($organisationRowBatch) === self::ROW_IMPORT_BATCH_SIZE) {
                     DB::table('organisations')->insert($organisationRowBatch);
-                    DB::table('user_roles')->insert($adminRowBatch);
                     $importedRows += self::ROW_IMPORT_BATCH_SIZE;
-                    $organisationRowBatch = $adminRowBatch = [];
+                    $organisationRowBatch = [];
                 }
             }
 
@@ -323,7 +304,6 @@ class ImportController extends Controller
              */
             if (count($organisationRowBatch) && count($organisationRowBatch) !== self::ROW_IMPORT_BATCH_SIZE) {
                 DB::table('organisations')->insert($organisationRowBatch);
-                DB::table('user_roles')->insert($adminRowBatch);
                 $importedRows += count($organisationRowBatch);
             }
 

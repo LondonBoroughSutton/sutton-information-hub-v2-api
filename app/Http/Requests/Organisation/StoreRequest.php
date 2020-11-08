@@ -20,7 +20,7 @@ class StoreRequest extends FormRequest
      */
     public function authorize()
     {
-        if ($this->user()->isGlobalAdmin()) {
+        if ($this->user()->isGlobalAdmin() || $this->user()->isLocalAdmin()) {
             return true;
         }
 
@@ -44,7 +44,7 @@ class StoreRequest extends FormRequest
                 new Slug(),
             ],
             'name' => ['required', 'string', 'min:1', 'max:255'],
-            'description' => ['required', 'string', 'min:1', 'max:10000'],
+            'description' => ['present', 'nullable', 'string', 'min:1', 'max:10000'],
             'url' => ['present', 'nullable', 'url', 'max:255'],
             'email' => ['present', 'nullable', 'email', 'max:255'],
             'phone' => [

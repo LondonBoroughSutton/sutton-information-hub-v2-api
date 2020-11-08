@@ -7,11 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\OrganisationSignUpForm\StoreRequest;
 use App\Http\Resources\OrganisationSignUpFormResource;
 use App\Models\Organisation;
+use App\Models\Role;
 use App\Models\Service;
 use App\Models\User;
+use App\Models\UserRole;
 use App\Normalisers\OfferingNormaliser;
 use App\Normalisers\SocialMediaNormaliser;
 use App\Normalisers\UsefulInfoNormaliser;
+use App\RoleManagement\RoleManagerInterface;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -113,7 +116,18 @@ class OrganisationSignUpFormController extends Controller
                 'password' => bcrypt($request->input('user.password')),
             ]);
 
-            $user->makeOrganisationAdmin($organisation);
+            /** @var \App\RoleManagement\RoleManagerInterface $roleManager */
+            $roleManager = app()->make(RoleManagerInterface::class, [
+                'user' => $user,
+            ]);
+
+            // Update the user roles.
+            $roleManager->updateRoles(array_merge($user->userRoles->all(), [
+                new UserRole([
+                    'role_id' => Role::organisationAdmin()->id,
+                    'organisation_id' => $organisation->id,
+                ]),
+            ]));
 
             event(
                 EndpointHit::onCreate(

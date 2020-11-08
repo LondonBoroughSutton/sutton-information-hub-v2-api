@@ -15,6 +15,7 @@ class Role extends Model
     const NAME_SERVICE_WORKER = 'Service Worker';
     const NAME_SERVICE_ADMIN = 'Service Admin';
     const NAME_ORGANISATION_ADMIN = 'Organisation Admin';
+    const NAME_LOCAL_ADMIN = 'Local Admin';
     const NAME_GLOBAL_ADMIN = 'Global Admin';
     const NAME_SUPER_ADMIN = 'Super Admin';
 
@@ -45,6 +46,16 @@ class Role extends Model
     {
         return cache()->rememberForever('Role::organisationAdmin', function () {
             return static::query()->where('name', static::NAME_ORGANISATION_ADMIN)->firstOrFail();
+        });
+    }
+
+    /**
+     * @return \App\Models\Role
+     */
+    public static function localAdmin(): self
+    {
+        return cache()->rememberForever('Role::localAdmin', function () {
+            return static::query()->where('name', static::NAME_LOCAL_ADMIN)->firstOrFail();
         });
     }
 
