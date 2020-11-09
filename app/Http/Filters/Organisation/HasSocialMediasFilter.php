@@ -2,7 +2,6 @@
 
 namespace App\Http\Filters\Organisation;
 
-use App\Models\Organisation;
 use App\Models\SocialMedia;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +33,7 @@ class HasSocialMediasFilter implements Filter
                     $query->select(DB::raw(1))
                         ->from('social_medias')
                         ->whereRaw('organisations.id = social_medias.sociable_id')
-                        ->whereRaw('social_medias.sociable_type = ?', [table(Organisation::class)])
+                        ->whereRaw('social_medias.sociable_type = ?', ['organisations'])
                         ->whereRaw('social_medias.type = ?', [$value]);
                 });
                 break;
