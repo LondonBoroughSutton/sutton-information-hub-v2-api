@@ -31,12 +31,12 @@ class SpreadsheetParserTest extends TestCase
             'phone',
         ];
 
-        $this->spreadsheet = self::createSpreadsheets($organisations, $headers);
+        $this->spreadsheet = self::createSpreadsheets($organisations->toArray(), $headers);
 
         self::writeSpreadsheetsToDisk($this->spreadsheet, $this->xlsxFilepath, $this->xlsFilepath);
     }
 
-    public static function createSpreadsheets(\Illuminate\Support\Collection $models, array $headers)
+    public static function createSpreadsheets(array $data, array $headers)
     {
         /** Create a new Spreadsheet Object **/
         $spreadsheet = new Spreadsheet();
@@ -50,13 +50,13 @@ class SpreadsheetParserTest extends TestCase
         }
 
         /**
-         * Populate all the other rows with data from the models
+         * Populate all the other rows with the data
          */
         $row = 1;
-        foreach ($models as $model) {
+        foreach ($data as $item) {
             $row++;
             foreach ($headers as $i => $header) {
-                $spreadsheet->getActiveSheet()->setCellValue($columns[$i] . $row, $model->getAttribute($header));
+                $spreadsheet->getActiveSheet()->setCellValue($columns[$i] . $row, $item[$header] ?? '');
             }
         }
 
@@ -131,4 +131,3 @@ class SpreadsheetParserTest extends TestCase
         }
     }
 }
-

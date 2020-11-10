@@ -187,6 +187,8 @@ Route::prefix('core/v1')
                 ->name('users.user');
             Route::delete('/users/user/sessions', 'User\\SessionController@destroy')
                 ->name('users.user.sessions.destroy');
+            Route::post('/users/import', 'User\\ImportController')
+                ->name('users.import');
             Route::apiResource('/users', 'UserController');
         }
     );
