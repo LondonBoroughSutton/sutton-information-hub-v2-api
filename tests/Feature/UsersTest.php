@@ -2497,7 +2497,7 @@ class UsersTest extends TestCase
             'country',
         ];
 
-        $existingUser = factory(User::class)->create(['email' => 'test@example.org']);
+        factory(User::class)->create(['email' => 'test@example.org']);
 
         $users = collect([
             factory(User::class)->make(['email' => 'test@example.org']),
@@ -2527,6 +2527,210 @@ class UsersTest extends TestCase
                         ],
                     ],
                 ],
+            ],
+        ]);
+    }
+
+    public function test_imported_users_can_be_assigned_a_role()
+    {
+        Storage::fake('local');
+
+        $services = factory(Service::class, 2)->create();
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $services->get(0)->id,
+                ],
+                [
+                    'role' => Role::NAME_SERVICE_ADMIN,
+                    'service_id' => $services->get(1)->id,
+                ],
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $services->get(0)->organisation->id,
+                ],
+                ['role' => Role::NAME_GLOBAL_ADMIN],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5,
+            ],
+        ]);
+
+        $this->assertTrue(User::where('email', $users->get(0)->email)->first()->isServiceWorker($services->get(0)));
+        $this->assertTrue(User::where('email', $users->get(1)->email)->first()->isServiceAdmin($services->get(1)));
+        $this->assertTrue(User::where('email', $users->get(2)->email)->first()->isOrganisationAdmin($services->get(0)->organisation));
+        $this->assertTrue(User::where('email', $users->get(3)->email)->first()->isGlobalAdmin());
+        $this->assertEquals(1, User::where('email', $users->get(4)->email)->first()->roles()->count());
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $services->get(0)->id,
+                ],
+                [
+                    'role' => Role::NAME_SERVICE_ADMIN,
+                    'service_id' => $services->get(1)->id,
+                ],
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $services->get(0)->organisation->id,
+                ],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5,
+            ],
+        ]);
+
+        $this->assertEquals(2, User::where('email', $users->get(4)->email)->first()->roles()->count());
+    }
+
+    public function test_imported_users_can_be_assigned_a_local_authority()
+    {
+        Storage::fake('local');
+
+        $localAuthority = factory(LocalAuthority::class)->create();
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'local_authority_id' => $localAuthority->id,
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5,
+            ],
+        ]);
+
+        $this->assertEquals($localAuthority->id, User::where('email', $users->get(0)->email)->first()->localAuthority->id);
+    }
+
+    public function test_imported_users_cannot_be_assigned_local_admin_role_without_a_local_authority()
+    {
+        Storage::fake('local');
+
+        $localAuthority = factory(LocalAuthority::class)->create();
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                ['role' => Role::NAME_LOCAL_ADMIN],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                ['role' => Role::NAME_LOCAL_ADMIN],
+            ],
+            'local_authority_id' => $localAuthority->id,
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
+    public function test_users_file_import_100_rows()
+    {
+        Storage::fake('local');
+
+        $services = factory(Service::class, 2)->create();
+
+        $users = factory(User::class, 100)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $services->get(0)->id,
+                ],
+                [
+                    'role' => Role::NAME_SERVICE_ADMIN,
+                    'service_id' => $services->get(1)->id,
+                ],
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $services->get(0)->organisation->id,
+                ],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 100,
+            ],
+        ]);
+    }
+
+    public function test_users_file_import_5k_rows()
+    {
+        Storage::fake('local');
+
+        $services = factory(Service::class, 2)->create();
+
+        $users = factory(User::class, 5000)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $services->get(0)->id,
+                ],
+                [
+                    'role' => Role::NAME_SERVICE_ADMIN,
+                    'service_id' => $services->get(1)->id,
+                ],
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $services->get(0)->organisation->id,
+                ],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5000,
             ],
         ]);
     }

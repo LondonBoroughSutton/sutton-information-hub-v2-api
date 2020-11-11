@@ -6,6 +6,8 @@ use App\BatchUpload\SpreadsheetParser;
 use App\BatchUpload\StoresSpreadsheets;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\ImportRequest;
+use App\Models\Role;
+use App\Models\UserRole;
 use App\Rules\Postcode;
 use App\Rules\UkPhoneNumber;
 use App\Rules\UserEmailNotTaken;
@@ -26,11 +28,39 @@ class ImportController extends Controller
     const ROW_IMPORT_BATCH_SIZE = 100;
 
     /**
+     * Local Authority ID to assign to Users.
+     *
+     * @var string
+     */
+    protected $localAuthorityId = null;
+
+    /**
+     * Roles to assign to Users.
+     *
+     * @var array
+     */
+    protected $roles = [];
+
+    /**
+     * Role Ids.
+     *
+     * @var array
+     */
+    protected $roleIds = [];
+
+    /**
      * OrganisationController constructor.
      */
     public function __construct()
     {
         $this->middleware('auth:api');
+        $this->roleIds = [
+            'globalAdmin' => Role::globalAdmin()->id,
+            'localAdmin' => Role::localAdmin()->id,
+            'organisationAdmin' => Role::organisationAdmin()->id,
+            'serviceAdmin' => Role::serviceAdmin()->id,
+            'serviceWorker' => Role::serviceWorker()->id,
+        ];
     }
 
     /**
@@ -41,7 +71,8 @@ class ImportController extends Controller
      */
     public function __invoke(ImportRequest $request)
     {
-        $this->ignoreDuplicateIds = $request->input('ignore_duplicates', []);
+        $this->localAuthorityId = $request->input('local_authority_id', null);
+        $this->roles = $this->trimRoles($this->uniqueRoles($request->getUserRoles()));
         $this->processSpreadsheet($request->input('spreadsheet'));
 
         $responseStatus = 201;
@@ -147,7 +178,7 @@ class ImportController extends Controller
         ];
 
         DB::transaction(function () use ($spreadsheetParser, &$importedRows, $userHeaders, $addressHeaders) {
-            $userRowBatch = $addressRowBatch = [];
+            $userRowBatch = $addressRowBatch = $roleRowBatch = [];
             foreach ($spreadsheetParser->readRows() as $i => $userRow) {
                 /**
                  * Extract the Address data.
@@ -167,6 +198,11 @@ class ImportController extends Controller
                 $userRow['updated_at'] = Date::now();
 
                 /**
+                 * Assign the Local Authority ID if set.
+                 */
+                $userRow['local_authority_id'] = $this->localAuthorityId;
+
+                /**
                  * Create the Address if present.
                  */
                 if ($addressRow['address_line_1']) {
@@ -184,6 +220,14 @@ class ImportController extends Controller
                 }
 
                 /**
+                 * Assign Roles if supplied.
+                 */
+                if (count($this->roles)) {
+                    $roleRows = $this->createRoles($userRow['id']);
+                    $roleRowBatch = array_merge($roleRowBatch, $roleRows);
+                }
+
+                /**
                  * Add the row to the batch array.
                  */
                 $userRowBatch[] = $userRow;
@@ -195,8 +239,10 @@ class ImportController extends Controller
                     DB::table('locations')->insert($addressRowBatch);
                     $addressRowBatch = [];
                     DB::table('users')->insert($userRowBatch);
-                    $importedRows += self::ROW_IMPORT_BATCH_SIZE;
                     $userRowBatch = [];
+                    DB::table('user_roles')->insert($roleRowBatch);
+                    $roleRowBatch = [];
+                    $importedRows += self::ROW_IMPORT_BATCH_SIZE;
                 }
             }
 
@@ -206,10 +252,117 @@ class ImportController extends Controller
             if (count($userRowBatch) && count($userRowBatch) !== self::ROW_IMPORT_BATCH_SIZE) {
                 DB::table('locations')->insert($addressRowBatch);
                 DB::table('users')->insert($userRowBatch);
+                DB::table('user_roles')->insert($roleRowBatch);
                 $importedRows += count($userRowBatch);
             }
         }, 5);
 
         return $importedRows;
+    }
+
+    /**
+     * @param \App\Models\UserRole[] $userRoles
+     * @return \App\Models\UserRole[]
+     */
+    protected function uniqueRoles(array $userRoles): array
+    {
+        return collect($userRoles)
+            ->unique(function (UserRole $userRole): array {
+                return [
+                    'role_id' => $userRole['role_id'],
+                    'service_id' => $userRole['service_id'] ?? null,
+                    'organisation_id' => $userRole['organisation_id'] ?? null,
+                ];
+            })
+            ->all();
+    }
+
+    /**
+     * Trim roles with overlapping privileges.
+     *
+     * @param array $userRoles
+     * @return array
+     */
+    public function trimRoles(array $userRoles)
+    {
+        $organisationIds = [];
+        $serviceIds = [];
+        $serviceAdminServiceIds = [];
+        $organisationServiceIds = [];
+
+        foreach ($userRoles as $role) {
+            // If Global Admin is set other roles are unnecessary
+            if ($role['role_id'] === $this->roleIds['globalAdmin']) {
+                return [$role];
+            }
+            if ($role['organisation_id']) {
+                $organisationIds[] = $role['organisation_id'];
+            }
+            if ($role['service_id']) {
+                $serviceIds[] = $role['service_id'];
+                if ($role['role_id'] === $this->roleIds['serviceAdmin']) {
+                    $serviceAdminServiceIds[] = $role['service_id'];
+                }
+            }
+        }
+        /**
+         * Filter out services which belong to organisations.
+         */
+        if (count($organisationIds) && count($serviceIds)) {
+            $organisationServiceIds = DB::table('services')->whereIn('organisation_id', $organisationIds)->pluck('id')->all();
+            $serviceIds = array_filter($serviceIds, function ($serviceId) use ($organisationServiceIds) {
+                return !in_array($serviceId, $organisationServiceIds);
+            });
+        }
+
+        /**
+         * Filter the roles to the minimum required.
+         */
+        return array_filter($userRoles, function ($userRole) use ($serviceIds, $serviceAdminServiceIds) {
+            /**
+             * Include the role if it is an Organisation admin or a Local Admin.
+             */
+            if ($userRole['role_id'] === $this->roleIds['localAdmin'] || $userRole['role_id'] === $this->roleIds['organisationAdmin']) {
+                return true;
+            }
+            /**
+             * Must be a Service Admin or Service Worker, so reject it if not in the filtered service IDs.
+             */
+            if (!in_array($userRole['service_id'], $serviceIds)) {
+                return false;
+            }
+            /**
+             * Reject it if a Service Worker already covered by a Service Admin.
+             */
+            if ($userRole['role_id'] === $this->roleIds['serviceWorker'] && in_array($userRole['service_id'], $serviceAdminServiceIds)) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * Create the DB insert for the user_roles table.
+     *
+     * @param string $userId
+     * @return array
+     */
+    public function createRoles(string $userId)
+    {
+        $userRoles = [];
+        foreach ($this->roles as $role) {
+            $userRoles[] = [
+                'id' => uuid(),
+                'user_id' => $userId,
+                'role_id' => $role->role_id,
+                'organisation_id' => $role->organisation_id ?? null,
+                'service_id' => $role->service_id ?? null,
+                'created_at' => Date::now(),
+                'updated_at' => Date::now(),
+            ];
+        }
+
+        return $userRoles;
     }
 }
