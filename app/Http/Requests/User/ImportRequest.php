@@ -50,17 +50,26 @@ class ImportRequest extends FormRequest
                 'exists:local_authorities,id',
             ],
             'roles' => ['sometimes', 'array'],
-            'roles.*' => ['sometimes', 'array', $canAssignRoleToUserRule],
+            'roles.*' => [
+                'sometimes',
+                'array',
+                $canAssignRoleToUserRule,
+                function ($attribute, $value, $fail) {
+                    if (Role::NAME_ORGANISATION_ADMIN === $value['role'] && empty($value['organisation_id'])) {
+                        $fail('Organisation ID is required for ' . $value['role']);
+                    }
+                    if ((Role::NAME_SERVICE_WORKER === $value['role'] || Role::NAME_SERVICE_ADMIN === $value['role']) && empty($value['service_id'])) {
+                        $fail('Service ID is required for ' . $value['role']);
+                    }
+                },
+            ],
             'roles.*.role' => ['required_with:roles.*', 'string', 'exists:roles,name'],
             'roles.*.organisation_id' => [
-                'nullable',
-                Rule::requiredIf(in_array(Role::NAME_ORGANISATION_ADMIN, $this->input('roles.*.role', []))),
+                'sometimes',
                 'exists:organisations,id',
             ],
             'roles.*.service_id' => [
-                'nullable',
-                Rule::requiredIf(in_array(Role::NAME_SERVICE_WORKER, $this->input('roles.*.role', []))),
-                Rule::requiredIf(in_array(Role::NAME_SERVICE_ADMIN, $this->input('roles.*.role', []))),
+                'sometimes',
                 'exists:services,id',
             ],
         ];
