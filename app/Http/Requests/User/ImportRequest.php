@@ -45,6 +45,7 @@ class ImportRequest extends FormRequest
                 'regex:/^data:application\/[a-z\-\.]+;base64,/',
             ],
             'local_authority_id' => [
+                'nullable',
                 Rule::requiredIf(in_array(Role::NAME_LOCAL_ADMIN, $this->input('roles.*.role', []))),
                 'exists:local_authorities,id',
             ],
@@ -52,12 +53,14 @@ class ImportRequest extends FormRequest
             'roles.*' => ['sometimes', 'array', $canAssignRoleToUserRule],
             'roles.*.role' => ['required_with:roles.*', 'string', 'exists:roles,name'],
             'roles.*.organisation_id' => [
-                'required_if:roles.*.role,' . Role::NAME_ORGANISATION_ADMIN,
+                'nullable',
+                Rule::requiredIf(in_array(Role::NAME_ORGANISATION_ADMIN, $this->input('roles.*.role', []))),
                 'exists:organisations,id',
             ],
             'roles.*.service_id' => [
-                'required_if:roles.*.role,' . Role::NAME_SERVICE_WORKER,
-                'required_if:roles.*.role,' . Role::NAME_SERVICE_ADMIN,
+                'nullable',
+                Rule::requiredIf(in_array(Role::NAME_SERVICE_WORKER, $this->input('roles.*.role', []))),
+                Rule::requiredIf(in_array(Role::NAME_SERVICE_ADMIN, $this->input('roles.*.role', []))),
                 'exists:services,id',
             ],
         ];
