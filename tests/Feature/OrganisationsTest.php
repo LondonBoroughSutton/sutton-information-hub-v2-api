@@ -6,6 +6,8 @@ use App\Events\EndpointHit;
 use App\Models\Audit;
 use App\Models\Location;
 use App\Models\Organisation;
+use App\Models\OrganisationAdminInvite;
+use App\Models\PendingOrganisationAdmin;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\SocialMedia;
@@ -65,6 +67,7 @@ class OrganisationsTest extends TestCase
                 'phone' => $organisation->phone,
                 'social_medias' => [],
                 'location' => null,
+                'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_NONE,
                 'created_at' => $organisation->created_at->format(CarbonImmutable::ISO8601),
                 'updated_at' => $organisation->updated_at->format(CarbonImmutable::ISO8601),
             ],
@@ -338,6 +341,7 @@ class OrganisationsTest extends TestCase
                 'phone' => $organisation->phone,
                 'social_medias' => [],
                 'location' => null,
+                'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_NONE,
                 'created_at' => $organisation->created_at->format(CarbonImmutable::ISO8601),
                 'updated_at' => $organisation->updated_at->format(CarbonImmutable::ISO8601),
             ],
@@ -364,6 +368,7 @@ class OrganisationsTest extends TestCase
                 'phone' => $organisation->phone,
                 'social_medias' => [],
                 'location' => null,
+                'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_NONE,
                 'created_at' => $organisation->created_at->format(CarbonImmutable::ISO8601),
                 'updated_at' => $organisation->updated_at->format(CarbonImmutable::ISO8601),
             ],
@@ -1532,5 +1537,186 @@ class OrganisationsTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonCount(5, 'data');
+    }
+
+    public function test_organisation_admin_invite_status_is_none_when_created()
+    {
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
+        Passport::actingAs($user);
+
+        $organisation = factory(Organisation::class)->create();
+
+        $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_NONE,
+        ]);
+    }
+
+    public function test_organisation_admin_invite_status_is_none_when_no_email_provided()
+    {
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
+        Passport::actingAs($user);
+
+        $organisation = factory(Organisation::class)->create();
+
+        $this->postJson('/core/v1/organisation-admin-invites', [
+            'organisations' => [
+                [
+                    'organisation_id' => $organisation->id,
+                    'use_email' => true,
+                ],
+            ],
+        ]);
+
+        $this->assertDatabaseMissing(table(OrganisationAdminInvite::class), [
+            'organisation_id' => $organisation->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_NONE,
+        ]);
+    }
+
+    public function test_organisation_admin_invite_status_is_invited_when_invite_sent()
+    {
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
+        Passport::actingAs($user);
+
+        $organisation = factory(Organisation::class)->states('email')->create();
+
+        $this->postJson('/core/v1/organisation-admin-invites', [
+            'organisations' => [
+                [
+                    'organisation_id' => $organisation->id,
+                    'use_email' => true,
+                ],
+            ],
+        ]);
+
+        $this->assertDatabaseHas(table(OrganisationAdminInvite::class), [
+            'organisation_id' => $organisation->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_INVITED,
+        ]);
+    }
+
+    public function test_organisation_admin_invite_status_is_pending_when_invite_submitted()
+    {
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
+
+        $organisation = factory(Organisation::class)->states('email')->create();
+        $organisationAdminInvite = factory(OrganisationAdminInvite::class)->create([
+            'organisation_id' => $organisation->id,
+        ]);
+
+        $this->postJson("/core/v1/organisation-admin-invites/{$organisationAdminInvite->id}/submit", [
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john.doe@example.com',
+            'phone' => null,
+            'password' => 'Pa$$w0rd',
+        ]);
+
+        $this->assertDatabaseMissing(table(OrganisationAdminInvite::class), [
+            'organisation_id' => $organisation->id,
+        ]);
+
+        $this->assertDatabaseHas(table(PendingOrganisationAdmin::class), [
+            'organisation_id' => $organisation->id,
+        ]);
+
+        Passport::actingAs($user);
+
+        $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_PENDING,
+        ]);
+    }
+
+    public function test_organisation_admin_invite_status_is_confirmed_when_pending_email_is_confirmed()
+    {
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
+
+        $organisation = factory(Organisation::class)->states('email')->create();
+        $pendingOrganisationAdmin = factory(PendingOrganisationAdmin::class)->create([
+            'organisation_id' => $organisation->id,
+        ]);
+
+        $this->postJson("/core/v1/pending-organisation-admins/{$pendingOrganisationAdmin->id}/confirm");
+
+        $this->assertDatabaseMissing(table(PendingOrganisationAdmin::class), [
+            'organisation_id' => $organisation->id,
+        ]);
+
+        Passport::actingAs($user);
+
+        $response = $this->json('GET', '/core/v1/organisations/' . $organisation->id);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'admin_invite_status' => Organisation::ADMIN_INVITE_STATUS_CONFIRMED,
+        ]);
+    }
+
+    public function test_filter_organisations_by_admin_invite_status()
+    {
+        $user = $this->makeSuperAdmin(Factory(User::class)->create());
+
+        $organisationNone = factory(Organisation::class)->create();
+
+        $organisationInvited = factory(Organisation::class)->create();
+        factory(OrganisationAdminInvite::class)->states('email')->create([
+            'organisation_id' => $organisationInvited->id,
+        ]);
+
+        $organisationPending = factory(Organisation::class)->create();
+        factory(PendingOrganisationAdmin::class)->create([
+            'organisation_id' => $organisationPending->id,
+        ]);
+
+        $organisationConfirmed = factory(Organisation::class)->create();
+        $this->makeOrganisationAdmin(factory(User::class)->create(), $organisationConfirmed);
+
+        Passport::actingAs($user);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_admin_invite_status]=none');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'id' => $organisationNone->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_admin_invite_status]=invited');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'id' => $organisationInvited->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_admin_invite_status]=pending');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'id' => $organisationPending->id,
+        ]);
+
+        $response = $this->json('GET', '/core/v1/organisations?filter[has_admin_invite_status]=confirmed');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment([
+            'id' => $organisationConfirmed->id,
+        ]);
     }
 }
