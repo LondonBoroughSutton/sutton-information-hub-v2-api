@@ -20,7 +20,6 @@ class UpdateOrganisationSchema extends Schema
             ->required(
                 'name',
                 'slug',
-                'description',
                 'url'
             )
             ->properties(

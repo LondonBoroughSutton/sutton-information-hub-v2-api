@@ -80,7 +80,7 @@ class OrganisationController extends Controller
             $organisation = Organisation::create([
                 'slug' => $request->slug,
                 'name' => $request->name,
-                'description' => sanitize_markdown($request->description),
+                'description' => $request->description ? sanitize_markdown($request->description) : null,
                 'url' => $request->url,
                 'email' => $request->email,
                 'phone' => $request->phone,
