@@ -9,8 +9,6 @@ class UpdateServiceCriteriaTableAddBenefitsColumnAndNullHousingIncomeLanguageOth
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
@@ -29,8 +27,6 @@ class UpdateServiceCriteriaTableAddBenefitsColumnAndNullHousingIncomeLanguageOth
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {
