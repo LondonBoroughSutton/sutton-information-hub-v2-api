@@ -86,13 +86,7 @@ class ServiceSchema extends Schema
                             ->nullable(),
                         Schema::string('gender')
                             ->nullable(),
-                        Schema::string('housing')
-                            ->nullable(),
-                        Schema::string('income')
-                            ->nullable(),
-                        Schema::string('language')
-                            ->nullable(),
-                        Schema::string('other')
+                        Schema::string('benefits')
                             ->nullable()
                     ),
                 Schema::array('useful_infos')
