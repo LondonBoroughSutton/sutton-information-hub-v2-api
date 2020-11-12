@@ -64,14 +64,11 @@ class ServicesTest extends TestCase
             'referral_email' => null,
             'referral_url' => null,
             'criteria' => [
-                'age_group' => '18+',
+                'age_group' => '16 to 24',
                 'disability' => null,
                 'employment' => null,
                 'gender' => null,
-                'housing' => null,
-                'income' => null,
-                'language' => null,
-                'other' => null,
+                'benefits' => null,
             ],
             'useful_infos' => [
                 [
@@ -135,10 +132,7 @@ class ServicesTest extends TestCase
                 'disability' => $service->serviceCriterion->disability,
                 'employment' => $service->serviceCriterion->employment,
                 'gender' => $service->serviceCriterion->gender,
-                'housing' => $service->serviceCriterion->housing,
-                'income' => $service->serviceCriterion->income,
-                'language' => $service->serviceCriterion->language,
-                'other' => $service->serviceCriterion->other,
+                'benefits' => $service->serviceCriterion->benefits,
             ],
             'useful_infos' => [],
             'social_medias' => [],
@@ -207,10 +201,7 @@ class ServicesTest extends TestCase
                 'disability' => $service->serviceCriterion->disability,
                 'employment' => $service->serviceCriterion->employment,
                 'gender' => $service->serviceCriterion->gender,
-                'housing' => $service->serviceCriterion->housing,
-                'income' => $service->serviceCriterion->income,
-                'language' => $service->serviceCriterion->language,
-                'other' => $service->serviceCriterion->other,
+                'benefits' => $service->serviceCriterion->benefits,
             ],
             'useful_infos' => [
                 [
@@ -758,10 +749,7 @@ class ServicesTest extends TestCase
                 'disability' => $service->serviceCriterion->disability,
                 'employment' => $service->serviceCriterion->employment,
                 'gender' => $service->serviceCriterion->gender,
-                'housing' => $service->serviceCriterion->housing,
-                'income' => $service->serviceCriterion->income,
-                'language' => $service->serviceCriterion->language,
-                'other' => $service->serviceCriterion->other,
+                'benefits' => $service->serviceCriterion->benefits,
             ],
             'useful_infos' => [
                 [
@@ -855,10 +843,7 @@ class ServicesTest extends TestCase
                 'disability' => $service->serviceCriterion->disability,
                 'employment' => $service->serviceCriterion->employment,
                 'gender' => $service->serviceCriterion->gender,
-                'housing' => $service->serviceCriterion->housing,
-                'income' => $service->serviceCriterion->income,
-                'language' => $service->serviceCriterion->language,
-                'other' => $service->serviceCriterion->other,
+                'benefits' => $service->serviceCriterion->benefits,
             ],
             'useful_infos' => [
                 [
@@ -1057,14 +1042,11 @@ class ServicesTest extends TestCase
             'referral_email' => $service->referral_email,
             'referral_url' => $service->referral_url,
             'criteria' => [
-                'age_group' => '18+',
+                'age_group' => '16 to 24',
                 'disability' => null,
                 'employment' => null,
                 'gender' => null,
-                'housing' => null,
-                'income' => null,
-                'language' => null,
-                'other' => null,
+                'benefits' => null,
             ],
             'useful_infos' => [
                 [
@@ -1147,14 +1129,11 @@ class ServicesTest extends TestCase
             'referral_email' => $service->referral_email,
             'referral_url' => $service->referral_url,
             'criteria' => [
-                'age_group' => '18+',
+                'age_group' => '16 to 24',
                 'disability' => null,
                 'employment' => null,
                 'gender' => null,
-                'housing' => null,
-                'income' => null,
-                'language' => null,
-                'other' => null,
+                'benefits' => null,
             ],
             'useful_infos' => [
                 [
@@ -1971,10 +1950,7 @@ class ServicesTest extends TestCase
                         'disability',
                         'employment',
                         'gender',
-                        'housing',
-                        'income',
-                        'language',
-                        'other',
+                        'benefits',
                     ],
                     'useful_infos' => [
                         [

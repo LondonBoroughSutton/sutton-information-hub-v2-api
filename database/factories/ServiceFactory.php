@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Service;
+use App\Models\ServiceCriterion;
 use App\Models\SocialMedia;
 use Faker\Generator as Faker;
 use Illuminate\Support\Facades\Date;
@@ -37,14 +38,11 @@ $factory->define(Service::class, function (Faker $faker) {
 $factory->afterCreating(Service::class, function (Service $service, Faker $faker) {
     \App\Models\ServiceCriterion::create([
         'service_id' => $service->id,
-        'age_group' => null,
-        'disability' => null,
-        'employment' => null,
-        'gender' => null,
-        'housing' => null,
-        'income' => null,
-        'language' => null,
-        'other' => null,
+        'age_group' => implode(',', $faker->randomElements(ServiceCriterion::AGE_GROUP_FIELD_OPTIONS, $faker->numberBetween(0, 3))),
+        'disability' => implode(',', $faker->randomElements(ServiceCriterion::DISABILITIES_FIELD_OPTIONS, $faker->numberBetween(0, 3))),
+        'employment' => implode(',', $faker->randomElements(ServiceCriterion::EMPLOYMENT_FIELD_OPTIONS, $faker->numberBetween(0, 3))),
+        'gender' => implode(',', $faker->randomElements(ServiceCriterion::GENDER_FIELD_OPTIONS, $faker->numberBetween(0, 3))),
+        'benefits' => implode(',', $faker->randomElements(ServiceCriterion::BENEFIT_FIELD_OPTIONS, $faker->numberBetween(0, 3))),
     ]);
 });
 

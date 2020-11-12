@@ -249,10 +249,7 @@ class UpdateRequest extends FormRequest
             'criteria.disability' => ['nullable', 'string', 'min:1', 'max:255'],
             'criteria.employment' => ['nullable', 'string', 'min:1', 'max:255'],
             'criteria.gender' => ['nullable', 'string', 'min:1', 'max:255'],
-            'criteria.housing' => ['nullable', 'string', 'min:1', 'max:255'],
-            'criteria.income' => ['nullable', 'string', 'min:1', 'max:255'],
-            'criteria.language' => ['nullable', 'string', 'min:1', 'max:255'],
-            'criteria.other' => ['nullable', 'string', 'min:1', 'max:255'],
+            'criteria.benefits' => ['nullable', 'string', 'min:1', 'max:255'],
 
             'useful_infos' => ['array'],
             'useful_infos.*' => ['array'],

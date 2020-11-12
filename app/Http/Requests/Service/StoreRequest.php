@@ -94,10 +94,10 @@ class StoreRequest extends FormRequest
             'url' => ['required', 'url', 'max:255'],
             'ios_app_url' => [
                 Rule::requiredIf($this->type === Service::TYPE_APP && !$this->android_app_url),
-                'present', 'nullable', 'url', 'max:255', ],
+                'present', 'nullable', 'url', 'max:255'],
             'android_app_url' => [
                 Rule::requiredIf($this->type === Service::TYPE_APP && !$this->ios_app_url),
-                'present', 'nullable', 'url', 'max:255', ],
+                'present', 'nullable', 'url', 'max:255'],
             'contact_name' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
             'contact_phone' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
             'contact_email' => ['present', 'nullable', 'email', 'max:255'],
@@ -179,10 +179,7 @@ class StoreRequest extends FormRequest
             'criteria.disability' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
             'criteria.employment' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
             'criteria.gender' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
-            'criteria.housing' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
-            'criteria.income' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
-            'criteria.language' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
-            'criteria.other' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
+            'criteria.benefits' => ['present', 'nullable', 'string', 'min:1', 'max:255'],
 
             'useful_infos' => ['present', 'array'],
             'useful_infos.*' => ['array'],

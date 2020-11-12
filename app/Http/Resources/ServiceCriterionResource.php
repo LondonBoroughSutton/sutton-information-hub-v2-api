@@ -19,10 +19,7 @@ class ServiceCriterionResource extends JsonResource
             'disability' => $this->disability,
             'employment' => $this->employment,
             'gender' => $this->gender,
-            'housing' => $this->housing,
-            'income' => $this->income,
-            'language' => $this->language,
-            'other' => $this->other,
+            'benefits' => $this->benefits,
         ];
     }
 }
