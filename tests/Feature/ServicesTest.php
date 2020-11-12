@@ -1296,6 +1296,27 @@ class ServicesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
 
         $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment([
+            'category_taxonomies' => [
+                [
+                    'id' => $taxonomy->id,
+                    'parent_id' => $taxonomy->parent_id,
+                    'slug' => $taxonomy->slug,
+                    'name' => $taxonomy->name,
+                    'created_at' => $taxonomy->created_at->format(CarbonImmutable::ISO8601),
+                    'updated_at' => $taxonomy->updated_at->format(CarbonImmutable::ISO8601),
+                ],
+                [
+                    'id' => $newTaxonomy->id,
+                    'parent_id' => $newTaxonomy->parent_id,
+                    'slug' => $newTaxonomy->slug,
+                    'name' => $newTaxonomy->name,
+                    'created_at' => $newTaxonomy->created_at->format(CarbonImmutable::ISO8601),
+                    'updated_at' => $newTaxonomy->updated_at->format(CarbonImmutable::ISO8601),
+                ],
+            ],
+        ]);
     }
 
     public function test_global_admin_can_update_taxonomies()
@@ -1321,6 +1342,27 @@ class ServicesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
 
         $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment([
+            'category_taxonomies' => [
+                [
+                    'id' => $taxonomy->id,
+                    'parent_id' => $taxonomy->parent_id,
+                    'slug' => $taxonomy->slug,
+                    'name' => $taxonomy->name,
+                    'created_at' => $taxonomy->created_at->format(CarbonImmutable::ISO8601),
+                    'updated_at' => $taxonomy->updated_at->format(CarbonImmutable::ISO8601),
+                ],
+                [
+                    'id' => $newTaxonomy->id,
+                    'parent_id' => $newTaxonomy->parent_id,
+                    'slug' => $newTaxonomy->slug,
+                    'name' => $newTaxonomy->name,
+                    'created_at' => $newTaxonomy->created_at->format(CarbonImmutable::ISO8601),
+                    'updated_at' => $newTaxonomy->updated_at->format(CarbonImmutable::ISO8601),
+                ],
+            ],
+        ]);
     }
 
     public function test_service_admin_cannot_update_status()
