@@ -363,6 +363,12 @@ class ServiceController extends Controller
                 }
             }
 
+            // Update the category taxonomy records.
+            if ($request->filled('category_taxonomies')) {
+                $taxonomies = Taxonomy::whereIn('id', $request->category_taxonomies)->get();
+                $service->syncServiceTaxonomies($taxonomies);
+            }
+
             if ($request->filled('logo_file_id')) {
                 /** @var \App\Models\File $file */
                 $file = File::findOrFail($request->logo_file_id)->assigned();

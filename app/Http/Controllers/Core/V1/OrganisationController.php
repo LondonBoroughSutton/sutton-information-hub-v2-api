@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Core\V1;
 
 use App\Events\EndpointHit;
 use App\Http\Controllers\Controller;
+use App\Http\Filters\Organisation\HasAdminInviteStatusFilter;
 use App\Http\Filters\Organisation\HasEmailFilter;
 use App\Http\Filters\Organisation\HasPermissionFilter;
 use App\Http\Filters\Organisation\HasPhoneFilter;
@@ -42,7 +43,7 @@ class OrganisationController extends Controller
      */
     public function index(IndexRequest $request)
     {
-        $baseQuery = Organisation::query();
+        $baseQuery = Organisation::select(table(Organisation::class, '*'));
 
         $organisations = QueryBuilder::for($baseQuery)
             ->allowedFilters([
@@ -54,6 +55,7 @@ class OrganisationController extends Controller
                 Filter::custom('has_social_medias', HasSocialMediasFilter::class),
                 Filter::custom('has_phone', HasPhoneFilter::class),
                 Filter::custom('has_services', HasServicesFilter::class),
+                Filter::custom('has_admin_invite_status', HasAdminInviteStatusFilter::class),
             ])
             ->allowedSorts('name')
             ->defaultSort('name')
