@@ -10,6 +10,7 @@ use App\Models\Location;
 use App\Models\Organisation;
 use App\Models\RegularOpeningHour;
 use App\Models\Service;
+use App\Models\ServiceCriterion;
 use App\Models\ServiceLocation;
 use App\Models\ServiceRefreshToken;
 use App\Models\ServiceTaxonomy;
@@ -64,9 +65,9 @@ class ServicesTest extends TestCase
             'referral_email' => null,
             'referral_url' => null,
             'criteria' => [
-                'age_group' => '16 to 24',
+                'age_group' => [ServiceCriterion::AGE_GROUP_FIELD_OPTIONS[0], ServiceCriterion::AGE_GROUP_FIELD_OPTIONS[2]],
                 'disability' => null,
-                'employment' => null,
+                'employment' => [ServiceCriterion::EMPLOYMENT_FIELD_OPTIONS[0]],
                 'gender' => null,
                 'benefits' => null,
             ],
@@ -142,6 +143,36 @@ class ServicesTest extends TestCase
         ];
     }
 
+    /**
+     * Convert array to comma seperated string
+     *
+     * @todo Thsi is a temporary fix until Criteria fields can be returned as arrays
+     *
+     * @param Array $payload
+     * @return String
+     **/
+    public function arrayToString($value)
+    {
+        return $value ? implode(', ', $value) : null;
+    }
+
+    /**
+     * Convert sent payload to returned payload
+     * Returned Criteria fields are strings not arrays
+     *
+     * @todo Thsi is a temporary fix until Criteria fields can be returned as arrays
+     *
+     * @param Array $payload
+     * @return Array
+     **/
+    public function convertToReturnedPayload($payload)
+    {
+        foreach ($payload['criteria'] as $criteria => $values) {
+            $payload['criteria'][$criteria] = $this->arrayToString($values);
+        }
+        return $payload;
+    }
+
     /*
      * List all the services.
      */
@@ -197,11 +228,11 @@ class ServicesTest extends TestCase
             'referral_email' => $service->referral_email,
             'referral_url' => $service->referral_url,
             'criteria' => [
-                'age_group' => $service->serviceCriterion->age_group,
-                'disability' => $service->serviceCriterion->disability,
-                'employment' => $service->serviceCriterion->employment,
-                'gender' => $service->serviceCriterion->gender,
-                'benefits' => $service->serviceCriterion->benefits,
+                'age_group' => $this->arrayToString($service->serviceCriterion->age_group),
+                'disability' => $this->arrayToString($service->serviceCriterion->disability),
+                'employment' => $this->arrayToString($service->serviceCriterion->employment),
+                'gender' => $this->arrayToString($service->serviceCriterion->gender),
+                'benefits' => $this->arrayToString($service->serviceCriterion->benefits),
             ],
             'useful_infos' => [
                 [
@@ -425,7 +456,7 @@ class ServicesTest extends TestCase
         $response = $this->json('POST', '/core/v1/services', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
-        $response->assertJsonFragment($payload);
+        $response->assertJsonFragment($this->convertToReturnedPayload($payload));
     }
 
     public function test_organisation_admin_can_create_one_with_single_form_of_contact()
@@ -440,7 +471,7 @@ class ServicesTest extends TestCase
         $response = $this->json('POST', '/core/v1/services', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
-        $response->assertJsonFragment($payload);
+        $response->assertJsonFragment($this->convertToReturnedPayload($payload));
     }
 
     public function test_organisation_admin_cannot_create_an_active_one()
@@ -531,7 +562,7 @@ class ServicesTest extends TestCase
         $response = $this->json('POST', '/core/v1/services', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
-        $responsePayload = $payload;
+        $responsePayload = $this->convertToReturnedPayload($payload);
         $responsePayload['category_taxonomies'] = [
             [
                 'id' => Taxonomy::category()->children()->firstOrFail()->id,
@@ -559,7 +590,7 @@ class ServicesTest extends TestCase
         $response = $this->json('POST', '/core/v1/services', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
-        $responsePayload = $payload;
+        $responsePayload = $this->convertToReturnedPayload($payload);
         $responsePayload['category_taxonomies'] = [
             [
                 'id' => Taxonomy::category()->children()->firstOrFail()->id,
@@ -590,7 +621,7 @@ class ServicesTest extends TestCase
         $response = $this->json('POST', '/core/v1/services', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
-        $responsePayload = $payload;
+        $responsePayload = $this->convertToReturnedPayload($payload);
         $responsePayload['category_taxonomies'] = [
             [
                 'id' => Taxonomy::category()->children()->firstOrFail()->id,
@@ -745,11 +776,11 @@ class ServicesTest extends TestCase
             'referral_email' => $service->referral_email,
             'referral_url' => $service->referral_url,
             'criteria' => [
-                'age_group' => $service->serviceCriterion->age_group,
-                'disability' => $service->serviceCriterion->disability,
-                'employment' => $service->serviceCriterion->employment,
-                'gender' => $service->serviceCriterion->gender,
-                'benefits' => $service->serviceCriterion->benefits,
+                'age_group' => $this->arrayToString($service->serviceCriterion->age_group),
+                'disability' => $this->arrayToString($service->serviceCriterion->disability),
+                'employment' => $this->arrayToString($service->serviceCriterion->employment),
+                'gender' => $this->arrayToString($service->serviceCriterion->gender),
+                'benefits' => $this->arrayToString($service->serviceCriterion->benefits),
             ],
             'useful_infos' => [
                 [
@@ -839,11 +870,11 @@ class ServicesTest extends TestCase
             'referral_email' => $service->referral_email,
             'referral_url' => $service->referral_url,
             'criteria' => [
-                'age_group' => $service->serviceCriterion->age_group,
-                'disability' => $service->serviceCriterion->disability,
-                'employment' => $service->serviceCriterion->employment,
-                'gender' => $service->serviceCriterion->gender,
-                'benefits' => $service->serviceCriterion->benefits,
+                'age_group' => $this->arrayToString($service->serviceCriterion->age_group),
+                'disability' => $this->arrayToString($service->serviceCriterion->disability),
+                'employment' => $this->arrayToString($service->serviceCriterion->employment),
+                'gender' => $this->arrayToString($service->serviceCriterion->gender),
+                'benefits' => $this->arrayToString($service->serviceCriterion->benefits),
             ],
             'useful_infos' => [
                 [
@@ -1042,7 +1073,7 @@ class ServicesTest extends TestCase
             'referral_email' => $service->referral_email,
             'referral_url' => $service->referral_url,
             'criteria' => [
-                'age_group' => '16 to 24',
+                'age_group' => ['16 to 24'],
                 'disability' => null,
                 'employment' => null,
                 'gender' => null,
@@ -1077,7 +1108,7 @@ class ServicesTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonFragment(array_merge(
-            $payload,
+            $this->convertToReturnedPayload($payload),
             [
                 'category_taxonomies' => [
                     [
@@ -1129,7 +1160,7 @@ class ServicesTest extends TestCase
             'referral_email' => $service->referral_email,
             'referral_url' => $service->referral_url,
             'criteria' => [
-                'age_group' => '16 to 24',
+                'age_group' => ['16 to 24'],
                 'disability' => null,
                 'employment' => null,
                 'gender' => null,
@@ -1165,7 +1196,7 @@ class ServicesTest extends TestCase
 
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonFragment(array_merge(
-            $payload,
+            $this->convertToReturnedPayload($payload),
             [
                 'category_taxonomies' => [
                     [
@@ -2664,7 +2695,7 @@ class ServicesTest extends TestCase
 
         $response = $this->json('POST', '/core/v1/services', $payload);
         $response->assertStatus(Response::HTTP_CREATED);
-        $response->assertJsonFragment($payload);
+        $response->assertJsonFragment($this->convertToReturnedPayload($payload));
     }
 
     public function test_organisation_admin_cannot_create_an_app_service_without_an_app_store_url()

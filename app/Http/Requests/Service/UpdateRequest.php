@@ -251,6 +251,18 @@ class UpdateRequest extends FormRequest
             'criteria.gender' => ['nullable', 'string', 'min:1', 'max:255'],
             'criteria.benefits' => ['nullable', 'string', 'min:1', 'max:255'],
 
+            'criteria' => ['array'],
+            'criteria.age_group' => ['nullable', 'array'],
+            'criteria.age_group.*' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
+            'criteria.disability' => ['nullable', 'array'],
+            'criteria.disability.*' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
+            'criteria.employment' => ['nullable', 'array'],
+            'criteria.employment.*' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
+            'criteria.gender' => ['nullable', 'array'],
+            'criteria.gender.*' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
+            'criteria.benefits' => ['nullable', 'array'],
+            'criteria.benefits.*' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
+
             'useful_infos' => ['array'],
             'useful_infos.*' => ['array'],
             'useful_infos.*.title' => ['required_with:useful_infos.*', 'string', 'min:1', 'max:255'],

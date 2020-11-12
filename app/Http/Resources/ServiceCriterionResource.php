@@ -14,12 +14,16 @@ class ServiceCriterionResource extends JsonResource
      */
     public function toArray($request)
     {
+        /**
+         * @todo attributes should be returned as an array, but to retain consistency in the api they are converted to strings
+         * Once time is available to update the api clients this should be removed.
+         */
         return [
-            'age_group' => $this->age_group,
-            'disability' => $this->disability,
-            'employment' => $this->employment,
-            'gender' => $this->gender,
-            'benefits' => $this->benefits,
+            'age_group' => $this->age_group ? implode(', ', $this->age_group) : null,
+            'disability' => $this->disability ? implode(', ', $this->disability) : null,
+            'employment' => $this->employment ? implode(', ', $this->employment) : null,
+            'gender' => $this->gender ? implode(', ', $this->gender) : null,
+            'benefits' => $this->benefits ? implode(', ', $this->benefits) : null,
         ];
     }
 }
