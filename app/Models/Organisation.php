@@ -14,6 +14,9 @@ class Organisation extends Model
     use OrganisationRelationships;
     use OrganisationScopes;
 
+    const PHONE_TYPE_MOBILE = 'mobile';
+    const PHONE_TYPE_LANDLINE = 'landline';
+
     const ADMIN_INVITE_STATUS_NONE = 'none';
     const ADMIN_INVITE_STATUS_INVITED = 'invited';
     const ADMIN_INVITE_STATUS_PENDING = 'pending';
