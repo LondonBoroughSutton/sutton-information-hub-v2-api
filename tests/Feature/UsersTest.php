@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Emails\UserCreated\NotifyUserEmail;
 use App\Events\EndpointHit;
+use App\Jobs\NotifyNewUser;
 use App\Models\Audit;
 use App\Models\LocalAuthority;
 use App\Models\Location;
@@ -14,6 +16,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
@@ -2659,6 +2662,39 @@ class UsersTest extends TestCase
             'local_authority_id' => $localAuthority->id,
         ]);
         $response->assertStatus(Response::HTTP_CREATED);
+    }
+
+    public function test_imported_users_are_sent_a_welcome_email()
+    {
+        Storage::fake('local');
+        Queue::fake();
+
+        $users = factory(User::class, 2)->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        Queue::assertPushed(NotifyNewUser::class, 2);
+        Queue::assertPushed(NotifyNewUser::class, function ($job) {
+            $job->handle();
+            return true;
+        });
+
+        Queue::assertPushed(NotifyUserEmail::class, 2);
+        Queue::assertPushedOn('notifications', NotifyUserEmail::class, function ($job) {
+            $mockEmailSender = $this->mock(\App\EmailSenders\NullEmailSender::class, function ($mock) use ($job) {
+                $mock->shouldReceive('send')->with($job);
+            });
+
+            $job->handle($mockEmailSender);
+            return true;
+        });
     }
 
     public function test_users_file_import_100_rows()

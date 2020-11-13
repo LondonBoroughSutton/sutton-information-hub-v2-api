@@ -6,6 +6,7 @@ use App\BatchUpload\SpreadsheetParser;
 use App\BatchUpload\StoresSpreadsheets;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\ImportRequest;
+use App\Jobs\NotifyNewUser;
 use App\Models\Role;
 use App\Models\UserRole;
 use App\Rules\Postcode;
@@ -226,6 +227,12 @@ class ImportController extends Controller
                     $roleRows = $this->createRoles($userRow['id']);
                     $roleRowBatch = array_merge($roleRowBatch, $roleRows);
                 }
+
+                /**
+                 * Add the NotifyNewUser job to the queue with a delay.
+                 */
+                NotifyNewUser::dispatch($userRow['id'])
+                    ->delay(now()->addMinutes(10));
 
                 /**
                  * Add the row to the batch array.
