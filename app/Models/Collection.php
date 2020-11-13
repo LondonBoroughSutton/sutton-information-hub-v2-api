@@ -50,7 +50,7 @@ class Collection extends Model
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException|\InvalidArgumentException
      * @return \App\Models\File|\Illuminate\Http\Response|\Illuminate\Contracts\Support\Responsable
      */
-    public static function personaPlaceholderLogo(int $maxDimension = null)
+    public static function placeholderLogo(int $maxDimension = null)
     {
         if ($maxDimension !== null) {
             return File::resizedPlaceholder($maxDimension, File::META_PLACEHOLDER_FOR_COLLECTION_PERSONA);

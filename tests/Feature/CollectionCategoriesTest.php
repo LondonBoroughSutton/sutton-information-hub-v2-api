@@ -6,6 +6,7 @@ use App\Events\EndpointHit;
 use App\Models\Audit;
 use App\Models\Collection;
 use App\Models\CollectionTaxonomy;
+use App\Models\File;
 use App\Models\Organisation;
 use App\Models\Service;
 use App\Models\Taxonomy;
@@ -13,6 +14,7 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
 
@@ -32,7 +34,6 @@ class CollectionCategoriesTest extends TestCase
             'slug',
             'name',
             'intro',
-            'icon',
             'order',
             'sideboxes' => [
                 '*' => [
@@ -156,7 +157,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('POST', '/core/v1/collections/categories', [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 1,
             'sideboxes' => [
                 [
@@ -173,7 +173,6 @@ class CollectionCategoriesTest extends TestCase
             'slug',
             'name',
             'intro',
-            'icon',
             'order',
             'sideboxes' => [
                 '*' => [
@@ -196,7 +195,6 @@ class CollectionCategoriesTest extends TestCase
         $response->assertJsonFragment([
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 1,
             'sideboxes' => [
                 [
@@ -227,7 +225,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -238,7 +235,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -249,7 +245,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -259,7 +254,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('POST', '/core/v1/collections/categories', [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 1,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -289,7 +283,7 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
+
                 'sideboxes' => [],
             ],
         ]);
@@ -300,7 +294,7 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
+
                 'sideboxes' => [],
             ],
         ]);
@@ -311,7 +305,7 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
+
                 'sideboxes' => [],
             ],
         ]);
@@ -321,7 +315,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('POST', '/core/v1/collections/categories', [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 2,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -351,7 +344,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -362,7 +354,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -373,7 +364,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -383,7 +373,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('POST', '/core/v1/collections/categories', [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 4,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -412,7 +401,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('POST', '/core/v1/collections/categories', [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 0,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -438,7 +426,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -449,7 +436,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -459,7 +445,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('POST', '/core/v1/collections/categories', [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 4,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -484,7 +469,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('POST', '/core/v1/collections/categories', [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 1,
             'sideboxes' => [],
             'category_taxonomies' => [$randomCategory->id],
@@ -513,7 +497,6 @@ class CollectionCategoriesTest extends TestCase
             'slug',
             'name',
             'intro',
-            'icon',
             'order',
             'sideboxes' => [
                 '*' => [
@@ -538,7 +521,6 @@ class CollectionCategoriesTest extends TestCase
             'slug' => $collectionCategory->slug,
             'name' => $collectionCategory->name,
             'intro' => $collectionCategory->meta['intro'],
-            'icon' => $collectionCategory->meta['icon'],
             'order' => $collectionCategory->order,
             'sideboxes' => $collectionCategory->meta['sideboxes'],
             'created_at' => $collectionCategory->created_at->format(CarbonImmutable::ISO8601),
@@ -558,7 +540,6 @@ class CollectionCategoriesTest extends TestCase
             'slug',
             'name',
             'intro',
-            'icon',
             'order',
             'sideboxes' => [
                 '*' => [
@@ -583,7 +564,6 @@ class CollectionCategoriesTest extends TestCase
             'slug' => $collectionCategory->slug,
             'name' => $collectionCategory->name,
             'intro' => $collectionCategory->meta['intro'],
-            'icon' => $collectionCategory->meta['icon'],
             'order' => $collectionCategory->order,
             'sideboxes' => $collectionCategory->meta['sideboxes'],
             'created_at' => $collectionCategory->created_at->format(CarbonImmutable::ISO8601),
@@ -687,7 +667,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/collections/categories/{$category->id}", [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 1,
             'sideboxes' => [],
             'category_taxonomies' => [$taxonomy->id],
@@ -699,7 +678,6 @@ class CollectionCategoriesTest extends TestCase
             'slug',
             'name',
             'intro',
-            'icon',
             'order',
             'sideboxes' => [
                 '*' => [
@@ -722,7 +700,6 @@ class CollectionCategoriesTest extends TestCase
         $response->assertJsonFragment([
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 1,
             'sideboxes' => [],
         ]);
@@ -748,7 +725,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -759,7 +735,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -770,7 +745,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -780,7 +754,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/collections/categories/{$third->id}", [
             'name' => 'Third',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 1,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -809,7 +782,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -820,7 +792,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -831,7 +802,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -841,7 +811,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/collections/categories/{$first->id}", [
             'name' => 'First',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 2,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -870,7 +839,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -881,7 +849,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -892,7 +859,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -902,7 +868,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/collections/categories/{$first->id}", [
             'name' => 'First',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 3,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -931,7 +896,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -941,7 +905,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/collections/categories/{$category->id}", [
             'name' => 'First',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 0,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -967,7 +930,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -977,7 +939,6 @@ class CollectionCategoriesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/collections/categories/{$category->id}", [
             'name' => 'First',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 2,
             'sideboxes' => [],
             'category_taxonomies' => [],
@@ -1003,7 +964,6 @@ class CollectionCategoriesTest extends TestCase
         $this->json('PUT', "/core/v1/collections/categories/{$category->id}", [
             'name' => 'Test Category',
             'intro' => 'Lorem ipsum',
-            'icon' => 'info',
             'order' => 1,
             'sideboxes' => [],
             'category_taxonomies' => [$taxonomy->id],
@@ -1134,7 +1094,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1145,7 +1104,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1156,7 +1114,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1188,7 +1145,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1199,7 +1155,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1210,7 +1165,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1242,7 +1196,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 1,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1253,7 +1206,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 2,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1264,7 +1216,6 @@ class CollectionCategoriesTest extends TestCase
             'order' => 3,
             'meta' => [
                 'intro' => 'Lorem ipsum',
-                'icon' => 'info',
                 'sideboxes' => [],
             ],
         ]);
@@ -1299,5 +1250,103 @@ class CollectionCategoriesTest extends TestCase
                 ($event->getUser()->id === $user->id) &&
                 ($event->getModel()->id === $category->id);
         });
+    }
+
+    /*
+     * Get a specific category collection's image.
+     */
+
+    public function test_guest_can_view_image()
+    {
+        $category = Collection::categories()->inRandomOrder()->firstOrFail();
+
+        $response = $this->get("/core/v1/collections/categories/{$category->id}/image.png");
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertHeader('Content-Type', 'image/png');
+    }
+
+    public function test_audit_created_when_image_viewed()
+    {
+        $this->fakeEvents();
+
+        $category = Collection::categories()->inRandomOrder()->firstOrFail();
+
+        $this->get("/core/v1/collections/categories/{$category->id}/image.png");
+
+        Event::assertDispatched(EndpointHit::class, function (EndpointHit $event) use ($category) {
+            return ($event->getAction() === Audit::ACTION_READ) &&
+                ($event->getModel()->id === $category->id);
+        });
+    }
+
+    /*
+     * Upload a specific category collection's image.
+     */
+
+    public function test_super_admin_can_upload_image()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $this->makeSuperAdmin($user);
+        $randomCategory = Taxonomy::category()->children()->inRandomOrder()->firstOrFail();
+        $image = Storage::disk('local')->get('/test-data/image.png');
+
+        Passport::actingAs($user);
+
+        $imageResponse = $this->json('POST', '/core/v1/files', [
+            'is_private' => false,
+            'mime_type' => 'image/png',
+            'file' => 'data:image/png;base64,' . base64_encode($image),
+        ]);
+
+        $response = $this->json('POST', '/core/v1/collections/categories', [
+            'name' => 'Test Category',
+            'intro' => 'Lorem ipsum',
+            'order' => 1,
+            'sideboxes' => [],
+            'category_taxonomies' => [$randomCategory->id],
+            'image_file_id' => $this->getResponseContent($imageResponse, 'data.id'),
+        ]);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+        $collectionArray = $this->getResponseContent($response)['data'];
+        $content = $this->get("/core/v1/collections/categories/{$collectionArray['id']}/image.png")->content();
+        $this->assertEquals($image, $content);
+    }
+
+    /*
+     * Delete a specific category collection's image.
+     */
+
+    public function test_super_admin_can_delete_image()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $this->makeSuperAdmin($user);
+        $category = Collection::categories()->inRandomOrder()->firstOrFail();
+        $meta = $category->meta;
+        $meta['image_file_id'] = factory(File::class)->create()->id;
+        $category->meta = $meta;
+        $category->save();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/collections/categories/{$category->id}", [
+            'name' => $category->name,
+            'intro' => $category->meta['intro'],
+            'order' => $category->order,
+            'sideboxes' => [],
+            'category_taxonomies' => $category->taxonomies()->pluck(table(Taxonomy::class, 'id')),
+            'image_file_id' => null,
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $category = $category->fresh();
+        $this->assertEquals(null, $category->meta['image_file_id']);
     }
 }

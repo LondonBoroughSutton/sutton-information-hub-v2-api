@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Core\V1;
 use App\Events\EndpointHit;
 use App\Generators\UniqueSlugGenerator;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CollectionPersona\DestroyRequest;
-use App\Http\Requests\CollectionPersona\IndexRequest;
-use App\Http\Requests\CollectionPersona\ShowRequest;
-use App\Http\Requests\CollectionPersona\StoreRequest;
-use App\Http\Requests\CollectionPersona\UpdateRequest;
+use App\Http\Requests\Collection\Persona\DestroyRequest;
+use App\Http\Requests\Collection\Persona\IndexRequest;
+use App\Http\Requests\Collection\Persona\ShowRequest;
+use App\Http\Requests\Collection\Persona\StoreRequest;
+use App\Http\Requests\Collection\Persona\UpdateRequest;
 use App\Http\Resources\CollectionPersonaResource;
 use App\Http\Responses\ResourceDeleted;
 use App\Models\Collection;
@@ -32,7 +32,7 @@ class CollectionPersonaController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @param \App\Http\Requests\CollectionPersona\IndexRequest $request
+     * @param \App\Http\Requests\Collection\Persona\IndexRequest $request
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(IndexRequest $request)
@@ -55,7 +55,7 @@ class CollectionPersonaController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \App\Http\Requests\CollectionPersona\StoreRequest $request
+     * @param \App\Http\Requests\Collection\Persona\StoreRequest $request
      * @param \App\Generators\UniqueSlugGenerator $slugGenerator
      * @return \Illuminate\Http\Response
      */
@@ -104,7 +104,7 @@ class CollectionPersonaController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param \App\Http\Requests\CollectionPersona\ShowRequest $request
+     * @param \App\Http\Requests\Collection\Persona\ShowRequest $request
      * @param \App\Models\Collection $collection
      * @return \App\Http\Resources\CollectionPersonaResource
      */
@@ -124,7 +124,7 @@ class CollectionPersonaController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \App\Http\Requests\CollectionPersona\UpdateRequest $request
+     * @param \App\Http\Requests\Collection\Persona\UpdateRequest $request
      * @param \App\Generators\UniqueSlugGenerator $slugGenerator
      * @param \App\Models\Collection $collection
      * @return \Illuminate\Http\Response
@@ -174,7 +174,7 @@ class CollectionPersonaController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param \App\Http\Requests\CollectionPersona\DestroyRequest $request
+     * @param \App\Http\Requests\Collection\Persona\DestroyRequest $request
      * @param \App\Models\Collection $collection
      * @return \Illuminate\Http\Response
      */
