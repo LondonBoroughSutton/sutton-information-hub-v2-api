@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\CollectionPersona;
+namespace App\Http\Requests\Collection\Category;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class IndexRequest extends FormRequest
+class ShowRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

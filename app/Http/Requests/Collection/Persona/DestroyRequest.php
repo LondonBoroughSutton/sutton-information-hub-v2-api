@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\CollectionCategory;
+namespace App\Http\Requests\Collection\Persona;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class IndexRequest extends FormRequest
+class DestroyRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +13,11 @@ class IndexRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        if ($this->user()->isSuperAdmin()) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

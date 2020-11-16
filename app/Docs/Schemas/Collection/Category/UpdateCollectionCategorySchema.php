@@ -19,7 +19,6 @@ class UpdateCollectionCategorySchema extends Schema
             ->required(
                 'name',
                 'intro',
-                'icon',
                 'order',
                 'sideboxes',
                 'category_taxonomies'
@@ -27,7 +26,6 @@ class UpdateCollectionCategorySchema extends Schema
             ->properties(
                 Schema::string('name'),
                 Schema::string('intro'),
-                Schema::string('icon'),
                 Schema::integer('order'),
                 Schema::array('sideboxes')
                     ->maxItems(3)
@@ -38,12 +36,16 @@ class UpdateCollectionCategorySchema extends Schema
                                 Schema::string('title'),
                                 Schema::string('content')
                             )
-                        ),
+                    ),
                 Schema::array('category_taxonomies')
                     ->items(
                         Schema::string()
                             ->format(Schema::FORMAT_UUID)
-                    )
+                    ),
+                Schema::string('image_file_id')
+                    ->format(Schema::FORMAT_UUID)
+                    ->description('The ID of the file uploaded')
+                    ->nullable()
             );
     }
 }

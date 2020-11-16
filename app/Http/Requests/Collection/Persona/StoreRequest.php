@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\CollectionPersona;
+namespace App\Http\Requests\Collection\Persona;
 
 use App\Models\Collection;
 use App\Models\File;
