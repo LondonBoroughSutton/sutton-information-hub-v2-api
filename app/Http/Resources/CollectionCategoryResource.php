@@ -20,7 +20,6 @@ class CollectionCategoryResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'intro' => $this->meta['intro'],
-            'icon' => $this->meta['icon'],
             'order' => $this->order,
             'sideboxes' => $this->meta['sideboxes'],
             'category_taxonomies' => TaxonomyResource::collection($this->taxonomies),

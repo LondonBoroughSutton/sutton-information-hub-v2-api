@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\CollectionPersona\Image;
+namespace App\Http\Requests\Collection\Category;
 
-use App\Http\Requests\ImageFormRequest;
+use Illuminate\Foundation\Http\FormRequest;
 
-class ShowRequest extends ImageFormRequest
+class IndexRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,7 +21,7 @@ class ShowRequest extends ImageFormRequest
      *
      * @return array
      */
-    public function extraRules(): array
+    public function rules()
     {
         return [
             //

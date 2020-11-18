@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Http\Requests\CollectionCategory;
+namespace App\Http\Requests\Collection\Category;
 
 use App\Models\Collection;
+use App\Models\File;
 use App\Models\Taxonomy;
+use App\Rules\FileIsMimeType;
+use App\Rules\FileIsPendingAssignment;
 use App\Rules\RootTaxonomyIs;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -33,7 +36,6 @@ class StoreRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'min:1', 'max:255'],
             'intro' => ['required', 'string', 'min:1', 'max:255'],
-            'icon' => ['required', 'string', 'min:1', 'max:255'],
             'order' => ['required', 'integer', 'min:1', 'max:' . (Collection::categories()->count() + 1)],
             'sideboxes' => ['present', 'array', 'max:3'],
             'sideboxes.*' => ['array'],
@@ -41,6 +43,11 @@ class StoreRequest extends FormRequest
             'sideboxes.*.content' => ['required_with:sideboxes.*', 'string'],
             'category_taxonomies' => ['present', 'array'],
             'category_taxonomies.*' => ['string', 'exists:taxonomies,id', new RootTaxonomyIs(Taxonomy::NAME_CATEGORY)],
+            'image_file_id' => [
+                'exists:files,id',
+                new FileIsMimeType(File::MIME_TYPE_PNG),
+                new FileIsPendingAssignment(),
+            ],
         ];
     }
 }

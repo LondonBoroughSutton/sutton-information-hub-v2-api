@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Core\V1;
 use App\Events\EndpointHit;
 use App\Generators\UniqueSlugGenerator;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CollectionCategory\DestroyRequest;
-use App\Http\Requests\CollectionCategory\IndexRequest;
-use App\Http\Requests\CollectionCategory\ShowRequest;
-use App\Http\Requests\CollectionCategory\StoreRequest;
-use App\Http\Requests\CollectionCategory\UpdateRequest;
+use App\Http\Requests\Collection\Category\DestroyRequest;
+use App\Http\Requests\Collection\Category\IndexRequest;
+use App\Http\Requests\Collection\Category\ShowRequest;
+use App\Http\Requests\Collection\Category\StoreRequest;
+use App\Http\Requests\Collection\Category\UpdateRequest;
 use App\Http\Resources\CollectionCategoryResource;
 use App\Http\Responses\ResourceDeleted;
 use App\Models\Collection;
+use App\Models\File;
 use App\Models\Taxonomy;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\Filter;
@@ -31,7 +32,7 @@ class CollectionCategoryController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @param \App\Http\Requests\CollectionCategory\IndexRequest $request
+     * @param \App\Http\Requests\Collection\Category\IndexRequest $request
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(IndexRequest $request)
@@ -54,7 +55,7 @@ class CollectionCategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \App\Http\Requests\CollectionCategory\StoreRequest $request
+     * @param \App\Http\Requests\Collection\Category\StoreRequest $request
      * @param \App\Generators\UniqueSlugGenerator $slugGenerator
      * @return \Illuminate\Http\Response
      */
@@ -76,11 +77,15 @@ class CollectionCategoryController extends Controller
                 'name' => $request->name,
                 'meta' => [
                     'intro' => $request->intro,
-                    'icon' => $request->icon,
+                    'image_file_id' => $request->image_file_id,
                     'sideboxes' => $sideboxes,
                 ],
                 'order' => $request->order,
             ]);
+
+            if ($request->filled('image_file_id')) {
+                File::findOrFail($request->image_file_id)->assigned();
+            }
 
             // Create all of the pivot records.
             $taxonomies = Taxonomy::whereIn('id', $request->category_taxonomies)->get();
@@ -98,7 +103,7 @@ class CollectionCategoryController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param \App\Http\Requests\CollectionCategory\ShowRequest $request
+     * @param \App\Http\Requests\Collection\Category\ShowRequest $request
      * @param \App\Models\Collection $collection
      * @return \App\Http\Resources\CollectionCategoryResource
      */
@@ -118,7 +123,7 @@ class CollectionCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \App\Http\Requests\CollectionCategory\UpdateRequest $request
+     * @param \App\Http\Requests\Collection\Category\UpdateRequest $request
      * @param \App\Generators\UniqueSlugGenerator $slugGenerator
      * @param \App\Models\Collection $collection
      * @return \Illuminate\Http\Response
@@ -142,11 +147,17 @@ class CollectionCategoryController extends Controller
                 'name' => $request->name,
                 'meta' => [
                     'intro' => $request->intro,
-                    'icon' => $request->icon,
+                    'image_file_id' => $request->has('image_file_id')
+                        ? $request->image_file_id
+                        : ($collection->meta['image_file_id']?? null),
                     'sideboxes' => $sideboxes,
                 ],
                 'order' => $request->order,
             ]);
+
+            if ($request->filled('image_file_id')) {
+                File::findOrFail($request->image_file_id)->assigned();
+            }
 
             // Update or create all of the pivot records.
             $taxonomies = Taxonomy::whereIn('id', $request->category_taxonomies)->get();
@@ -161,7 +172,7 @@ class CollectionCategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param \App\Http\Requests\CollectionCategory\DestroyRequest $request
+     * @param \App\Http\Requests\Collection\Category\DestroyRequest $request
      * @param \App\Models\Collection $collection
      * @return \Illuminate\Http\Response
      */
