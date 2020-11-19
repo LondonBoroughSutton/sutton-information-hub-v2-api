@@ -22,13 +22,13 @@ class NotifySubmitterEmail extends Email
         return <<<'EOT'
 Hi ((SUBMITTER_NAME)),
 
-Your request to register ((ORGANISATION_NAME)) on Connected Together has been submitted and received. A member of the admin team will review it shortly.
+Your request to register ((ORGANISATION_NAME)) on Connect has been submitted and received. A member of the admin team will review it shortly.
 
 If you have any questions, please get in touch at hlp.admin.connect@nhs.net.
 
 Many thanks,
 
-NHS Connect Team 
+NHS Connect Team
 EOT;
     }
 
@@ -37,6 +37,6 @@ EOT;
      */
     public function getSubject(): string
     {
-        return 'Connected Together – Organisation Sign Up Form Submitted';
+        return 'Connect – Organisation Sign Up Form Submitted';
     }
 }

@@ -22,9 +22,9 @@ class NotifyServiceAdminEmail extends Email
         return <<<'EOT'
 Hello,
 
-This is a reminder that your page, ((SERVICE_NAME)) on Connected Together has not been updated in over 6 months.
+This is a reminder that your page, ((SERVICE_NAME)) on Connect has not been updated in over 6 months.
 
-View the page on Connected Together:
+View the page on Connect:
 ((SERVICE_URL))
 
 Update Page
@@ -51,7 +51,7 @@ Contact us by email: hlp.admin.connect@nhs.net
 
 Many thanks,
 
-NHS Connect Team 
+NHS Connect Team
 EOT;
     }
 
@@ -60,6 +60,6 @@ EOT;
      */
     public function getSubject(): string
     {
-        return '((SERVICE_NAME)) page on Connected Together';
+        return '((SERVICE_NAME)) page on Connect';
     }
 }

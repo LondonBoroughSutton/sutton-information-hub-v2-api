@@ -20,7 +20,7 @@ class UserSms extends Sms
     public function getContent(): string
     {
         return <<<'EOT'
-Connected Together: ((OTP_CODE)) is your authentication code
+Connect: ((OTP_CODE)) is your authentication code
 EOT;
     }
 }
