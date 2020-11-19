@@ -133,7 +133,7 @@ class UpdateRequest extends FormRequest
                      */
                     $hasAppStoreUrl = $this->android_app_url || $this->service->ios_app_url || $this->service->android_app_url;
                     if (($isApp && !$hasAppStoreUrl) && !$value) {
-                        $fail($attribute . ' is required without android_app_url for an App Service type');
+                        $fail($attribute . ' is required without android_app_url for an App Support listing type');
                     }
                 },
             ],
@@ -151,7 +151,7 @@ class UpdateRequest extends FormRequest
                      */
                     $hasAppStoreUrl = $this->ios_app_url || $this->service->ios_app_url || $this->service->android_app_url;
                     if (($isApp && !$hasAppStoreUrl) && !$value) {
-                        $fail($attribute . ' is required without ios_app_url for an App Service type');
+                        $fail($attribute . ' is required without ios_app_url for an App Support listing type');
                     }
                 },
             ],

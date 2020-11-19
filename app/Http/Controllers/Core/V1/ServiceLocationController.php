@@ -50,7 +50,7 @@ class ServiceLocationController extends Controller
             ->allowedIncludes(['location'])
             ->paginate(per_page($request->per_page));
 
-        event(EndpointHit::onRead($request, 'Viewed all service locations'));
+        event(EndpointHit::onRead($request, 'Viewed all support listing locations'));
 
         return ServiceLocationResource::collection($serviceLocations);
     }
@@ -64,7 +64,7 @@ class ServiceLocationController extends Controller
     public function store(StoreRequest $request)
     {
         return DB::transaction(function () use ($request) {
-            // Create the service location.
+            // Create the support listing location.
             $serviceLocation = ServiceLocation::create([
                 'service_id' => $request->service_id,
                 'location_id' => $request->location_id,
@@ -114,7 +114,7 @@ class ServiceLocationController extends Controller
                 }
             }
 
-            event(EndpointHit::onCreate($request, "Created service location [{$serviceLocation->id}]", $serviceLocation));
+            event(EndpointHit::onCreate($request, "Created support listing location [{$serviceLocation->id}]", $serviceLocation));
 
             return new ServiceLocationResource($serviceLocation);
         });
@@ -136,7 +136,7 @@ class ServiceLocationController extends Controller
             ->allowedIncludes(['location'])
             ->firstOrFail();
 
-        event(EndpointHit::onRead($request, "Viewed service location [{$serviceLocation->id}]", $serviceLocation));
+        event(EndpointHit::onRead($request, "Viewed support listing location [{$serviceLocation->id}]", $serviceLocation));
 
         return new ServiceLocationResource($serviceLocation);
     }
@@ -195,7 +195,7 @@ class ServiceLocationController extends Controller
                 }
             }
 
-            event(EndpointHit::onUpdate($request, "Updated service location [{$serviceLocation->id}]", $serviceLocation));
+            event(EndpointHit::onUpdate($request, "Updated support listing location [{$serviceLocation->id}]", $serviceLocation));
 
             return new ServiceLocationResource($serviceLocation);
         });
@@ -211,7 +211,7 @@ class ServiceLocationController extends Controller
     public function destroy(DestroyRequest $request, ServiceLocation $serviceLocation)
     {
         return DB::transaction(function () use ($request, $serviceLocation) {
-            event(EndpointHit::onDelete($request, "Deleted service location [{$serviceLocation->id}]", $serviceLocation));
+            event(EndpointHit::onDelete($request, "Deleted support listing location [{$serviceLocation->id}]", $serviceLocation));
 
             $serviceLocation->delete();
 

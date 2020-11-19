@@ -29,7 +29,7 @@ class RefreshController extends Controller
             // Delete the token used.
             ServiceRefreshToken::query()->findOrFail($request->token)->delete();
 
-            event(EndpointHit::onUpdate($request, "Refreshed service [{$service->id}]", $service));
+            event(EndpointHit::onUpdate($request, "Refreshed support listing [{$service->id}]", $service));
 
             return new ServiceResource($service);
         });

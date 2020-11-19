@@ -20,7 +20,7 @@ class ImageServiceLocationOperation extends Operation
         return parent::create($objectId)
             ->action(static::ACTION_GET)
             ->tags(ServiceLocationsTag::create())
-            ->summary("Get a specific service location's image")
+            ->summary("Get a specific support listing location's image")
             ->description('**Permission:** `Open`')
             ->noSecurity()
             ->parameters(

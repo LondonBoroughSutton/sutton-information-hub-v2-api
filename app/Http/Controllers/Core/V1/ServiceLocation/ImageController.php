@@ -20,13 +20,12 @@ class ImageController extends Controller
      */
     public function __invoke(ShowRequest $request, ServiceLocation $serviceLocation)
     {
-        event(EndpointHit::onRead($request, "Viewed image for service location [{$serviceLocation->id}]", $serviceLocation));
+        event(EndpointHit::onRead($request, "Viewed image for support listing location [{$serviceLocation->id}]", $serviceLocation));
 
         // Get the image file associated.
         $file = $serviceLocation->imageFile;
 
         // Return the file, or placeholder if the file is null.
-        return optional($file)->resizedVersion($request->max_dimension)
-            ?? ServiceLocation::placeholderImage($request->max_dimension);
+        return optional($file)->resizedVersion($request->max_dimension) ?? ServiceLocation::placeholderImage($request->max_dimension);
     }
 }

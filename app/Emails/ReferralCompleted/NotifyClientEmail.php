@@ -24,15 +24,15 @@ Hello,
 
 Your referral ID is ((REFERRAL_ID)).
 
-Your connection to ((SERVICE_NAME)) has been marked as completed by the service.
+Your connection to ((SERVICE_NAME)) has been marked as completed by the support listing.
 
-This means that they have been in touch with you about accessing their service.
+This means that they have been in touch with you about accessing their support listing.
 
-If you have any feedback regarding this connection or believe the service did not try to contact you, please contact the admin team via hlp.admin.connect@nhs.net.
+If you have any feedback regarding this connection or believe the support listing did not try to contact you, please contact the admin team via hlp.admin.connect@nhs.net.
 
 Many thanks,
 
-NHS Connect Team 
+NHS Connect Team
 EOT;
     }
 

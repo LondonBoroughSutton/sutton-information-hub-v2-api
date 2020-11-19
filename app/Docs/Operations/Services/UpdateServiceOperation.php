@@ -28,10 +28,10 @@ class UpdateServiceOperation extends Operation
             ->description(
                 <<<'EOT'
 **Permission:** `Service Admin`
-- Can update a service location but not it's taxonomies
+- Can update a support listing location but not it's taxonomies
 
 **Permission:** `Global Admin`
-- Can update a service location
+- Can update a support listing location
 EOT
             )
             ->requestBody(

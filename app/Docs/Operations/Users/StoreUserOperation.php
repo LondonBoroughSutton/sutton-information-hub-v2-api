@@ -28,8 +28,8 @@ class StoreUserOperation extends Operation
             ->description(
                 <<<'EOT'
 **Permission:** `Service Admin`
-- Can create service workers
-- Can create other service admins
+- Can create support listing workers
+- Can create other support listing admins
 
 **Permission:** `Global Admin`
 - Can create other global admins

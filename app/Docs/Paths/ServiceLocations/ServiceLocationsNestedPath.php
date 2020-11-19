@@ -24,7 +24,7 @@ class ServiceLocationsNestedPath extends PathItem
             ->parameters(
                 Parameter::path()
                     ->name('service_location')
-                    ->description('The ID of the service location')
+                    ->description('The ID of the support listing location')
                     ->required()
                     ->schema(Schema::string()->format(Schema::FORMAT_UUID))
             )

@@ -24,13 +24,13 @@ Hello ((REFEREE_NAME)),
 
 You’ve successfully made a referral to ((REFERRAL_SERVICE_NAME))!
 
-They should be in touch with the client by ((REFERRAL_CONTACT_METHOD)) to speak to them about accessing the service within 10 working days.
+They should be in touch with the client by ((REFERRAL_CONTACT_METHOD)) to speak to them about accessing the support listing within 10 working days.
 
 The referral ID is ((REFERRAL_ID)). If you have any feedback regarding this connection, please contact the admin team via hlp.admin.connect@nhs.net.
 
 Many thanks,
 
-NHS Connect Team 
+NHS Connect Team
 EOT;
     }
 

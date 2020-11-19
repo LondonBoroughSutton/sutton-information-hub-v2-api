@@ -28,11 +28,11 @@ Your referral to ((SERVICE_NAME)) has been marked as incomplete with the followi
 
 “((REFERRAL_STATUS))“.
 
-If you believe the service did not try to contact you, or you have any other feedback regarding the connection, please contact us at hlp.admin.connect@nhs.net.
+If you believe the support listing did not try to contact you, or you have any other feedback regarding the connection, please contact us at hlp.admin.connect@nhs.net.
 
 Many thanks,
 
-NHS Connect Team 
+NHS Connect Team
 EOT;
     }
 

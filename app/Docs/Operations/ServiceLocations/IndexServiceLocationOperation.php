@@ -28,7 +28,7 @@ class IndexServiceLocationOperation extends Operation
         return parent::create($objectId)
             ->action(static::ACTION_GET)
             ->tags(ServiceLocationsTag::create())
-            ->summary('List all the service locations')
+            ->summary('List all the support listing locations')
             ->description(
                 <<<'EOT'
 **Permission:** `Open`
@@ -44,7 +44,7 @@ EOT
                 PerPageParameter::create(),
                 FilterIdParameter::create(),
                 FilterParameter::create(null, 'service_id')
-                    ->description('Comma separated list of service IDs to filter by')
+                    ->description('Comma separated list of support listing IDs to filter by')
                     ->schema(
                         Schema::array()->items(
                             Schema::string()->format(Schema::FORMAT_UUID)

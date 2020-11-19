@@ -111,7 +111,7 @@ class User extends Authenticatable implements Notifiable
     protected function hasRole(Role $role, Service $service = null, Organisation $organisation = null): bool
     {
         if ($service !== null && $organisation !== null) {
-            throw new InvalidArgumentException('A role cannot be assigned to both a service and an organisation');
+            throw new InvalidArgumentException('A role cannot be assigned to both a support listing and an organisation');
         }
 
         return $this->userRoles()
@@ -139,7 +139,7 @@ class User extends Authenticatable implements Notifiable
     public function hasRoleCached(Role $role, Service $service = null, Organisation $organisation = null): bool
     {
         if ($service !== null && $organisation !== null) {
-            throw new InvalidArgumentException('A role cannot be assigned to both a service and an organisation');
+            throw new InvalidArgumentException('A role cannot be assigned to both a support listing and an organisation');
         }
 
         return $this->userRoles

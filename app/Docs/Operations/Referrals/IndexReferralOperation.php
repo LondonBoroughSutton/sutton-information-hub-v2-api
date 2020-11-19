@@ -37,7 +37,7 @@ class IndexReferralOperation extends Operation
                 PerPageParameter::create(),
                 FilterIdParameter::create(),
                 FilterParameter::create(null, 'service_id')
-                    ->description('Comma separated list of service IDs to filter by')
+                    ->description('Comma separated list of support listing IDs to filter by')
                     ->schema(
                         Schema::array()->items(
                             Schema::string()->format(Schema::FORMAT_UUID)
@@ -48,7 +48,7 @@ class IndexReferralOperation extends Operation
                     ->description('The reference for the referral to filter by')
                     ->schema(Schema::string()),
                 FilterParameter::create(null, 'service_name')
-                    ->description('The service name for the referral to filter by')
+                    ->description('The support listing name for the referral to filter by')
                     ->schema(Schema::string()),
                 FilterParameter::create(null, 'organisation_name')
                     ->description('The organisation name for the referral to filter by')

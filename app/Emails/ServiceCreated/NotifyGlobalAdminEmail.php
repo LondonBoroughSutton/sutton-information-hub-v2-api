@@ -22,7 +22,7 @@ class NotifyGlobalAdminEmail extends Email
         return <<<'EOT'
 Hello,
 
-A new service has been created by an organisation admin and requires a Global Administrator to review:
+A new support listing has been created by an organisation admin and requires a Global Administrator to review:
 
 ((SERVICE_NAME))
 ((ORGANISATION_NAME))
@@ -30,17 +30,17 @@ A new service has been created by an organisation admin and requires a Global Ad
 You will need to:
 
 Check the content entered is acceptable, descriptive, plain English, and doesn’t have any typos
-Add taxonomies to the service, based on the content
-Enable the service if it is acceptable
-If the service is not ready to go live, please contact the user that made the request to rectify the problems.
+Add taxonomies to the support listing, based on the content
+Enable the support listing if it is acceptable
+If the support listing is not ready to go live, please contact the user that made the request to rectify the problems.
 
 The user that made the request was ((ORGANISATION_ADMIN_NAME)), and you can contact them via ((ORGANISATION_ADMIN_EMAIL))
 
-To review the service, follow this link: ((SERVICE_URL))
+To review the support listing, follow this link: ((SERVICE_URL))
 
 Many thanks,
 
-NHS Connect Team 
+NHS Connect Team
 EOT;
     }
 
@@ -49,6 +49,6 @@ EOT;
      */
     public function getSubject(): string
     {
-        return 'Service Created (((SERVICE_NAME))) – Ready to review';
+        return 'Support listing Created (((SERVICE_NAME))) – Ready to review';
     }
 }

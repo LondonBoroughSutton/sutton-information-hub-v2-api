@@ -24,7 +24,7 @@ class StoreServiceLocationOperation extends Operation
         return parent::create($objectId)
             ->action(static::ACTION_POST)
             ->tags(ServiceLocationsTag::create())
-            ->summary('Create a service location')
+            ->summary('Create a support listing location')
             ->description('**Permission:** `Service Admin`')
             ->requestBody(
                 RequestBody::create()
