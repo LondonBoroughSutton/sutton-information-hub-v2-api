@@ -9,6 +9,7 @@ use App\RoleManagement\RoleChecker;
 use App\RoleManagement\RoleCheckerInterface;
 use App\RoleManagement\RoleManager;
 use App\RoleManagement\RoleManagerInterface;
+use App\VariableSubstitution\DoubleParenthesisVariableSubstituter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\ServiceProvider;
@@ -21,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         // Use CarbonImmutable instead of Carbon.
-        Date::use(CarbonImmutable::class);
+        Date::use (CarbonImmutable::class);
 
         // Geocode.
         switch (config('hlp.geocode_driver')) {
@@ -80,7 +81,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Variable substitution.
-        $this->app->bind(VariableSubstituter::class, DoubleParenthesisVariableSubstituter::class);
+        $this->app->bind(\App\Contracts\VariableSubstituter::class, DoubleParenthesisVariableSubstituter::class);
 
         // Admin URL generator.
         $this->app->singleton(AdminUrlGenerator::class, function () {
