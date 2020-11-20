@@ -183,16 +183,19 @@ return [
         'organisation_admin_invite_initial' => [
             'notify_invitee' => [
                 'email' => '',
+                'sms' => '',
             ],
         ],
         'organisation_admin_invite_first_follow_ups' => [
             'notify_invitee' => [
                 'email' => '',
+                'sms' => '',
             ],
         ],
         'organisation_admin_invite_second_follow_ups' => [
             'notify_invitee' => [
                 'email' => '',
+                'sms' => '',
             ],
         ],
         'pending_organisation_admin_confirmation' => [

@@ -11,6 +11,7 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
 
@@ -229,6 +230,42 @@ class OrganisationAdminInvitesTest extends TestCase
 
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJsonCount(0, 'data');
+    }
+
+    public function test_will_send_sms_if_available_and_no_email()
+    {
+        Queue::fake();
+
+        $organisation = factory(Organisation::class)->create([
+            'phone' => '07894561230',
+        ]);
+
+        Passport::actingAs(
+            $this->makeSuperAdmin(factory(User::class)->create())
+        );
+
+        $response = $this->postJson('/core/v1/organisation-admin-invites', [
+            'organisations' => [
+                [
+                    'organisation_id' => $organisation->id,
+                    'use_email' => false,
+                ],
+            ],
+        ]);
+
+        dump($response->json());
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJsonCount(1, 'data');
+
+        Queue::assertPushed(NotifyInviteeSms::class, 1);
+        Queue::assertPushedOn('notifications', NotifyInviteeSms::class, function ($job) {
+            $mockEmailSender = $this->mock(\App\SmsSenders\NullSmsSender::class, function ($mock) use ($job) {
+                $mock->shouldReceive('send')->with($job);
+            });
+
+            $job->handle($mockEmailSender);
+            return true;
+        });
     }
 
     public function test_guest_cannot_create_invite()
