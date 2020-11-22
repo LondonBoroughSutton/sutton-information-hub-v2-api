@@ -112,7 +112,9 @@ class SpreadsheetParser
          * By default the cellIterator will only return populated cells.
          */
         foreach ($headerRow->getCellIterator() as $cell) {
-            $this->headers[$cell->getColumn()] = $cell->getValue();
+            if (trim($cell->getValue())) {
+                $this->headers[$cell->getColumn()] = $cell->getValue();
+            }
         }
 
         /**
