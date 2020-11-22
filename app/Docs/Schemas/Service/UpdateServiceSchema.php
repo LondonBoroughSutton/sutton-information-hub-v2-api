@@ -122,27 +122,23 @@ class UpdateServiceSchema extends Schema
                         'disability',
                         'employment',
                         'gender',
-                        'housing',
-                        'income',
-                        'language',
-                        'other'
+                        'benefits'
                     )
                     ->properties(
-                        Schema::string('age_group')
+                        Schema::array('age_group')
+                            ->items(Schema::string())
                             ->nullable(),
-                        Schema::string('disability')
+                        Schema::array('disability')
+                            ->items(Schema::string())
                             ->nullable(),
-                        Schema::string('employment')
+                        Schema::array('employment')
+                            ->items(Schema::string())
                             ->nullable(),
-                        Schema::string('gender')
+                        Schema::array('gender')
+                            ->items(Schema::string())
                             ->nullable(),
-                        Schema::string('housing')
-                            ->nullable(),
-                        Schema::string('income')
-                            ->nullable(),
-                        Schema::string('language')
-                            ->nullable(),
-                        Schema::string('other')
+                        Schema::array('benefits')
+                            ->items(Schema::string())
                             ->nullable()
                     ),
                 Schema::array('useful_infos')

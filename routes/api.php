@@ -36,6 +36,8 @@ Route::prefix('core/v1')
                     'update' => 'collection-categories.update',
                     'destroy' => 'collection-categories.destroy',
                 ]);
+            Route::get('/collections/categories/{collection}/image.png', 'Collection\\ImageController')
+                ->name('collection-categories.image');
 
             // Collection Personas.
             Route::match(['GET', 'POST'], '/collections/personas/index', 'CollectionPersonaController@index');
@@ -48,7 +50,7 @@ Route::prefix('core/v1')
                     'update' => 'collection-personas.update',
                     'destroy' => 'collection-personas.destroy',
                 ]);
-            Route::get('/collections/personas/{collection}/image.png', 'CollectionPersona\\ImageController')
+            Route::get('/collections/personas/{collection}/image.png', 'Collection\\ImageController')
                 ->name('collection-personas.image');
 
             // Files.

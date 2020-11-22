@@ -152,10 +152,7 @@ class ServiceController extends Controller
                 'disability' => $request->criteria['disability'],
                 'employment' => $request->criteria['employment'],
                 'gender' => $request->criteria['gender'],
-                'housing' => $request->criteria['housing'],
-                'income' => $request->criteria['income'],
-                'language' => $request->criteria['language'],
-                'other' => $request->criteria['other'],
+                'benefits' => $request->criteria['benefits'],
             ]);
 
             // Create the useful info records.
@@ -306,10 +303,7 @@ class ServiceController extends Controller
                 'disability' => $request->input('criteria.disability', $service->serviceCriterion->disability),
                 'employment' => $request->input('criteria.employment', $service->serviceCriterion->employment),
                 'gender' => $request->input('criteria.gender', $service->serviceCriterion->gender),
-                'housing' => $request->input('criteria.housing', $service->serviceCriterion->housing),
-                'income' => $request->input('criteria.income', $service->serviceCriterion->income),
-                'language' => $request->input('criteria.language', $service->serviceCriterion->language),
-                'other' => $request->input('criteria.other', $service->serviceCriterion->other),
+                'benefits' => $request->input('criteria.benefits', $service->serviceCriterion->benefits),
             ]);
 
             // Update the useful info records.
