@@ -236,14 +236,15 @@ class OrganisationAdminInvitesTest extends TestCase
     public function test_will_send_sms_if_available_and_no_email()
     {
         Queue::fake();
+        $this->fakeEvents();
 
         $organisation = factory(Organisation::class)->create([
             'phone' => '07894561230',
         ]);
 
-        Passport::actingAs(
-            $this->makeSuperAdmin(factory(User::class)->create())
-        );
+        $admin = $this->makeSuperAdmin(factory(User::class)->create());
+
+        Passport::actingAs($admin);
 
         $response = $this->postJson('/core/v1/organisation-admin-invites', [
             'organisations' => [
@@ -256,6 +257,12 @@ class OrganisationAdminInvitesTest extends TestCase
 
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJsonCount(1, 'data');
+
+        Event::assertDispatched(EndpointHit::class, function (EndpointHit $event) use ($admin) {
+            return ($event->getAction() === Audit::ACTION_CREATE) &&
+                ($event->getUser()->id === $admin->id) &&
+                (get_class($event->getModel()) === OrganisationAdminInvite::class);
+        });
 
         Queue::assertPushed(NotifyInviteeSms::class, 1);
         Queue::assertPushedOn('notifications', NotifyInviteeSms::class, function ($job) {
