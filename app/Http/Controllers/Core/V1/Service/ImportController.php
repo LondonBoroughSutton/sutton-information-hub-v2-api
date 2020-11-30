@@ -110,9 +110,9 @@ class ImportController extends Controller
             /**
              * Cast Boolean rows to boolean value.
              */
-            $row['is_free'] = null === $row['is_free'] ? null : (bool) $row['is_free'];
-            $row['is_national'] = null === $row['is_national'] ? null : (bool) $row['is_national'];
-            $row['show_referral_disclaimer'] = null === $row['show_referral_disclaimer'] ? null : (bool) $row['show_referral_disclaimer'];
+            $row['is_free'] = null === $row['is_free'] ? null : (bool)$row['is_free'];
+            $row['is_national'] = null === $row['is_national'] ? null : (bool)$row['is_national'];
+            $row['show_referral_disclaimer'] = null === $row['show_referral_disclaimer'] ? null : (bool)$row['show_referral_disclaimer'];
 
             $validator = Validator::make($row, [
                 'name' => ['required', 'string', 'min:1', 'max:255'],
@@ -270,14 +270,14 @@ class ImportController extends Controller
                 /**
                  * Generate a new Service ID.
                  */
-                $serviceRow['id'] = (string) Str::uuid();
+                $serviceRow['id'] = (string)Str::uuid();
 
                 /**
                  * Cast Boolean rows to boolean value.
                  */
-                $serviceRow['is_free'] = (bool) $serviceRow['is_free'];
-                $serviceRow['is_national'] = (bool) $serviceRow['is_national'];
-                $serviceRow['show_referral_disclaimer'] = (bool) $serviceRow['show_referral_disclaimer'];
+                $serviceRow['is_free'] = (bool)$serviceRow['is_free'];
+                $serviceRow['is_national'] = (bool)$serviceRow['is_national'];
+                $serviceRow['show_referral_disclaimer'] = (bool)$serviceRow['show_referral_disclaimer'];
 
                 /**
                  * Check for Criteria fields.
@@ -285,7 +285,7 @@ class ImportController extends Controller
                  * Remove Criteria fields from the Service row.
                  */
                 $criteriaRow = [
-                    'id' => (string) Str::uuid(),
+                    'id' => (string)Str::uuid(),
                     'service_id' => $serviceRow['id'],
                     'created_at' => Date::now(),
                     'updated_at' => Date::now(),
