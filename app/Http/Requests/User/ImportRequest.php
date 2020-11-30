@@ -67,10 +67,12 @@ class ImportRequest extends FormRequest
             'roles.*.organisation_id' => [
                 'sometimes',
                 'exists:organisations,id',
+                'nullable',
             ],
             'roles.*.service_id' => [
                 'sometimes',
                 'exists:services,id',
+                'nullable',
             ],
         ];
     }

@@ -67,7 +67,7 @@ class ImportController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param \App\Http\Requests\Organisation\ImportRequest $request
+     * @param \App\Http\Requests\User\ImportRequest $request
      * @return \Illuminate\Http\Response
      */
     public function __invoke(ImportRequest $request)
