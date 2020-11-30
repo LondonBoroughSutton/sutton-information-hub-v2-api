@@ -8,6 +8,7 @@ use App\Models\Organisation;
 use App\Models\OrganisationAdminInvite;
 use App\Models\Service;
 use App\Models\User;
+use App\Sms\OrganisationAdminInviteInitial\NotifyInviteeSms;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
@@ -253,7 +254,6 @@ class OrganisationAdminInvitesTest extends TestCase
             ],
         ]);
 
-        dump($response->json());
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJsonCount(1, 'data');
 
