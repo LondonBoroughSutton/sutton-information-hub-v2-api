@@ -12,6 +12,7 @@ class UpdateOrganisationAdminInvitesAddSmsField extends Migration
     public function up()
     {
         Schema::table('organisation_admin_invites', function (Blueprint $table) {
+            $table->string('email')->nullable()->change();
             $table->string('sms')->after('email')->nullable();
         });
     }
@@ -23,6 +24,7 @@ class UpdateOrganisationAdminInvitesAddSmsField extends Migration
     {
         Schema::table('organisation_admin_invites', function (Blueprint $table) {
             $table->dropColumn('sms');
+            $table->string('email')->nullable(false)->change();
         });
     }
 }
