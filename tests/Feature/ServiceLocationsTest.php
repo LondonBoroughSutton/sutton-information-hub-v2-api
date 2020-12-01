@@ -67,7 +67,7 @@ class ServiceLocationsTest extends TestCase
         $serviceLocation = $service->serviceLocations()->create(['location_id' => $location->id]);
         $regularOpeningHour = factory(RegularOpeningHour::class)->create([
             'service_location_id' => $serviceLocation->id,
-            'weekday' => Date::now()->addDay()->day,
+            'weekday' => Date::now()->addDay()->dayOfWeek,
         ]);
         $holidayOpeningHour = factory(HolidayOpeningHour::class)->create([
             'service_location_id' => $serviceLocation->id,
@@ -323,7 +323,7 @@ class ServiceLocationsTest extends TestCase
         $serviceLocation = $service->serviceLocations()->create(['location_id' => $location->id]);
         $regularOpeningHour = factory(RegularOpeningHour::class)->create([
             'service_location_id' => $serviceLocation->id,
-            'weekday' => Date::now()->addDay()->day,
+            'weekday' => Date::now()->addDay()->dayOfWeek,
         ]);
         $holidayOpeningHour = factory(HolidayOpeningHour::class)->create([
             'service_location_id' => $serviceLocation->id,

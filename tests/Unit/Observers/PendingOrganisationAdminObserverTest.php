@@ -40,9 +40,9 @@ class PendingOrganisationAdminObserverTest extends TestCase
         $observer = new PendingOrganisationAdminObserver($adminUrlGeneratorMock);
         $observer->created($pendingOrganisationAdminMock);
 
-        Queue::assertPushedOn('notifications', NotifyPendingOrganisationAdminEmail ::class);
+        Queue::assertPushedOn('notifications', NotifyPendingOrganisationAdminEmail::class);
         Queue::assertPushed(
-            NotifyPendingOrganisationAdminEmail ::class,
+            NotifyPendingOrganisationAdminEmail::class,
             function (NotifyPendingOrganisationAdminEmail $email): bool {
                 $expectedValues = [
                     'ORGANISATION_NAME' => 'Acme Org',
