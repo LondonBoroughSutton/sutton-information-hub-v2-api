@@ -8,9 +8,11 @@ use App\Models\Organisation;
 use App\Models\OrganisationAdminInvite;
 use App\Models\Service;
 use App\Models\User;
+use App\Sms\OrganisationAdminInviteInitial\NotifyInviteeSms;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
 
@@ -229,6 +231,48 @@ class OrganisationAdminInvitesTest extends TestCase
 
         $response->assertStatus(Response::HTTP_CREATED);
         $response->assertJsonCount(0, 'data');
+    }
+
+    public function test_will_send_sms_if_available_and_no_email()
+    {
+        Queue::fake();
+        $this->fakeEvents();
+
+        $organisation = factory(Organisation::class)->create([
+            'phone' => '07894561230',
+        ]);
+
+        $admin = $this->makeSuperAdmin(factory(User::class)->create());
+
+        Passport::actingAs($admin);
+
+        $response = $this->postJson('/core/v1/organisation-admin-invites', [
+            'organisations' => [
+                [
+                    'organisation_id' => $organisation->id,
+                    'use_email' => false,
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJsonCount(1, 'data');
+
+        Event::assertDispatched(EndpointHit::class, function (EndpointHit $event) use ($admin) {
+            return ($event->getAction() === Audit::ACTION_CREATE) &&
+                ($event->getUser()->id === $admin->id) &&
+                (get_class($event->getModel()) === OrganisationAdminInvite::class);
+        });
+
+        Queue::assertPushed(NotifyInviteeSms::class, 1);
+        Queue::assertPushedOn('notifications', NotifyInviteeSms::class, function ($job) {
+            $mockEmailSender = $this->mock(\App\SmsSenders\NullSmsSender::class, function ($mock) use ($job) {
+                $mock->shouldReceive('send')->with($job);
+            });
+
+            $job->handle($mockEmailSender);
+            return true;
+        });
     }
 
     public function test_guest_cannot_create_invite()

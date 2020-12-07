@@ -65,6 +65,7 @@ class OrganisationAdminInviteController extends Controller
                 function (Organisation $organisation): OrganisationAdminInvite {
                     return $organisation->organisationAdminInvites()->create([
                         'email' => $organisation->use_email ? $organisation->email : null,
+                        'sms' => $organisation->phone && '07' === mb_substr($organisation->phone, 0, 2) ? $organisation->phone : null,
                     ]);
                 }
             );

@@ -6,6 +6,7 @@ use App\Emails\OrganisationAdminInviteInitial\NotifyInviteeEmail;
 use App\Generators\AdminUrlGenerator;
 use App\Models\Notification;
 use App\Models\OrganisationAdminInvite;
+use App\Sms\OrganisationAdminInviteInitial\NotifyInviteeSms;
 use App\Transformers\OrganisationInviteTransformer;
 
 class OrganisationAdminInviteObserver
@@ -43,6 +44,26 @@ class OrganisationAdminInviteObserver
         if ($organisationAdminInvite->email !== null) {
             Notification::sendEmail(new NotifyInviteeEmail(
                 $organisationAdminInvite->email,
+                [
+                    'ORGANISATION_NAME' => $organisationAdminInvite->organisation->name,
+                    'ORGANISATION_ADDRESS' => $this->transformer->transformAddress(
+                        $organisationAdminInvite->organisation->location
+                    ) ?: 'N/A',
+                    'ORGANISATION_URL' => $organisationAdminInvite->organisation->url ?: 'N/A',
+                    'ORGANISATION_EMAIL' => $organisationAdminInvite->organisation->email ?: 'N/A',
+                    'ORGANISATION_PHONE' => $organisationAdminInvite->organisation->phone ?: 'N/A',
+                    'ORGANISATION_SOCIAL_MEDIA' => $this->transformer->transformSocialMedias(
+                        $organisationAdminInvite->organisation->socialMedias
+                    ) ?: 'N/A',
+                    'ORGANISATION_DESCRIPTION' => $organisationAdminInvite->organisation->description,
+                    'INVITE_URL' => $this->adminUrlGenerator->generateOrganisationAdminInviteUrl(
+                        $organisationAdminInvite
+                    ),
+                ]
+            ));
+        } elseif ($organisationAdminInvite->sms !== null) {
+            Notification::sendSms(new NotifyInviteeSms(
+                $organisationAdminInvite->sms,
                 [
                     'ORGANISATION_NAME' => $organisationAdminInvite->organisation->name,
                     'ORGANISATION_ADDRESS' => $this->transformer->transformAddress(
