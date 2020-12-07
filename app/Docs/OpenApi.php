@@ -92,6 +92,7 @@ class OpenApi extends BaseOpenApi implements Responsable
                 Paths\Users\UsersIndexPath::create(),
                 Paths\Users\UsersNestedPath::create(),
                 Paths\Users\UsersUserPath::create(),
+                Paths\Users\UsersImportPath::create(),
                 Paths\Users\User\UserSessionsPath::create()
             )
             ->components(Components::create())

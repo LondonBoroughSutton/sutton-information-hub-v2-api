@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Emails\UserCreated\NotifyUserEmail;
 use App\Events\EndpointHit;
+use App\Jobs\NotifyNewUser;
 use App\Models\Audit;
 use App\Models\LocalAuthority;
 use App\Models\Location;
@@ -12,7 +14,10 @@ use App\Models\Service;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
 
@@ -2293,6 +2298,479 @@ class UsersTest extends TestCase
         });
     }
 
+    /**
+     * Bulk import Users
+     */
+
+    public function test_only_super_admin_can_bulk_import()
+    {
+        Storage::fake('local');
+        $service = factory(Service::class)->create();
+
+        $users = factory(User::class, 2)->make();
+
+        $this->createUserSpreadsheets($users);
+
+        $data = [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+        ];
+
+        $this->json('POST', "/core/v1/users/import", $data)->assertStatus(Response::HTTP_UNAUTHORIZED);
+
+        Passport::actingAs($this->makeServiceWorker(factory(User::class)->create(), $service));
+
+        $this->json('POST', "/core/v1/users/import", $data)->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($this->makeServiceAdmin(factory(User::class)->create(), $service));
+
+        $this->json('POST', "/core/v1/users/import", $data)->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($this->makeOrganisationAdmin(factory(User::class)->create(), $service->organisation));
+
+        $this->json('POST', "/core/v1/users/import", $data)->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($this->makeLocalAdmin(factory(User::class)->create()));
+
+        $this->json('POST', "/core/v1/users/import", $data)->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($this->makeGlobalAdmin(factory(User::class)->create()));
+
+        $this->json('POST', "/core/v1/users/import", $data)->assertStatus(Response::HTTP_FORBIDDEN);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
+    public function test_validate_file_import_type()
+    {
+        Storage::fake('local');
+
+        $invalidFieldTypes = [
+            ['spreadsheet' => 'This is a string'],
+            ['spreadsheet' => 1],
+            ['spreadsheet' => ['foo' => 'bar']],
+            ['spreadsheet' => UploadedFile::fake()->create('dummy.doc', 3000)],
+            ['spreadsheet' => UploadedFile::fake()->create('dummy.txt', 3000)],
+            ['spreadsheet' => UploadedFile::fake()->create('dummy.csv', 3000)],
+        ];
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        foreach ($invalidFieldTypes as $data) {
+            $response = $this->json('POST', "/core/v1/users/import", $data);
+            $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $users = factory(User::class, 2)->make();
+
+        $this->createUserSpreadsheets($users);
+
+        $response = $this->json('POST', "/core/v1/users/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 2,
+            ],
+        ]);
+
+        $users = factory(User::class, 2)->make();
+
+        $this->createUserSpreadsheets($users);
+
+        $response = $this->json('POST', "/core/v1/users/import", ['spreadsheet' => 'data:application/octet-stream;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xlsx')))]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 2,
+            ],
+        ]);
+    }
+
+    public function test_validate_file_import_fields()
+    {
+        Storage::fake('local');
+
+        $users = factory(User::class, 2)->make();
+
+        $users->get(0)->setAttribute('first_name', '');
+        $users->get(0)->setAttribute('last_name', 6);
+        $users->get(1)->setAttribute('email', 'notanemailaddress');
+        $users->get(1)->setAttribute('phone', '987412365');
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $response->assertJson([
+            'data' => [
+                'errors' => [
+                    'spreadsheet' => [
+                        [
+                            'row' => [],
+                            'errors' => [
+                                'first_name' => [],
+                                'last_name' => [],
+                            ],
+                        ],
+                        [
+                            'row' => [],
+                            'errors' => [
+                                'email' => [],
+                                'phone' => [],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response = $this->json('POST', "/core/v1/users/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xlsx')))]);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $response->assertJson([
+            'data' => [
+                'errors' => [
+                    'spreadsheet' => [
+                        [
+                            'row' => [],
+                            'errors' => [
+                                'first_name' => [],
+                                'last_name' => [],
+                            ],
+                        ],
+                        [
+                            'row' => [],
+                            'errors' => [
+                                'email' => [],
+                                'phone' => [],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function test_additional_user_fields_can_be_imported()
+    {
+        Storage::fake('local');
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", ['spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls')))]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5,
+            ],
+        ]);
+
+        $this->assertInstanceOf(Location::class, User::where('email', $users->get(0)->email)->first()->location);
+
+    }
+
+    public function test_duplicate_import_users_are_detected()
+    {
+        Storage::fake('local');
+
+        $user = $this->makeSuperAdmin(factory(User::class)->create());
+
+        Passport::actingAs($user);
+
+        $headers = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'employer_name',
+            'address_line_1',
+            'address_line_2',
+            'address_line_3',
+            'city',
+            'county',
+            'postcode',
+            'country',
+        ];
+
+        factory(User::class)->create(['email' => 'test@example.org']);
+
+        $users = collect([
+            factory(User::class)->make(['email' => 'test@example.org']),
+            factory(User::class)->make(),
+            factory(User::class)->make(),
+        ]);
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+        ]);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $response->assertJson([
+            'data' => [
+                'errors' => [
+                    'spreadsheet' => [
+                        [
+                            'row' => collect($users->get(0)->getAttributes())->only($headers)->all(),
+                            'errors' => [
+                                'email' => ['This email address has already been taken.'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function test_imported_users_can_be_assigned_a_role()
+    {
+        Storage::fake('local');
+
+        $services = factory(Service::class, 2)->create();
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $services->get(0)->id,
+                ],
+                [
+                    'role' => Role::NAME_SERVICE_ADMIN,
+                    'service_id' => $services->get(1)->id,
+                ],
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $services->get(0)->organisation->id,
+                ],
+                ['role' => Role::NAME_GLOBAL_ADMIN],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5,
+            ],
+        ]);
+
+        $this->assertTrue(User::where('email', $users->get(0)->email)->first()->isServiceWorker($services->get(0)));
+        $this->assertTrue(User::where('email', $users->get(1)->email)->first()->isServiceAdmin($services->get(1)));
+        $this->assertTrue(User::where('email', $users->get(2)->email)->first()->isOrganisationAdmin($services->get(0)->organisation));
+        $this->assertTrue(User::where('email', $users->get(3)->email)->first()->isGlobalAdmin());
+        $this->assertEquals(1, User::where('email', $users->get(4)->email)->first()->roles()->count());
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $services->get(0)->id,
+                ],
+                [
+                    'role' => Role::NAME_SERVICE_ADMIN,
+                    'service_id' => $services->get(1)->id,
+                ],
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $services->get(0)->organisation->id,
+                ],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5,
+            ],
+        ]);
+
+        $this->assertEquals(2, User::where('email', $users->get(4)->email)->first()->roles()->count());
+    }
+
+    public function test_imported_users_can_be_assigned_a_local_authority()
+    {
+        Storage::fake('local');
+
+        $localAuthority = factory(LocalAuthority::class)->create();
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'local_authority_id' => $localAuthority->id,
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5,
+            ],
+        ]);
+
+        $this->assertEquals($localAuthority->id, User::where('email', $users->get(0)->email)->first()->localAuthority->id);
+    }
+
+    public function test_imported_users_cannot_be_assigned_local_admin_role_without_a_local_authority()
+    {
+        Storage::fake('local');
+
+        $localAuthority = factory(LocalAuthority::class)->create();
+
+        $users = factory(User::class, 5)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                ['role' => Role::NAME_LOCAL_ADMIN],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                ['role' => Role::NAME_LOCAL_ADMIN],
+            ],
+            'local_authority_id' => $localAuthority->id,
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
+    public function test_imported_users_are_sent_a_welcome_email()
+    {
+        Storage::fake('local');
+        Queue::fake();
+
+        $users = factory(User::class, 2)->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        Queue::assertPushed(NotifyNewUser::class, 2);
+        Queue::assertPushed(NotifyNewUser::class, function ($job) {
+            $job->handle();
+            return true;
+        });
+
+        Queue::assertPushed(NotifyUserEmail::class, 2);
+        Queue::assertPushedOn('notifications', NotifyUserEmail::class, function ($job) {
+            $mockEmailSender = $this->mock(\App\EmailSenders\NullEmailSender::class, function ($mock) use ($job) {
+                $mock->shouldReceive('send')->with($job);
+            });
+
+            $job->handle($mockEmailSender);
+            return true;
+        });
+    }
+
+    public function test_users_file_import_100_rows()
+    {
+        Storage::fake('local');
+
+        $services = factory(Service::class, 2)->create();
+
+        $users = factory(User::class, 100)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $services->get(0)->id,
+                ],
+                [
+                    'role' => Role::NAME_SERVICE_ADMIN,
+                    'service_id' => $services->get(1)->id,
+                ],
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $services->get(0)->organisation->id,
+                ],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 100,
+            ],
+        ]);
+    }
+
+    public function test_users_file_import_5k_rows()
+    {
+        Storage::fake('local');
+
+        $services = factory(Service::class, 2)->create();
+
+        $users = factory(User::class, 5000)->states('employed')->make();
+
+        $this->createUserSpreadsheets($users);
+
+        Passport::actingAs($this->makeSuperAdmin(factory(User::class)->create()));
+
+        $response = $this->json('POST', "/core/v1/users/import", [
+            'spreadsheet' => 'data:application/vnd.ms-excel;base64,' . base64_encode(file_get_contents(Storage::disk('local')->path('test.xls'))),
+            'roles' => [
+                [
+                    'role' => Role::NAME_SERVICE_WORKER,
+                    'service_id' => $services->get(0)->id,
+                ],
+                [
+                    'role' => Role::NAME_SERVICE_ADMIN,
+                    'service_id' => $services->get(1)->id,
+                ],
+                [
+                    'role' => Role::NAME_ORGANISATION_ADMIN,
+                    'organisation_id' => $services->get(0)->organisation->id,
+                ],
+            ],
+        ]);
+        $response->assertStatus(Response::HTTP_CREATED);
+        $response->assertJson([
+            'data' => [
+                'imported_row_count' => 5000,
+            ],
+        ]);
+    }
+
     /*
      * ==================================================
      * Helpers.
@@ -2330,5 +2808,40 @@ class UsersTest extends TestCase
             'roles' => $roles,
             'employer_name' => null,
         ];
+    }
+
+    /**
+     * Create spreadsheets of users
+     *
+     * @param Array $users
+     * @return null
+     **/
+    public function createUserSpreadsheets(\Illuminate\Support\Collection $users)
+    {
+        $headers = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'employer_name',
+            'address_line_1',
+            'address_line_2',
+            'address_line_3',
+            'city',
+            'county',
+            'postcode',
+            'country',
+        ];
+
+        $flattenedUsers = [];
+
+        foreach ($users as $user) {
+            $userAttributes = collect($user->toArray());
+            $userAttributes = $userAttributes->merge(factory(Location::class)->make()->toArray());
+            $flattenedUsers[] = $userAttributes->only($headers);
+        }
+
+        $spreadsheet = \Tests\Integration\SpreadsheetParserTest::createSpreadsheets($flattenedUsers, $headers);
+        \Tests\Integration\SpreadsheetParserTest::writeSpreadsheetsToDisk($spreadsheet, 'test.xlsx', 'test.xls');
     }
 }

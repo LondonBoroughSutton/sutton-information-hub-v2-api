@@ -150,7 +150,7 @@ class SpreadsheetParser
              * Iterate over the rows in chunks defined by $this->chunkSize.
              */
             foreach ($worksheet->getRowIterator($startRow) as $rowIterator) {
-                $row = [];
+                $row = array_fill_keys($this->headers, '');
 
                 /**
                  * Limit the cell iterator by the columns used in the heading row.
@@ -167,8 +167,15 @@ class SpreadsheetParser
                  */
                 foreach ($cellIterator as $cell) {
                     if (isset($this->headers[$cell->getColumn()])) {
-                        $row[$this->headers[$cell->getColumn()]] = $cell->getValue();
+                        $row[$this->headers[$cell->getColumn()]] = is_numeric(trim($cell->getValue())) ? $cell->getValue() : (trim($cell->getValue()) ?: null);
                     }
+                }
+
+                /**
+                 * Test for content in the row.
+                 */
+                if (empty(implode('', $row))) {
+                    continue;
                 }
 
                 /**

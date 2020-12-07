@@ -30,7 +30,7 @@ class OrganisationsTest extends TestCase
      * @param Array $organisations
      * @return null
      **/
-    public function createOrganisationSpreadsheets($organisations)
+    public function createOrganisationSpreadsheets(\Illuminate\Support\Collection $organisations)
     {
         $headers = [
             'name',
@@ -40,7 +40,7 @@ class OrganisationsTest extends TestCase
             'phone',
         ];
 
-        $spreadsheet = \Tests\Integration\SpreadsheetParserTest::createSpreadsheets(collect($organisations), $headers);
+        $spreadsheet = \Tests\Integration\SpreadsheetParserTest::createSpreadsheets($organisations->toArray(), $headers);
         \Tests\Integration\SpreadsheetParserTest::writeSpreadsheetsToDisk($spreadsheet, 'test.xlsx', 'test.xls');
     }
     /*
