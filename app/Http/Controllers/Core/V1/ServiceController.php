@@ -200,7 +200,7 @@ class ServiceController extends Controller
                 }
             }
 
-            event(EndpointHit::onCreate($request, "Created service [{$service->id}]", $service));
+            event(EndpointHit::onCreate($request, "Created support listing [{$service->id}]", $service));
 
             $service->load('usefulInfos', 'offerings', 'socialMedias', 'taxonomies');
 
@@ -232,7 +232,7 @@ class ServiceController extends Controller
             ->allowedIncludes(['organisation'])
             ->firstOrFail();
 
-        event(EndpointHit::onRead($request, "Viewed service [{$service->id}]", $service));
+        event(EndpointHit::onRead($request, "Viewed support listing [{$service->id}]", $service));
 
         return new ServiceResource($service);
     }

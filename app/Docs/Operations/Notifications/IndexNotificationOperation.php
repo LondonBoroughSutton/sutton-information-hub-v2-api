@@ -50,7 +50,7 @@ EOT
                     )
                     ->style(FilterParameter::STYLE_SIMPLE),
                 FilterParameter::create(null, 'service_id')
-                    ->description('Comma separated list of service IDs to filter by')
+                    ->description('Comma separated list of support listing IDs to filter by')
                     ->schema(
                         Schema::array()->items(
                             Schema::string()->format(Schema::FORMAT_UUID)

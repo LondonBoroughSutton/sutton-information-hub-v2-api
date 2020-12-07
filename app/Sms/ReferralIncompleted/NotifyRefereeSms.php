@@ -20,13 +20,13 @@ class NotifyRefereeSms extends Sms
     public function getContent(): string
     {
         return <<<'EOT'
-Connected Together: Hi ((REFEREE_NAME)),
+Connect: Hi ((REFEREE_NAME)),
 
-Your referral (ID: ((REFERRAL_ID))) has been marked as incomplete. This means the service tried to contact the client but couldn't.
+Your referral (ID: ((REFERRAL_ID))) has been marked as incomplete. This means the support listing tried to contact the client but couldn't.
 
 For details: hlp.admin.connect@nhs.net
 
-NHS Connect Team 
+NHS Connect Team
 EOT;
     }
 }

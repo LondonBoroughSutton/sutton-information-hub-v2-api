@@ -49,6 +49,6 @@ class IsServiceAdmin implements Rule
      */
     public function message()
     {
-        return 'The :attribute field must contain an ID for a service you are a service admin for.';
+        return 'The :attribute field must contain an ID for a support listing you are a support listing admin for.';
     }
 }

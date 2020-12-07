@@ -20,13 +20,12 @@ class LogoController extends Controller
      */
     public function __invoke(ShowRequest $request, Service $service)
     {
-        event(EndpointHit::onRead($request, "Viewed logo for service [{$service->id}]", $service));
+        event(EndpointHit::onRead($request, "Viewed logo for support listing [{$service->id}]", $service));
 
         // Get the logo file associated.
         $file = $service->logoFile;
 
         // Return the file, or placeholder if the file is null.
-        return optional($file)->resizedVersion($request->max_dimension)
-            ?? Service::placeholderLogo($request->max_dimension);
+        return optional($file)->resizedVersion($request->max_dimension) ?? Service::placeholderLogo($request->max_dimension);
     }
 }

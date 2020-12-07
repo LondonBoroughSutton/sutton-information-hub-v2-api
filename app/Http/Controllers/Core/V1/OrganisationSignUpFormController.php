@@ -132,7 +132,7 @@ class OrganisationSignUpFormController extends Controller
             event(
                 EndpointHit::onCreate(
                     $request,
-                    "Submitted organisation sign up form with organisation [{$organisation->id}], service [{$service->id}], and user [{$user->id}]"
+                    "Submitted organisation sign up form with organisation [{$organisation->id}], support listing [{$service->id}], and user [{$user->id}]"
                 )
             );
 

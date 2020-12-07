@@ -24,7 +24,7 @@ class UpdateServiceLocationOperation extends Operation
         return parent::create($objectId)
             ->action(static::ACTION_PUT)
             ->tags(ServiceLocationsTag::create())
-            ->summary('Update a specific service location')
+            ->summary('Update a specific support listing location')
             ->description('**Permission:** `Service Admin`')
             ->requestBody(
                 RequestBody::create()

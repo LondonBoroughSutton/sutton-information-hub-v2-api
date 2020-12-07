@@ -50,6 +50,6 @@ class ServiceCanBeNational implements Rule
      */
     public function message()
     {
-        return 'The Service has Locations.';
+        return 'The Support listing has Locations.';
     }
 }

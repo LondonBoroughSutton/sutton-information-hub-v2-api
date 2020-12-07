@@ -30,7 +30,7 @@ class NotifyServiceEmail extends Email
         return <<<'EOT'
 Hello,
 
-You received a referral to your service ((REFERRAL_SERVICE_NAME)) for ((REFERRAL_INITIALS)) and ((REFERRAL_ID)) ((REFERRAL_DAYS_AGO)) working days ago.
+You received a referral to your support listing ((REFERRAL_SERVICE_NAME)) for ((REFERRAL_INITIALS)) and ((REFERRAL_ID)) ((REFERRAL_DAYS_AGO)) working days ago.
 
 This is a ((REFERRAL_TYPE)).
 
@@ -45,7 +45,7 @@ If you have any questions, please contact us at hlp.admin.connect@nhs.net.
 
 Many thanks,
 
-NHS Connect Team 
+NHS Connect Team
 EOT;
     }
 }

@@ -29,6 +29,6 @@ class IsLocalService implements Rule
      */
     public function message()
     {
-        return 'The Service is a National service.';
+        return 'The Support listing is a National Support listing.';
     }
 }

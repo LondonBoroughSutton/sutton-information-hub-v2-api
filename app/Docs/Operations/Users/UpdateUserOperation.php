@@ -28,8 +28,8 @@ class UpdateUserOperation extends Operation
             ->description(
                 <<<'EOT'
 **Permission:** `Service Admin`
-- Can update service workers
-- Can update other service admins
+- Can update support listing workers
+- Can update other support listing admins
 
 **Permission:** `Global Admin`
 - Can update other global admins

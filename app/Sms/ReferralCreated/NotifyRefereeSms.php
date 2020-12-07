@@ -20,7 +20,7 @@ class NotifyRefereeSms extends Sms
     public function getContent(): string
     {
         return <<<'EOT'
-Connected Together: You've made a connection for a client on Connected Together ((REFERRAL_ID)). The service should contact them within 10 working days. Any feedback contact hlp.admin.connect@nhs.net
+Connect: You've made a connection for a client on Connect ((REFERRAL_ID)). The support listing should contact them within 10 working days. Any feedback contact hlp.admin.connect@nhs.net
 EOT;
     }
 }

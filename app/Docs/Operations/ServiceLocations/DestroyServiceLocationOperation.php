@@ -19,8 +19,8 @@ class DestroyServiceLocationOperation extends Operation
         return parent::create($objectId)
             ->action(static::ACTION_DELETE)
             ->tags(ServiceLocationsTag::create())
-            ->summary('Delete a specific service location')
+            ->summary('Delete a specific support listing location')
             ->description('**Permission:** `Super Admin`')
-            ->responses(ResourceDeletedResponse::create(null, 'service location'));
+            ->responses(ResourceDeletedResponse::create(null, 'support listing location'));
     }
 }

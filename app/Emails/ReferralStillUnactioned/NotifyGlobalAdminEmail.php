@@ -27,12 +27,12 @@ Referral made: ((REFERRAL_CREATED_AT))
 Client initials: ((REFERRAL_INITIALS))
 Referral ID: ((REFERRAL_ID))
 Referral email address: ((SERVICE_REFERRAL_EMAIL))
-Users attached to this service are as follows:
+Users attached to this support listing are as follows:
 
-Service Worker(s):
+Support listing Worker(s):
 ((SERVICE_WORKERS))
 
-Service Admin(s):
+Support listing Admin(s):
 ((SERVICE_ADMINS))
 
 Organisation Admin(s):

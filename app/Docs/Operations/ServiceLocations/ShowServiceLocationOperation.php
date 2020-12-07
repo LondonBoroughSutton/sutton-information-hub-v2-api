@@ -23,7 +23,7 @@ class ShowServiceLocationOperation extends Operation
         return parent::create($objectId)
             ->action(static::ACTION_GET)
             ->tags(ServiceLocationsTag::create())
-            ->summary('Get a specific service location')
+            ->summary('Get a specific support listing location')
             ->description('**Permission:** `Open`')
             ->noSecurity()
             ->parameters(

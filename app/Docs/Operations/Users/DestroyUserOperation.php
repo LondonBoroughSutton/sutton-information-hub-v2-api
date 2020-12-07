@@ -23,8 +23,8 @@ class DestroyUserOperation extends Operation
             ->description(
                 <<<'EOT'
 **Permission:** `Service Admin`
-- Can delete service workers
-- Can delete other service admins
+- Can delete support listing workers
+- Can delete other support listing admins
 
 **Permission:** `Global Admin`
 - Can delete other global admins

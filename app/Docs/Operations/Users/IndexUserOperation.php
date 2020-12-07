@@ -65,7 +65,7 @@ class IndexUserOperation extends Operation
                     ->description('Comma separated list of organisation IDs which filters users to those who have a role at the specified organisations (global admins and higher are excluded)')
                     ->schema(Schema::string()),
                 FilterParameter::create(null, 'at_service')
-                    ->description('Comma separated list of service IDs which filters users to those who have a role at the specified services (global admins and higher are excluded)')
+                    ->description('Comma separated list of servisupport listingce IDs which filters users to those who have a role at the specified services (global admins and higher are excluded)')
                     ->schema(Schema::string()),
                 IncludeParameter::create(null, [
                     'user-roles',

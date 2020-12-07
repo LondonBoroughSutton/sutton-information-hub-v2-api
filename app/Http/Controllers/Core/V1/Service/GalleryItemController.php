@@ -29,7 +29,7 @@ class GalleryItemController extends Controller
             Response::HTTP_NOT_FOUND
         );
 
-        event(EndpointHit::onRead($request, "Viewed gallery item for service [{$service->id}]", $service));
+        event(EndpointHit::onRead($request, "Viewed gallery item for support listing [{$service->id}]", $service));
 
         // Return the file, or placeholder if the file is null.
         return $file->resizedVersion($request->max_dimension);
