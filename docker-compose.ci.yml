@@ -9,8 +9,8 @@ services:
     volumes:
       - .:/var/www/html
     depends_on:
-      - mysql
-      - redis
+      - mysql-testing
+      - redis-testing
       - elasticsearch
     command: /usr/bin/supervisord
 
@@ -19,8 +19,8 @@ services:
     volumes:
       - .:/var/www/html
     depends_on:
-      - mysql
-      - redis
+      - mysql-testing
+      - redis-testing
       - elasticsearch
     command: php artisan queue:work --queue=default,search,notifications --tries=1
 
@@ -29,8 +29,8 @@ services:
     volumes:
       - .:/var/www/html
     depends_on:
-      - mysql
-      - redis
+      - mysql-testing
+      - redis-testing
       - elasticsearch
     command: php artisan hlp:run-scheduler
 
