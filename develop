@@ -13,16 +13,17 @@ export CFN_TEMPLATE=${CFN_TEMPLATE:-cloudformation}
 # Set the docker-compose files to use.
 DOCKER_COMPOSE="docker-compose -f docker-compose.yml"
 
-if [[ $(uname) == "Darwin" ]]; then
-  DOCKER_COMPOSE="${DOCKER_COMPOSE} -f docker-compose.mac.yml"
-fi
-
 # Disable pseudo-TTY allocation for CI. The -T flag removes interaction.
 TTY=""
+
+if [[ $(uname) == "Darwin" ]]; then
+    DOCKER_COMPOSE="${DOCKER_COMPOSE} -f docker-compose.mac.yml"
+fi
 
 # Travis CI provides a CI environment variable which can be used to check if
 # this is running in a CI environment.
 if [[ ${CI:-false} == "true" ]]; then
+    DOCKER_COMPOSE="docker-compose -f docker-compose.ci.yml"
     TTY="-T"
 fi
 

@@ -8,8 +8,6 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/var/www/html
-    ports:
-      - "${APP_PORT}:80"
     depends_on:
       - mysql
       - redis
@@ -44,18 +42,6 @@ services:
     volumes:
       - .:/var/www/html
 
-  mysql:
-    image: mysql:5.7
-    environment:
-      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASS}"
-      MYSQL_DATABASE: "${DB_NAME}"
-      MYSQL_USER: "${DB_USER}"
-      MYSQL_PASSWORD: "${DB_PASS}"
-    volumes:
-      - hlp-mysql-data:/var/lib/mysql
-    ports:
-      - "${DB_PORT}:3306"
-
   mysql-testing:
     image: mysql:5.7
     environment:
@@ -65,11 +51,6 @@ services:
       MYSQL_PASSWORD: "${DB_PASS}"
     command: mysqld --general-log=1 --general-log-file=/var/log/mysql/general-log.log
 
-  redis:
-    image: grokzen/redis-cluster:5.0.5
-    volumes:
-      - hlp-redis-data:/data
-
   redis-testing:
     image: grokzen/redis-cluster:5.0.5
 
@@ -77,24 +58,3 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
     environment:
       discovery-type: single-node
-    volumes:
-      - hlp-elasticsearch-data:/usr/share/elasticsearch/data
-    pors:
-      - "${ELASTICSEARCH_PORT}:9200"
-
-  troposphere:
-    image: healthy-london-partnership/api/troposphere
-    build:
-      context: ./docker/troposphere
-      dockerfile: Dockerfile
-    volumes:
-      - ./aws:/tmp
-    command: python ${CFN_TEMPLATE}.py
-
-volumes:
-  hlp-mysql-data:
-    driver: local
-  hlp-redis-data:
-    driver: local
-  hlp-elasticsearch-data:
-    driver: local
