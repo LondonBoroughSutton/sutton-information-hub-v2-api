@@ -79,7 +79,7 @@ services:
       discovery-type: single-node
     volumes:
       - hlp-elasticsearch-data:/usr/share/elasticsearch/data
-    pors:
+    ports:
       - "${ELASTICSEARCH_PORT}:9200"
 
   troposphere:
