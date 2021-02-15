@@ -66,6 +66,9 @@ Route::prefix('core/v1')
             Route::get('/locations/{location}/image.png', 'Location\\ImageController')
                 ->name('locations.image');
 
+            // NHS Conditions.
+            Route::match('GET', '/nhs-conditions/{slug}', 'NhsConditionController@show');
+
             // Notifications.
             Route::match(['GET', 'POST'], '/notifications/index', 'NotificationController@index');
             Route::apiResource('/notifications', 'NotificationController')

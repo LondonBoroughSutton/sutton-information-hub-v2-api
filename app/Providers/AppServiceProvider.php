@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Generators\AdminUrlGenerator;
+use App\Repositories\NhsConditions\NhsConditionsRepository;
 use App\RoleManagement\RoleAuthorizer;
 use App\RoleManagement\RoleAuthorizerInterface;
 use App\RoleManagement\RoleChecker;
@@ -11,6 +12,8 @@ use App\RoleManagement\RoleManager;
 use App\RoleManagement\RoleManagerInterface;
 use App\VariableSubstitution\DoubleParenthesisVariableSubstituter;
 use Carbon\CarbonImmutable;
+use GuzzleHttp\Client;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\ServiceProvider;
 
@@ -91,6 +94,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(RoleAuthorizerInterface::class, RoleAuthorizer::class);
         $this->app->bind(RoleCheckerInterface::class, RoleChecker::class);
         $this->app->bind(RoleManagerInterface::class, RoleManager::class);
+        $this->app->bind(NhsConditionsRepository::class, function (Container $app) {
+            return new NhsConditionsRepository(
+                $app->make(Client::class),
+                config('hlp.nhs.domain'),
+                config('hlp.nhs.subscription_key'),
+                3
+            );
+        });
     }
 
     /**
