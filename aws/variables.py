@@ -62,15 +62,15 @@ def create_ci_user_name_variable(environment_parameter):
 
 
 def create_database_name_variable():
-    return 'one_hounslow_connect'
+    return 'helpyourselfsutton'
 
 
 def create_database_username_variable():
-    return 'one_hounslow_connect'
+    return 'helpyourselfsutton'
 
 
 def create_api_name_variable():
-    return 'Hounslow Connect'
+    return 'Help Yourself Sutton'
 
 
 def create_elasticsearch_domain_name_variable(environment_parameter):
