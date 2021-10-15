@@ -55,3 +55,6 @@ cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_S
 
 # Deploy.
 # cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE
+
+# Remove the AWS client
+rm -Rf ${PWD}/aws
