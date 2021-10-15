@@ -2,9 +2,9 @@
 defaults: &defaults
   buildpack: php_buildpack
   services:
-  - ck-db
-  - ck-redis
-  - ck-search
+  - hys-db
+  - hys-redis
+  - hys-search
 
 applications:
 - name: helpyourselfsutton-api
