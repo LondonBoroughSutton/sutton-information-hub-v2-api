@@ -1,12 +1,6 @@
 {
     "WEB_SERVER": "nginx",
-    "PHP_EXTENSIONS": [
-        "openssl",
-        "tokenizer",
-        "mbstring",
-        "pdo",
-        "pdo_mysql"
-    ],
+    "PHP_VERSION": "{PHP_72_LATEST}",
     "PHP_MODULES": [
         "fpm",
         "cli"

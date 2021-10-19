@@ -5,6 +5,8 @@ defaults: &defaults
   - hys-db
   - hys-redis
   - hys-search
+  - hys-queue
+  - hys-assets
 
 applications:
 - name: helpyourselfsutton-api
