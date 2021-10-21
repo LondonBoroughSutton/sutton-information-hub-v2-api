@@ -34,7 +34,11 @@ $rules = [
         'space' => 'none',
     ],
     'class_attributes_separation' => [
-        'elements' => ['method', 'property'],
+        'elements' => [
+            'const' => 'one',
+            'method' => 'one',
+            'property' => 'one',
+        ],
     ],
     'combine_consecutive_issets' => true,
     'combine_consecutive_unsets' => true,
@@ -78,7 +82,7 @@ $rules = [
     'no_multiline_whitespace_around_double_arrow' => true,
     'no_php4_constructor' => true,
     'no_short_bool_cast' => true,
-    'no_short_echo_tag' => true,
+    'echo_tag_syntax' => ['format' => 'long'],
     'no_singleline_whitespace_before_semicolons' => true,
     'no_spaces_around_offset' => true,
     'no_unused_imports' => true,
@@ -121,11 +125,11 @@ $rules = [
     'standardize_not_equals' => true,
     'ternary_operator_spaces' => true,
     'ternary_to_null_coalescing' => true,
-    'trailing_comma_in_multiline_array' => true,
+    'trailing_comma_in_multiline' => ['elements' => ['arrays']],
     'trim_array_spaces' => true,
     'unary_operator_spaces' => true,
 ];
 
-return Config::create()
+return (new Config())
     ->setRules($rules)
     ->setFinder($finder);
