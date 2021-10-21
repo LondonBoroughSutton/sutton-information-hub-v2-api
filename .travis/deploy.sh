@@ -45,6 +45,8 @@ apt-get update && apt-get install -y --allow-unauthenticated cf7-cli jq sed
 # Set environment variables.
 echo -e "${BLUE}Setting deployment configuration for ${ENVIRONMENT}...${ENDCOLOUR}"
 export ENV_SECRET_FILE=".env.api.${ENVIRONMENT}"
+export PUBLIC_KEY_SECRET="oauth-public.key.${ENVIRONMENT}"
+export PRIVATE_KEY_SECRET="oauth-private.key.${ENVIRONMENT}"
 
 # Connect to the Cloud Foundry API.
 echo -e "${BLUE}Logging into Cloud Foundry...${ENDCOLOUR}"
@@ -55,8 +57,6 @@ cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_S
 # Get the .env file from the secret S3 bucket
 echo -e "${BLUE}Retreive the AWS S3 access credentials${ENDCOLOUR}"
 cf service-key $CF_SECRET_SERVICE $CF_SECRET_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
-
-cat secret_access.json
 
 # Export the AWS S3 access credentials for use by the AWS CLI
 export AWS_ACCESS_KEY_ID=`jq -r .aws_access_key_id secret_access.json`
@@ -70,16 +70,14 @@ rm secret_access.json
 
 echo -e "${BLUE}Retrieve the relevant dotenv file${ENDCOLOUR}"
 aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${ENV_SECRET_FILE} ${PWD}/.env
-
-sed -i "s/AWS_ACCESS_KEY_ID=*/AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID/" ${PWD}/.env
-sed -i "s/AWS_SECRET_ACCESS_KEY=*/AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY/" ${PWD}/.env
-sed -i "s/AWS_DEFAULT_REGION=*/AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION/" ${PWD}/.env
+echo -e "${BLUE}Retrieve the relevant Oauth public key${ENDCOLOUR}"
+aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${PUBLIC_KEY_SECRET} ${PWD}/storage/oauth-public.key
+echo -e "${BLUE}Retrieve the relevant Oauth private key${ENDCOLOUR}"
+aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${PRIVATE_KEY_SECRET} ${PWD}/storage/oauth-private.key
 
 # Get the service parameters for the .env file
 echo -e "${BLUE}Retrieve the VCAP_SERVICES environment variable${ENDCOLOUR}"
 cf env ${CF_APP_NAME} | sed '1,/VCAP_SERVICES/d;/VCAP_APPLICATION/,$d' | sed '1 i\{' | jq . > services.json
-
-cat services.json
 
 # MySQL
 echo -e "${BLUE}Update the MySQL connection values${ENDCOLOUR}"
@@ -112,10 +110,10 @@ sed -i "s/SQS_ACCESS_KEY_ID=*/SQS_ACCESS_KEY_ID=$SQS_ACCESS_KEY_ID/;s|SQS_SECRET
 
 # S3
 echo -e "${BLUE}Update the S3 connection values${ENDCOLOUR}"
-AWS_ACCESS_KEY_ID=`jq -r '."aws-sqs-bucket"[0].credentials.aws_access_key_id' services.json`
-AWS_SECRET_ACCESS_KEY=`jq -r '."aws-sqs-bucket"[0].credentials.aws_secret_access_key' services.json`
-AWS_DEFAULT_REGION=`jq -r '."aws-sqs-bucket"[0].credentials.aws_region' services.json`
-AWS_BUCKET=`jq -r '."aws-sqs-bucket"[0].credentials.bucket_name' services.json`
+AWS_ACCESS_KEY_ID=`jq -r '."aws-s3-bucket"[0].credentials.aws_access_key_id' services.json`
+AWS_SECRET_ACCESS_KEY=`jq -r '."aws-s3-bucket"[0].credentials.aws_secret_access_key' services.json`
+AWS_DEFAULT_REGION=`jq -r '."aws-s3-bucket"[0].credentials.aws_region' services.json`
+AWS_BUCKET=`jq -r '."aws-s3-bucket"[0].credentials.bucket_name' services.json`
 sed -i "s/AWS_ACCESS_KEY_ID=*/AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID/;s|AWS_SECRET_ACCESS_KEY=*|AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY|;s/AWS_DEFAULT_REGION=*/AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION/;s/AWS_BUCKET=*/AWS_BUCKET=$AWS_BUCKET/" ${PWD}/.env
 
 # Remove the services file

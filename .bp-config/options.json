@@ -13,6 +13,7 @@
         "--no-dev"
     ],
     "ADDITIONAL_PREPROCESS_CMDS": [
+        "php artisan key:generate",
         "php artisan migrate --force",
         "php artisan config:cache",
         "php artisan route:cache"

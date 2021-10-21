@@ -41,34 +41,39 @@ before_deploy: |
   if ! [[ ${HAS_RAN_BEFORE_DEPLOY} ]]; then
     export HAS_RAN_BEFORE_DEPLOY="TRUE"
 
+    BLUE='\e[1;34m'
+    GREEN='\e[1;32m'
+    ENDCOLOUR='\e[1;m'
+
     echo "Compiling assets for production..."
     ./develop npm run prod
 
-    echo "Installing AWS CLI..."
+    echo -e "${BLUE}Installing AWS CLI...${ENDCOLOUR}"
     rm -Rf ${PWD}/aws
     wget -q -O awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
     unzip awscliv2.zip
     ${PWD}/aws/install
     aws --version
+    rm  awscliv2.zip
 
-    echo "Installing CloudFoundry CLI..."
-    apt-get update && apt-get install -y --allow-unauthenticated gnupg
-    wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -
-    echo "deb https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-    sudo apt-get update && sudo apt-get install -y --allow-unauthenticated cf7-cli
+    echo -e "${BLUE}Installing CloudFoundry CLI...${ENDCOLOUR}"
+    sudo apt-get update && sudo apt-get install -y --allow-unauthenticated gnupg
+    wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add -
+    echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+    sudo apt-get update && sudo apt-get install -y --allow-unauthenticated cf7-cli jq sed
   fi
 
 deploy:
   # Tagged releases
   - provider: script
-    script: ENVIRONMENT=production CF_API=https://api.cloud.service.gov.uk CF_ORGANISATION=$CF_ORGANISATION CF_SPACE=$CF_SPACE_PRODUCTION CF_USERNAME=$CF_DEPLOY_USERNAME CF_PASSWORD=$CF_DEPLOY_PASSWORD CF_INSTANCES=$CF_INSTANCES_PRODUCTION CF_ROUTE=$CF_ROUTE_PRODUCTION bash .travis/deploy.sh
+    script: ENVIRONMENT=production CF_API=https://api.cloud.service.gov.uk CF_ORGANISATION=$CF_ORGANISATION CF_SPACE=$CF_SPACE_PRODUCTION CF_APP_NAME=$CF_APP_NAME_PRODUCTION CF_USERNAME=$CF_DEPLOY_USERNAME CF_PASSWORD=$CF_DEPLOY_PASSWORD CF_INSTANCES=$CF_INSTANCES_PRODUCTION CF_ROUTE=$CF_ROUTE_PRODUCTION CF_SECRET_SERVICE=$CF_SECRET_SERVICE CF_SECRET_SERVICE_KEY=$CF_SECRET_SERVICE_KEY bash .travis/deploy.sh
     skip_cleanup: true
     on:
       all_branches: true
       condition: ${TRAVIS_TAG} =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+$
   # Develop
   - provider: script
-    script: ENVIRONMENT=staging CF_API=https://api.cloud.service.gov.uk CF_ORGANISATION=$CF_ORGANISATION CF_SPACE=$CF_SPACE_STAGING CF_USERNAME=$CF_DEPLOY_USERNAME CF_PASSWORD=$CF_DEPLOY_PASSWORD CF_INSTANCES=$CF_INSTANCES_STAGING CF_ROUTE=$CF_ROUTE_STAGING bash .travis/deploy.sh
+    script: ENVIRONMENT=staging CF_API=https://api.cloud.service.gov.uk CF_ORGANISATION=$CF_ORGANISATION CF_SPACE=$CF_SPACE_STAGING CF_APP_NAME=$CF_APP_NAME_STAGING CF_USERNAME=$CF_DEPLOY_USERNAME CF_PASSWORD=$CF_DEPLOY_PASSWORD CF_INSTANCES=$CF_INSTANCES_STAGING CF_ROUTE=$CF_ROUTE_STAGING CF_SECRET_SERVICE=$CF_SECRET_SERVICE CF_SECRET_SERVICE_KEY=$CF_SECRET_SERVICE_KEY bash .travis/deploy.sh
     skip_cleanup: true
     on:
       branch: develop

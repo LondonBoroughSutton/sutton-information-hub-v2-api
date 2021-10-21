@@ -7,6 +7,9 @@
 # ./develop bash cloudfoundry/store_env.sh
 # ================================
 
+# Bail out on first error.
+set -e
+
 # Set environment variables.
 CF_API='https://api.cloud.service.gov.uk'
 CF_SECRET_SERVICE=hys-secret
@@ -14,21 +17,13 @@ CF_SECRET_SERVICE_KEY=hys-secret-key
 APPROOT=${APPROOT:-'/var/www/html'}
 
 # Get the Cloud Foundry details
-echo 'Cloudfoundry Username?'
+read -p 'Cloudfoundry Username: ' CF_USERNAME
 
-read CF_USERNAME
+read -sp 'Cloudfoundry Password: ' CF_PASSWORD
+echo
+read -p 'Cloudfoundry Organisation: ' CF_ORGANISATION
 
-echo 'Cloudfoundry Password?'
-
-read CF_PASSWORD
-
-echo 'Cloudfoundry Organisation?'
-
-read CF_ORGANISATION
-
-echo 'Cloudfoundry Space?'
-
-read CF_SPACE
+read -p 'Cloudfoundry Space: ' CF_SPACE
 
 # Install AWS CLI
 echo "Installing AWS CLI..."
@@ -47,16 +42,11 @@ echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/s
 apt-get update && apt-get install -y --allow-unauthenticated cf7-cli jq
 
 # Get the upload details
-echo 'Which environment is to be updated? (staging or production)'
+read -p 'Which environment is to be updated? (staging or production): ' ENVIRONMENT
 
-read ENVIRONMENT
-
-if [ "$ENVIRONMENT" != 'staging' ] && [ "$ENVIRONMENT" != 'production' ]
-then
+if [ "$ENVIRONMENT" != 'staging' ] && [ "$ENVIRONMENT" != 'production' ]; then
     echo 'The environment should be one of staging or production'
     exit
-else
-    ENV_SECRET_FILE=".env.api.${ENVIRONMENT}"
 fi
 
 echo 'What is the path to the new environment file? relative to the application root (e.g. .env)'
@@ -66,6 +56,24 @@ read FILE_PATH
 if [ ! -e "$APPROOT/$FILE_PATH" ]
 then
     echo 'The environment file does not exist'
+    exit
+fi
+
+if [[ $FILE_PATH == *"oauth-public.key"* ]]; then
+    ENV_SECRET_FILE="oauth-public.key.${ENVIRONMENT}"
+elif [[ $FILE_PATH == *"oauth-private.key"* ]]; then
+    ENV_SECRET_FILE="oauth-private.key.${ENVIRONMENT}"
+else
+    ENV_SECRET_FILE=".env.api.${ENVIRONMENT}"
+fi
+
+# Check the user is happy to store the proposed update
+read -p "Storing $FILE_PATH as $ENV_SECRET_FILE Proceed? (Y/n): " PROCEED
+
+PROCEED=${PROCEED:-'Y'}
+
+if [ "$PROCEED" != 'Y'] && [ "$PROCEED" != 'y' ]; then
+    echo "Aborting file storage"
     exit
 fi
 
