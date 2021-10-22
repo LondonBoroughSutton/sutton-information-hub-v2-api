@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Importers;
+namespace Tests\Integration\Importers;
 
 use App\BatchImport\OpenActiveTaxonomyImporter;
 use App\Models\Taxonomy;

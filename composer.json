@@ -22,6 +22,7 @@
         "laravel/passport": "^6.0",
         "laravel/tinker": "^1.0",
         "league/flysystem-aws-s3-v3": "~1.0",
+        "lcobucci/jwt": "~3.3.3",
         "php-http/guzzle6-adapter": "^1.1",
         "phpoffice/phpspreadsheet": "^1.4",
         "predis/predis": "^1.1",
