@@ -56,12 +56,21 @@ if [[ $# -gt 0  ]]; then
                 npm "$@"
             ;;
 
-        cfn|cloudformation )
-            ${DOCKER_COMPOSE} run --rm troposphere > aws/${CFN_TEMPLATE}.json
-            cat aws/${CFN_TEMPLATE}.json
+        store )
+            shift 1
+            ${DOCKER_COMPOSE} run --rm ${TTY} \
+                -e CF_SECRET_SERVICE=${CF_SECRET_SERVICE:-''} \
+                -e CF_SECRET_SERVICE_KEY=${CF_SECRET_SERVICE_KEY:-''} \
+                app \
+                bash .cloudfoundry/store_env.sh
             ;;
 
-        * ) ${DOCKER_COMPOSE} "$@"; ;;
+        deploy )
+            shift 1
+            ${DOCKER_COMPOSE} run --rm ${TTY} \
+                app \
+                bash .travis/deploy.sh
+            ;;
 
     esac
 else

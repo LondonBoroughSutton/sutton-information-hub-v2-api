@@ -7,14 +7,21 @@
 # ./develop bash cloudfoundry/store_env.sh
 # ================================
 
+# Requires the following environment variables:
+# CF_SECRET_SERVICE
+# CF_SECRET_SERVICE_KEY
+
 # Bail out on first error.
 set -e
 
 # Set environment variables.
 CF_API='https://api.cloud.service.gov.uk'
-CF_SECRET_SERVICE=hys-secret
-CF_SECRET_SERVICE_KEY=hys-secret-key
 APPROOT=${APPROOT:-'/var/www/html'}
+
+if [ -z "$CF_SECRET_SERVICE" ] || [ -z "$CF_SECRET_SERVICE_KEY" ]; then
+    echo 'Missing variables for cf service-key'
+    exit
+fi
 
 # Get the Cloud Foundry details
 read -p 'Cloudfoundry Username: ' CF_USERNAME
@@ -81,7 +88,6 @@ fi
 cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_SPACE
 
 # Get the .env file from the secret S3 bucket
-cf service-key $CF_SECRET_SERVICE $CF_SECRET_SERVICE_KEY
 cf service-key $CF_SECRET_SERVICE $CF_SECRET_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
 
 # Export the AWS S3 access credentials for use by the AWS CLI

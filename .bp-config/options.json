@@ -4,8 +4,9 @@
         "fpm",
         "cli"
     ],
+    "PHP_VERSION": "{PHP_74_LATEST}",
     "WEBDIR": "public",
-    "COMPOSER_VENDOR_DIR": "vendor",
+    "COMPOSER_VENDOR_DIR": "{BUILD_DIR}/vendor",
     "COMPOSER_INSTALL_OPTIONS": [
         "--no-interaction",
         "--optimize-autoloader",

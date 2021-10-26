@@ -14,6 +14,7 @@
 # $CF_APP_NAME = The name of the main app as stated in the manifest
 # $TRAVIS_BUILD_DIR = The directory of the project.
 # $TRAVIS_COMMIT = The commit hash of the build.
+# $GITHUB_TOKEN = GitHub personal Access Token
 
 # Bail out on first error.
 set -e
@@ -121,6 +122,11 @@ rm services.json
 
 # Deploy.
 echo -e "${GREEN}Deploy the prepared app${ENDCOLOUR}"
+
+if [ ! -z "$GITHUB_TOKEN" ]; then
+    echo -e "${BLUE}Set the GitHub access token${ENDCOLOUR}"
+    cf set-env ${CF_APP_NAME} COMPOSER_GITHUB_OAUTH_TOKEN "$GITHUB_TOKEN"
+fi
 cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE
 
 # Remove the AWS client

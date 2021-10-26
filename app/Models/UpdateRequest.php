@@ -19,13 +19,19 @@ class UpdateRequest extends Model
     use UpdateRequestScopes;
 
     const EXISTING_TYPE_LOCATION = 'locations';
+
     const EXISTING_TYPE_REFERRAL = 'referrals';
+
     const EXISTING_TYPE_SERVICE = 'services';
+
     const EXISTING_TYPE_SERVICE_LOCATION = 'service_locations';
+
     const EXISTING_TYPE_ORGANISATION = 'organisations';
+
     const EXISTING_TYPE_USER = 'users';
 
     const NEW_TYPE_ORGANISATION_SIGN_UP_FORM = 'organisation_sign_up_form';
+
     const NEW_TYPE_SERVICE = 'new_service_created_by_org_admin';
 
     /**

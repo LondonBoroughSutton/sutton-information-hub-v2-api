@@ -19,13 +19,21 @@ use InvalidArgumentException;
 class ElasticsearchSearch implements Search
 {
     const MILES = 'mi';
+
     const YARDS = 'yd';
+
     const FEET = 'ft';
+
     const INCHES = 'in';
+
     const KILOMETERS = 'km';
+
     const METERS = 'm';
+
     const CENTIMETERS = 'cm';
+
     const MILLIMETERS = 'mm';
+
     const NAUTICAL_MILES = 'nmi';
 
     /**

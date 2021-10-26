@@ -16,6 +16,7 @@ class Collection extends Model
     use CollectionScopes;
 
     const TYPE_CATEGORY = 'category';
+
     const TYPE_PERSONA = 'persona';
 
     /**
