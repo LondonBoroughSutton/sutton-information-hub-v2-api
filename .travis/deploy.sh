@@ -27,6 +27,9 @@ ENDCOLOUR='\e[1;m'
 # Remove once testing complete
 source ${PWD}/.travis/envar
 
+# Install required packages
+apt-get update && apt-get install -y --allow-unauthenticated jq sed gnupg npm
+
 echo -e "${BLUE}Installing AWS CLI...${ENDCOLOUR}"
 rm -Rf ${PWD}/aws
 wget -q -O awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
@@ -36,10 +39,14 @@ aws --version
 rm  awscliv2.zip
 
 echo -e "${BLUE}Installing CloudFoundry CLI...${ENDCOLOUR}"
-apt-get update && apt-get install -y --allow-unauthenticated gnupg
 wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add -
 echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-apt-get update && apt-get install -y --allow-unauthenticated cf7-cli jq sed
+apt-get update && apt-get install -y --allow-unauthenticated cf7-cli
+
+# Install node_modules
+curl -o- https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh | bash
+apt-get update && apt-get install -y --allow-unauthenticated nodejs
+npm run prod
 # End Remove section
 # ================================
 
@@ -80,42 +87,12 @@ aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${PRIVATE_KEY_SECRET} ${P
 echo -e "${BLUE}Retrieve the VCAP_SERVICES environment variable${ENDCOLOUR}"
 cf env ${CF_APP_NAME} | sed '1,/VCAP_SERVICES/d;/VCAP_APPLICATION/,$d' | sed '1 i\{' | jq . > services.json
 
-# MySQL
-echo -e "${BLUE}Update the MySQL connection values${ENDCOLOUR}"
-DB_HOST=`jq -r .mysql[0].credentials.host services.json`
-DB_PORT=`jq -r .mysql[0].credentials.port services.json`
-DB_DATABASE=`jq -r .mysql[0].credentials.name services.json`
-DB_USERNAME=`jq -r .mysql[0].credentials.username services.json`
-DB_PASSWORD=`jq -r .mysql[0].credentials.password services.json`
-sed -i "s/DB_HOST=*/DB_HOST=$DB_HOST/;s/DB_PORT=*/DB_PORT=$DB_PORT/;s/DB_DATABASE=*/DB_DATABASE=$DB_DATABASE/;s/DB_USERNAME=*/DB_USERNAME=$DB_USERNAME/;s/DB_PASSWORD=*/DB_PASSWORD=$DB_PASSWORD/" ${PWD}/.env
-
-# Redis
-echo -e "${BLUE}Update the Redis connection values${ENDCOLOUR}"
-REDIS_HOST=`jq -r .redis[0].credentials.host services.json`
-REDIS_PASSWORD=`jq -r .redis[0].credentials.password services.json`
-REDIS_PORT=`jq -r .redis[0].credentials.port services.json`
-sed -i "s/REDIS_HOST=*/REDIS_HOST=$REDIS_HOST/;s/REDIS_PASSWORD=*/REDIS_PASSWORD=$REDIS_PASSWORD/;s/REDIS_PORT=*/REDIS_PORT=$REDIS_PORT/" ${PWD}/.env
-
-# Elasticsearch
-echo -e "${BLUE}Update the Elasticsearch connection values${ENDCOLOUR}"
-SCOUT_ELASTIC_HOST=`jq -r .elasticsearch[0].credentials.hostname services.json`
-sed -i "s/SCOUT_ELASTIC_HOST=*/SCOUT_ELASTIC_HOST=$SCOUT_ELASTIC_HOST/" ${PWD}/.env
-
 # SQS
-echo -e "${BLUE}Update the SQS connection values${ENDCOLOUR}"
-SQS_ACCESS_KEY_ID=`jq -r '."aws-sqs-queue"[0].credentials.aws_access_key_id' services.json`
-SQS_SECRET_ACCESS_KEY=`jq -r '."aws-sqs-queue"[0].credentials.aws_secret_access_key' services.json`
-SQS_DEFAULT_REGION=`jq -r '."aws-sqs-queue"[0].credentials.aws_region' services.json`
-SQS_PREFIX=`jq -r '."aws-sqs-queue"[0].credentials.primary_queue_url' services.json`
-sed -i "s/SQS_ACCESS_KEY_ID=*/SQS_ACCESS_KEY_ID=$SQS_ACCESS_KEY_ID/;s|SQS_SECRET_ACCESS_KEY=*|SQS_SECRET_ACCESS_KEY=$SQS_SECRET_ACCESS_KEY|;s/SQS_DEFAULT_REGION=*/SQS_DEFAULT_REGION=$SQS_DEFAULT_REGION/;s|SQS_PREFIX=*|SQS_PREFIX=$SQS_PREFIX|" ${PWD}/.env
-
-# S3
-echo -e "${BLUE}Update the S3 connection values${ENDCOLOUR}"
-AWS_ACCESS_KEY_ID=`jq -r '."aws-s3-bucket"[0].credentials.aws_access_key_id' services.json`
-AWS_SECRET_ACCESS_KEY=`jq -r '."aws-s3-bucket"[0].credentials.aws_secret_access_key' services.json`
-AWS_DEFAULT_REGION=`jq -r '."aws-s3-bucket"[0].credentials.aws_region' services.json`
-AWS_BUCKET=`jq -r '."aws-s3-bucket"[0].credentials.bucket_name' services.json`
-sed -i "s/AWS_ACCESS_KEY_ID=*/AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID/;s|AWS_SECRET_ACCESS_KEY=*|AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY|;s/AWS_DEFAULT_REGION=*/AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION/;s/AWS_BUCKET=*/AWS_BUCKET=$AWS_BUCKET/" ${PWD}/.env
+echo -e "${BLUE}Update the SQS connection queues${ENDCOLOUR}"
+SQS_PRIMARY_QUEUE_URL=`jq -r '."aws-sqs-queue"[0].credentials.primary_queue_url' services.json`
+export SQS_PRIMARY_QUEUE=`echo "$SQS_PRIMARY_QUEUE_URL" | grep -Eo '|[^\/]+$|'`
+SQS_SECONDARY_QUEUE_URL=`jq -r '."aws-sqs-queue"[0].credentials.secondary_queue_url' services.json`
+export SQS_SECONDARY_QUEUE=`echo "$SQS_SECONDARY_QUEUE_URL" | grep -Eo '|[^\/]+$|'`
 
 # Remove the services file
 rm services.json
@@ -127,7 +104,7 @@ if [ ! -z "$GITHUB_TOKEN" ]; then
     echo -e "${BLUE}Set the GitHub access token${ENDCOLOUR}"
     cf set-env ${CF_APP_NAME} COMPOSER_GITHUB_OAUTH_TOKEN "$GITHUB_TOKEN"
 fi
-cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE
+cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE --var queue1=$SQS_PRIMARY_QUEUE --var queue2=$SQS_SECONDARY_QUEUE
 
 # Remove the AWS client
 rm -Rf ${PWD}/aws

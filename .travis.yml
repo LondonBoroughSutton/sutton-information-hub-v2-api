@@ -10,11 +10,6 @@ branches:
     # Develop
     - develop
 
-language: python
-
-python:
-  - "3.6"
-
 services:
   - docker
 
@@ -38,6 +33,8 @@ after_failure:
   - cat storage/logs/testing.log
 
 before_deploy: |
+  ./develop npm run prod
+
   if ! [[ ${HAS_RAN_BEFORE_DEPLOY} ]]; then
     export HAS_RAN_BEFORE_DEPLOY="TRUE"
 
