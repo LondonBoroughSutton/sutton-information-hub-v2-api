@@ -8,8 +8,12 @@ export DB_NAME=${DB_NAME:-helpyourselfsutton}
 export DB_USER=${DB_USER:-helpyourselfsutton}
 export DB_PASS=${DB_PASS:-secret}
 export ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT:-9200}
-export KIBANA_PORT=${KIBANA_PORT:-5601}
-export CFN_TEMPLATE=${CFN_TEMPLATE:-cloudformation}
+export CF_S3_SERVICE=${CF_S3_SERVICE:-hys-assets}
+export CF_S3_SERVICE_KEY=${CF_S3_SERVICE_KEY:-hys-assets-key}
+export CF_USERNAME=${CF_USERNAME:-''}
+export CF_PASSWORD=${CF_PASSWORD:-''}
+export CF_ORGANISATION=${CF_ORGANISATION:-''}
+export CF_SPACE=${CF_SPACE:-''}
 
 # Set the docker-compose files to use.
 DOCKER_COMPOSE="docker-compose"
@@ -59,10 +63,15 @@ if [[ $# -gt 0  ]]; then
         store )
             shift 1
             ${DOCKER_COMPOSE} run --rm ${TTY} \
-                -e CF_SECRET_SERVICE=${CF_SECRET_SERVICE:-''} \
-                -e CF_SECRET_SERVICE_KEY=${CF_SECRET_SERVICE_KEY:-''} \
+                -e CF_S3_SERVICE=${CF_S3_SERVICE:-''} \
+                -e CF_S3_SERVICE_KEY=${CF_S3_SERVICE_KEY:-''} \
+                -e CF_USERNAME=${CF_USERNAME:-''} \
+                -e CF_PASSWORD=${CF_PASSWORD:-''} \
+                -e CF_ORGANISATION=${CF_ORGANISATION:-''} \
+                -e CF_SPACE=${CF_SPACE:-''} \
+                -w /var/www/html \
                 app \
-                bash .cloudfoundry/store_env.sh
+                bash .cloudfoundry/store.sh
             ;;
 
         deploy )
@@ -71,6 +80,8 @@ if [[ $# -gt 0  ]]; then
                 app \
                 bash .travis/deploy.sh
             ;;
+
+        * ) ${DOCKER_COMPOSE} "$@"; ;;
 
     esac
 else

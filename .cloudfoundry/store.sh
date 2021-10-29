@@ -8,8 +8,14 @@
 # ================================
 
 # Requires the following environment variables:
-# CF_SECRET_SERVICE
-# CF_SECRET_SERVICE_KEY
+# $CF_S3_SERVICE = The name of the S3 bucket to store the files
+# $CF_S3_SERVICE_KEY = The name of the service key that holds the access credentials
+
+# Can accept the following environment variables
+# $CF_USERNAME = The Cloud Foundry username.
+# $CF_PASSWORD = The Cloud Foundry password.
+# $CF_ORGANISATION = The Cloud Foundry organisation.
+# $CF_SPACE = The Cloud Foundry space.
 
 # Bail out on first error.
 set -e
@@ -18,19 +24,28 @@ set -e
 CF_API='https://api.cloud.service.gov.uk'
 APPROOT=${APPROOT:-'/var/www/html'}
 
-if [ -z "$CF_SECRET_SERVICE" ] || [ -z "$CF_SECRET_SERVICE_KEY" ]; then
+if [ -z "$CF_S3_SERVICE" ] || [ -z "$CF_S3_SERVICE_KEY" ]; then
     echo 'Missing variables for cf service-key'
     exit
 fi
 
 # Get the Cloud Foundry details
-read -p 'Cloudfoundry Username: ' CF_USERNAME
+if [ -z "$CF_USERNAME" ]; then
+    read -p 'Cloudfoundry Username: ' CF_USERNAME
+fi
 
-read -sp 'Cloudfoundry Password: ' CF_PASSWORD
-echo
-read -p 'Cloudfoundry Organisation: ' CF_ORGANISATION
+if [ -z "$CF_PASSWORD" ]; then
+    read -sp 'Cloudfoundry Password: ' CF_PASSWORD
+    echo
+fi
 
-read -p 'Cloudfoundry Space: ' CF_SPACE
+if [ -z "$CF_ORGANISATION" ]; then
+    read -p 'Cloudfoundry Organisation: ' CF_ORGANISATION
+fi
+
+if [ -z "$CF_SPACE" ]; then
+    read -p 'Cloudfoundry Space: ' CF_SPACE
+fi
 
 # Install AWS CLI
 echo "Installing AWS CLI..."
@@ -56,26 +71,33 @@ if [ "$ENVIRONMENT" != 'staging' ] && [ "$ENVIRONMENT" != 'production' ]; then
     exit
 fi
 
-echo 'What is the path to the new environment file? relative to the application root (e.g. .env)'
+echo 'What is the path to the file? relative to the application root (e.g. .env, storage/cloud/files/public/...)'
 
 read FILE_PATH
 
 if [ ! -e "$APPROOT/$FILE_PATH" ]
 then
-    echo 'The environment file does not exist'
+    echo 'The file does not exist'
     exit
 fi
 
 if [[ $FILE_PATH == *"oauth-public.key"* ]]; then
-    ENV_SECRET_FILE="oauth-public.key.${ENVIRONMENT}"
+    FILE_KEY="oauth-public.key.${ENVIRONMENT}"
 elif [[ $FILE_PATH == *"oauth-private.key"* ]]; then
-    ENV_SECRET_FILE="oauth-private.key.${ENVIRONMENT}"
+    FILE_KEY="oauth-private.key.${ENVIRONMENT}"
+elif [[ $FILE_PATH == *".env"* ]]; then
+    FILE_KEY=".env.api.${ENVIRONMENT}"
 else
-    ENV_SECRET_FILE=".env.api.${ENVIRONMENT}"
+    read -p 'What is the path this file should be stored as? (e.g. files/public/abc123.png): ' FILE_KEY
+fi
+
+if [ -z "$FILE_KEY" ]; then
+    echo 'The file does not match the type of file this script is for'
+    exit
 fi
 
 # Check the user is happy to store the proposed update
-read -p "Storing $FILE_PATH as $ENV_SECRET_FILE Proceed? (Y/n): " PROCEED
+read -p "Storing $FILE_PATH as $FILE_KEY Proceed? (Y/n): " PROCEED
 
 PROCEED=${PROCEED:-'Y'}
 
@@ -88,7 +110,7 @@ fi
 cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_SPACE
 
 # Get the .env file from the secret S3 bucket
-cf service-key $CF_SECRET_SERVICE $CF_SECRET_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
+cf service-key $CF_S3_SERVICE $CF_S3_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
 
 # Export the AWS S3 access credentials for use by the AWS CLI
 export AWS_ACCESS_KEY_ID=`jq -r .aws_access_key_id secret_access.json`
@@ -99,9 +121,9 @@ export AWS_DEFAULT_OUTPUT=json
 
 rm secret_access.json
 
-echo "Uploading $APPROOT/$FILE_PATH to bucket $AWS_BUCKET_NAME as object $ENV_SECRET_FILE"
+echo "Uploading $APPROOT/$FILE_PATH to bucket $AWS_BUCKET_NAME as object $FILE_KEY"
 
-aws s3api put-object --bucket ${AWS_BUCKET_NAME} --key "$ENV_SECRET_FILE" --body "$APPROOT/$FILE_PATH"
+aws s3api put-object --bucket ${AWS_BUCKET_NAME} --key "$FILE_KEY" --body "$APPROOT/$FILE_PATH"
 
 # Remove the AWS client
 rm -Rf ${PWD}/aws

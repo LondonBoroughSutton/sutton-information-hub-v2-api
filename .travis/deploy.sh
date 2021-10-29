@@ -9,8 +9,8 @@
 # $CF_SPACE = The Cloud Foundry space.
 # $CF_INSTANCES = The number of App instances required
 # $CF_ROUTE = The public url of the app without the schema
-# $CF_SECRET_SERVICE = The name of the S3 bucket holding the .env files
-# $CF_SECRET_SERVICE_KEY = The name of the service key that holds the secret S3 bucket access details
+# $CF_S3_SERVICE = The name of the S3 bucket holding the .env files
+# $CF_S3_SERVICE_KEY = The name of the service key that holds the access credentials
 # $CF_APP_NAME = The name of the main app as stated in the manifest
 # $TRAVIS_BUILD_DIR = The directory of the project.
 # $TRAVIS_COMMIT = The commit hash of the build.
@@ -22,33 +22,6 @@ set -e
 BLUE='\e[1;34m'
 GREEN='\e[1;32m'
 ENDCOLOUR='\e[1;m'
-
-# ================================
-# Remove once testing complete
-source ${PWD}/.travis/envar
-
-# Install required packages
-apt-get update && apt-get install -y --allow-unauthenticated jq sed gnupg npm
-
-echo -e "${BLUE}Installing AWS CLI...${ENDCOLOUR}"
-rm -Rf ${PWD}/aws
-wget -q -O awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-unzip awscliv2.zip
-${PWD}/aws/install
-aws --version
-rm  awscliv2.zip
-
-echo -e "${BLUE}Installing CloudFoundry CLI...${ENDCOLOUR}"
-wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add -
-echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-apt-get update && apt-get install -y --allow-unauthenticated cf7-cli
-
-# Install node_modules
-curl -o- https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh | bash
-apt-get update && apt-get install -y --allow-unauthenticated nodejs
-npm run prod
-# End Remove section
-# ================================
 
 # Set environment variables.
 echo -e "${BLUE}Setting deployment configuration for ${ENVIRONMENT}...${ENDCOLOUR}"
@@ -64,7 +37,7 @@ cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_S
 
 # Get the .env file from the secret S3 bucket
 echo -e "${BLUE}Retreive the AWS S3 access credentials${ENDCOLOUR}"
-cf service-key $CF_SECRET_SERVICE $CF_SECRET_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
+cf service-key $CF_S3_SERVICE $CF_S3_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
 
 # Export the AWS S3 access credentials for use by the AWS CLI
 export AWS_ACCESS_KEY_ID=`jq -r .aws_access_key_id secret_access.json`
