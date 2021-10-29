@@ -23,6 +23,33 @@ BLUE='\e[1;34m'
 GREEN='\e[1;32m'
 ENDCOLOUR='\e[1;m'
 
+# ================================
+# Remove once testing complete
+source ${PWD}/.travis/envar
+
+# Install required packages
+apt-get update && apt-get install -y --allow-unauthenticated jq sed gnupg npm
+
+echo -e "${BLUE}Installing AWS CLI...${ENDCOLOUR}"
+rm -Rf ${PWD}/aws
+wget -q -O awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+unzip awscliv2.zip
+${PWD}/aws/install
+aws --version
+rm  awscliv2.zip
+
+echo -e "${BLUE}Installing CloudFoundry CLI...${ENDCOLOUR}"
+wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add -
+echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+apt-get update && apt-get install -y --allow-unauthenticated cf7-cli
+
+# Install node_modules
+curl -o- https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh | bash
+apt-get update && apt-get install -y --allow-unauthenticated nodejs
+npm run prod
+# End Remove section
+# ================================
+
 # Set environment variables.
 echo -e "${BLUE}Setting deployment configuration for ${ENVIRONMENT}...${ENDCOLOUR}"
 export ENV_SECRET_FILE=".env.api.${ENVIRONMENT}"
@@ -77,7 +104,7 @@ if [ ! -z "$GITHUB_TOKEN" ]; then
     echo -e "${BLUE}Set the GitHub access token${ENDCOLOUR}"
     cf set-env ${CF_APP_NAME} COMPOSER_GITHUB_OAUTH_TOKEN "$GITHUB_TOKEN"
 fi
-cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE --var queue1=$SQS_PRIMARY_QUEUE --var queue2=$SQS_SECONDARY_QUEUE
+# cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE --var queue1=$SQS_PRIMARY_QUEUE --var queue2=$SQS_SECONDARY_QUEUE
 
 # Remove the AWS client
 rm -Rf ${PWD}/aws

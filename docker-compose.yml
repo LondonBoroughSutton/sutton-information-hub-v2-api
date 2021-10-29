@@ -77,15 +77,6 @@ services:
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
 
-  troposphere:
-    image: helpyourselfsutton/api/troposphere
-    build:
-      context: ./docker/troposphere
-      dockerfile: Dockerfile
-    volumes:
-      - ./aws:/tmp
-    command: python ${CFN_TEMPLATE}.py
-
 volumes:
   mysql-data:
     driver: local
