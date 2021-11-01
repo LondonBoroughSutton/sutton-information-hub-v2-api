@@ -24,11 +24,6 @@ set -e
 CF_API='https://api.cloud.service.gov.uk'
 APPROOT=${APPROOT:-'/var/www/html'}
 
-if [ -z "$CF_S3_SERVICE" ] || [ -z "$CF_S3_SERVICE_KEY" ]; then
-    echo 'Missing variables for cf service-key'
-    exit
-fi
-
 # Get the Cloud Foundry details
 if [ -z "$CF_USERNAME" ]; then
     read -p 'Cloudfoundry Username: ' CF_USERNAME
@@ -47,6 +42,16 @@ if [ -z "$CF_SPACE" ]; then
     read -p 'Cloudfoundry Space: ' CF_SPACE
 fi
 
+if [ -z "$CF_S3_SERVICE" ]; then
+    read -p 'AWS S3 Bucket name: ' CF_S3_SERVICE
+    exit
+fi
+
+if [ -z "$CF_S3_SERVICE_KEY" ]; then
+    read -p 'AWS service key for the S3 Bucket: ' CF_S3_SERVICE_KEY
+    exit
+fi
+
 # Install AWS CLI
 echo "Installing AWS CLI..."
 rm -Rf ${APPROOT}/aws
@@ -63,49 +68,6 @@ wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key |
 echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
 apt-get update && apt-get install -y --allow-unauthenticated cf7-cli jq
 
-# Get the upload details
-read -p 'Which environment is to be updated? (staging or production): ' ENVIRONMENT
-
-if [ "$ENVIRONMENT" != 'staging' ] && [ "$ENVIRONMENT" != 'production' ]; then
-    echo 'The environment should be one of staging or production'
-    exit
-fi
-
-echo 'What is the path to the file? relative to the application root (e.g. .env, storage/cloud/files/public/...)'
-
-read FILE_PATH
-
-if [ ! -e "$APPROOT/$FILE_PATH" ]
-then
-    echo 'The file does not exist'
-    exit
-fi
-
-if [[ $FILE_PATH == *"oauth-public.key"* ]]; then
-    FILE_KEY="oauth-public.key.${ENVIRONMENT}"
-elif [[ $FILE_PATH == *"oauth-private.key"* ]]; then
-    FILE_KEY="oauth-private.key.${ENVIRONMENT}"
-elif [[ $FILE_PATH == *".env"* ]]; then
-    FILE_KEY=".env.api.${ENVIRONMENT}"
-else
-    read -p 'What is the path this file should be stored as? (e.g. files/public/abc123.png): ' FILE_KEY
-fi
-
-if [ -z "$FILE_KEY" ]; then
-    echo 'The file does not match the type of file this script is for'
-    exit
-fi
-
-# Check the user is happy to store the proposed update
-read -p "Storing $FILE_PATH as $FILE_KEY Proceed? (Y/n): " PROCEED
-
-PROCEED=${PROCEED:-'Y'}
-
-if [ "$PROCEED" != 'Y'] && [ "$PROCEED" != 'y' ]; then
-    echo "Aborting file storage"
-    exit
-fi
-
 # Login to Cloud Foundry.
 cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_SPACE
 
@@ -121,9 +83,85 @@ export AWS_DEFAULT_OUTPUT=json
 
 rm secret_access.json
 
-echo "Uploading $APPROOT/$FILE_PATH to bucket $AWS_BUCKET_NAME as object $FILE_KEY"
+# Select what operation to perform
+read -p '(L)ist, (G)et, (P)ut or (D)elete an object: ' ACTION
+case $ACTION in
+    "L"|"l"|"G"|"g"|"P"|"p"|"D"|"d")
+    ;;
+    *)
+    echo 'The action should be one of (L)ist, (G)et, (P)ut or (D)elete'
+    exit
+    ;;
+esac
 
-aws s3api put-object --bucket ${AWS_BUCKET_NAME} --key "$FILE_KEY" --body "$APPROOT/$FILE_PATH"
+if [ "$ACTION" == 'L' ] || [ "$ACTION" == 'l' ]; then
+# List the bucket contents
+    echo "The contents of bucket $AWS_BUCKET_NAME are:"
+    echo `aws s3api list-objects --bucket ${AWS_BUCKET_NAME}`
+fi
+
+if [ "$ACTION" == 'G' ] || [ "$ACTION" == 'g' ]; then
+    # Download a bucket object
+    read -p 'What is the key of the object to download?' OBJECT_KEY
+    echo "Downloading $OBJECT_KEY from bucket $AWS_BUCKET_NAME to ${PWD}/${OBJECT_KEY}"
+    aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${OBJECT_KEY} ${PWD}/${OBJECT_KEY}
+fi
+
+if [ "$ACTION" == 'P' ] || [ "$ACTION" == 'p' ]; then
+    # Get the upload details
+    read -p 'Which environment is to be updated? (staging or production): ' ENVIRONMENT
+
+    if [ "$ENVIRONMENT" != 'staging' ] && [ "$ENVIRONMENT" != 'production' ]; then
+        echo 'The environment should be one of staging or production'
+        exit
+    fi
+
+    echo 'What is the path to the file? relative to the application root (e.g. .env, storage/cloud/files/public/...)'
+
+    read FILE_PATH
+
+    if [ ! -e "$APPROOT/$FILE_PATH" ]; then
+        echo 'The file does not exist'
+        exit
+    fi
+
+    if [[ $FILE_PATH == *"oauth-public.key"* ]]; then
+        FILE_KEY="oauth-public.key.${ENVIRONMENT}"
+    elif [[ $FILE_PATH == *"oauth-private.key"* ]]; then
+        FILE_KEY="oauth-private.key.${ENVIRONMENT}"
+    elif [[ $FILE_PATH == *".env"* ]]; then
+        FILE_KEY=".env.api.${ENVIRONMENT}"
+    else
+        read -p 'What is the path this file should be stored as? (e.g. files/public/abc123.png): ' FILE_KEY
+    fi
+
+    if [ -z "$FILE_KEY" ]; then
+        echo 'The file does not match the type of file this script is for'
+        exit
+    fi
+
+    # Check the user is happy to store the proposed update
+    read -p "Storing $FILE_PATH as $FILE_KEY Proceed? (Y/n): " PROCEED
+
+    PROCEED=${PROCEED:-'Y'}
+
+    if [ "$PROCEED" != 'Y'] && [ "$PROCEED" != 'y' ]; then
+        echo "Aborting file storage"
+        exit
+    fi
+
+    echo "Uploading $APPROOT/$FILE_PATH to bucket $AWS_BUCKET_NAME as object $FILE_KEY"
+
+    aws s3api put-object --bucket ${AWS_BUCKET_NAME} --key "$FILE_KEY" --body "$APPROOT/$FILE_PATH"
+
+fi
+
+if [ "$ACTION" == 'D' ] || [ "$ACTION" == 'd' ]; then
+    # Delete a bucket object
+    read -p 'What is the key of the object to delete?' OBJECT_KEY
+    echo "Deleting $OBJECT_KEY from bucket $AWS_BUCKET_NAME"
+    aws s3api delete-object --bucket ${AWS_BUCKET_NAME} --key ${OBJECT_KEY} ${PWD}/${OBJECT_KEY}
+fi
 
 # Remove the AWS client
 rm -Rf ${PWD}/aws

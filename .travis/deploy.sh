@@ -50,10 +50,13 @@ export AWS_DEFAULT_OUTPUT=json
 rm secret_access.json
 
 echo -e "${BLUE}Retrieve the relevant dotenv file${ENDCOLOUR}"
+rm -f ${PWD}/.env
 aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${ENV_SECRET_FILE} ${PWD}/.env
 echo -e "${BLUE}Retrieve the relevant Oauth public key${ENDCOLOUR}"
+rm -f ${PWD}/storage/oauth-public.key
 aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${PUBLIC_KEY_SECRET} ${PWD}/storage/oauth-public.key
 echo -e "${BLUE}Retrieve the relevant Oauth private key${ENDCOLOUR}"
+rm -f ${PWD}/storage/oauth-private.key
 aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${PRIVATE_KEY_SECRET} ${PWD}/storage/oauth-private.key
 
 # Get the service parameters for the .env file
