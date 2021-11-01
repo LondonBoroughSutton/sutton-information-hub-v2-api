@@ -56,6 +56,8 @@ abstract class Email implements ShouldQueue
      */
     public function __construct(string $to, array $values = [])
     {
+        $this->queue = config('queue.queues.notifications', 'default');
+
         $this->to = $to;
         $this->values = $values;
         $this->templateId = $this->getTemplateId();

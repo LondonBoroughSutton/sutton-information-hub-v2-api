@@ -84,4 +84,16 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Defined queues
+    |--------------------------------------------------------------------------
+    |
+    | Queues for specific tasks
+    |
+     */
+
+    'queues' => [
+        'notifications' => env('NOTIFICATIONS_QUEUE', 'default'),
+    ],
 ];

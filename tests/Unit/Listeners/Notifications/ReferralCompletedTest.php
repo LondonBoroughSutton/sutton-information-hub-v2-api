@@ -38,7 +38,7 @@ class ReferralCompletedTest extends TestCase
         $listener = new ReferralCompleted();
         $listener->handle($event);
 
-        Queue::assertPushedOn('notifications', NotifyRefereeEmail::class);
+        Queue::assertPushedOn(config('queue.queues.notifications', 'default'), NotifyRefereeEmail::class);
         Queue::assertPushed(NotifyRefereeEmail::class, function (NotifyRefereeEmail $email) {
             $this->assertArrayHasKey('REFEREE_NAME', $email->values);
             $this->assertArrayHasKey('SERVICE_NAME', $email->values);
@@ -48,7 +48,7 @@ class ReferralCompletedTest extends TestCase
             return true;
         });
 
-        Queue::assertPushedOn('notifications', NotifyClientEmail::class);
+        Queue::assertPushedOn(config('queue.queues.notifications', 'default'), NotifyClientEmail::class);
         Queue::assertPushed(NotifyClientEmail::class, function (NotifyClientEmail $email) {
             $this->assertArrayHasKey('REFERRAL_ID', $email->values);
             $this->assertArrayHasKey('SERVICE_NAME', $email->values);
@@ -78,13 +78,13 @@ class ReferralCompletedTest extends TestCase
         $listener = new ReferralCompleted();
         $listener->handle($event);
 
-        Queue::assertPushedOn('notifications', NotifyClientSms::class);
+        Queue::assertPushedOn(config('queue.queues.notifications', 'default'), NotifyClientSms::class);
         Queue::assertPushed(NotifyClientSms::class, function (NotifyClientSms $sms) {
             $this->assertArrayHasKey('REFERRAL_ID', $sms->values);
             return true;
         });
 
-        Queue::assertPushedOn('notifications', NotifyRefereeSms::class);
+        Queue::assertPushedOn(config('queue.queues.notifications', 'default'), NotifyRefereeSms::class);
         Queue::assertPushed(NotifyRefereeSms::class, function (NotifyRefereeSms $sms) {
             $this->assertArrayHasKey('REFEREE_NAME', $sms->values);
             $this->assertArrayHasKey('SERVICE_NAME', $sms->values);
@@ -118,14 +118,14 @@ class ReferralCompletedTest extends TestCase
         $listener = new ReferralCompleted();
         $listener->handle($event);
 
-        Queue::assertPushedOn('notifications', NotifyClientEmail::class);
+        Queue::assertPushedOn(config('queue.queues.notifications', 'default'), NotifyClientEmail::class);
         Queue::assertPushed(NotifyClientEmail::class, function (NotifyClientEmail $email) {
             $this->assertArrayHasKey('REFERRAL_ID', $email->values);
             $this->assertArrayHasKey('SERVICE_NAME', $email->values);
             return true;
         });
 
-        Queue::assertPushedOn('notifications', NotifyClientSms::class);
+        Queue::assertPushedOn(config('queue.queues.notifications', 'default'), NotifyClientSms::class);
         Queue::assertPushed(NotifyClientSms::class, function (NotifyClientSms $sms) {
             $this->assertArrayHasKey('REFERRAL_ID', $sms->values);
             return true;

@@ -84,11 +84,11 @@ class OpenActiveTaxonomyImporter
             DB::table((new Taxonomy())->getTable())->insert($taxonomyImports);
 
             Schema::enableForeignKeyConstraints();
+        }, 1);
 
-            $openActiveCategory->refresh();
+        $openActiveCategory->refresh();
 
-            $openActiveCategory->updateDepth();
-        });
+        $openActiveCategory->updateDepth();
     }
 
     /**
