@@ -53,8 +53,8 @@ class CloudFoundryServiceProvider extends ServiceProvider
         // Set the SQS config.
         Config::set('queue.connections.sqs.key', $sqsConfig['aws_access_key_id']);
         Config::set('queue.connections.sqs.secret', $sqsConfig['aws_secret_access_key']);
-        Config::set('queue.connections.sqs.prefix', substr($sqsConfig['primary_queue_url'], 0, strrpos($sqsConfig['primary_queue_url'], "/") + 1));
-        Config::set('queue.connections.sqs.queue', substr($sqsConfig['primary_queue_url'], strrpos($sqsConfig['primary_queue_url'], "/") + 1));
+        Config::set('queue.connections.sqs.prefix', mb_substr($sqsConfig['primary_queue_url'], 0, mb_strrpos($sqsConfig['primary_queue_url'], '/') + 1));
+        Config::set('queue.connections.sqs.queue', mb_substr($sqsConfig['primary_queue_url'], mb_strrpos($sqsConfig['primary_queue_url'], '/') + 1));
         Config::set('queue.connections.sqs.region', $sqsConfig['aws_region']);
 
         // Set the S3 config.

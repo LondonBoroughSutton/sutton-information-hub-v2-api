@@ -33,7 +33,7 @@ class AddLgaStandardsTopLevelCategoryTaxonomyToTaxonomiesTable extends Migration
         // Move all direct children of Category to LGA Standards
         Taxonomy::firstOrNew([
             'parent_id' => $categoryId,
-            'name' => 'Functions'
+            'name' => 'Functions',
         ])->fill([
             'parent_id' => $lgaStandardsId,
             'order' => 0,
@@ -41,7 +41,7 @@ class AddLgaStandardsTopLevelCategoryTaxonomyToTaxonomiesTable extends Migration
         ])->save();
         Taxonomy::firstOrNew([
             'parent_id' => $categoryId,
-            'name' => 'Services'
+            'name' => 'Services',
         ])->fill([
             'parent_id' => $lgaStandardsId,
             'order' => 0,
