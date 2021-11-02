@@ -44,12 +44,10 @@ fi
 
 if [ -z "$CF_S3_SERVICE" ]; then
     read -p 'AWS S3 Bucket name: ' CF_S3_SERVICE
-    exit
 fi
 
 if [ -z "$CF_S3_SERVICE_KEY" ]; then
     read -p 'AWS service key for the S3 Bucket: ' CF_S3_SERVICE_KEY
-    exit
 fi
 
 # Install AWS CLI
@@ -145,7 +143,7 @@ if [ "$ACTION" == 'P' ] || [ "$ACTION" == 'p' ]; then
 
     PROCEED=${PROCEED:-'Y'}
 
-    if [ "$PROCEED" != 'Y'] && [ "$PROCEED" != 'y' ]; then
+    if [ "$PROCEED" != 'Y' ] && [ "$PROCEED" != 'y' ]; then
         echo "Aborting file storage"
         exit
     fi
@@ -158,9 +156,17 @@ fi
 
 if [ "$ACTION" == 'D' ] || [ "$ACTION" == 'd' ]; then
     # Delete a bucket object
-    read -p 'What is the key of the object to delete?' OBJECT_KEY
-    echo "Deleting $OBJECT_KEY from bucket $AWS_BUCKET_NAME"
-    aws s3api delete-object --bucket ${AWS_BUCKET_NAME} --key ${OBJECT_KEY} ${PWD}/${OBJECT_KEY}
+    read -p 'What is the key of the object to delete: ' OBJECT_KEY
+    # Check the user is happy to delete the object
+    read -p "Deleting $OBJECT_KEY from bucket $AWS_BUCKET_NAME Proceed? (Y/n): " PROCEED
+
+    PROCEED=${PROCEED:-'Y'}
+
+    if [ "$PROCEED" != 'Y' ] && [ "$PROCEED" != 'y' ]; then
+        echo "Aborting object delete"
+        exit
+    fi
+    aws s3api delete-object --bucket ${AWS_BUCKET_NAME} --key ${OBJECT_KEY}
 fi
 
 # Remove the AWS client
