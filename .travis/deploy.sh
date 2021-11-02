@@ -80,7 +80,7 @@ if [ ! -z "$GITHUB_TOKEN" ]; then
     echo -e "${BLUE}Set the GitHub access token${ENDCOLOUR}"
     cf set-env ${CF_APP_NAME} COMPOSER_GITHUB_OAUTH_TOKEN "$GITHUB_TOKEN"
 fi
-# cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE --var queue1=$SQS_PRIMARY_QUEUE --var queue2=$SQS_SECONDARY_QUEUE
+cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE --var queue1=$SQS_PRIMARY_QUEUE --var queue2=$SQS_SECONDARY_QUEUE
 
 # Remove the AWS client
 rm -Rf ${PWD}/aws
