@@ -2,11 +2,13 @@
 defaults: &defaults
   buildpack: php_buildpack
   services:
-  - hys-db
-  - hys-redis
-  - hys-search
-  - hys-queue
-  - hys-assets
+  - name: hys-db
+  - name: hys-redis
+  - name: hys-search
+  - name: hys-queue
+  - name: hys-assets
+    parameters:
+      permissions: read-write
 
 applications:
 - name: helpyourselfsutton-api
