@@ -56,6 +56,7 @@ class CloudFoundryServiceProvider extends ServiceProvider
         Config::set('queue.connections.sqs.prefix', mb_substr($sqsConfig['primary_queue_url'], 0, mb_strrpos($sqsConfig['primary_queue_url'], '/') + 1));
         Config::set('queue.connections.sqs.queue', mb_substr($sqsConfig['primary_queue_url'], mb_strrpos($sqsConfig['primary_queue_url'], '/') + 1));
         Config::set('queue.queues.notifications', mb_substr($sqsConfig['primary_queue_url'], mb_strrpos($sqsConfig['primary_queue_url'], '/') + 1));
+        Config::set('scout.queue.queue', mb_substr($sqsConfig['primary_queue_url'], mb_strrpos($sqsConfig['primary_queue_url'], '/') + 1));
         Config::set('queue.connections.sqs.region', $sqsConfig['aws_region']);
 
         // Set the S3 config.
