@@ -11,6 +11,8 @@
 # $CF_ROUTE = The public url of the app without the schema
 # $CF_ENV_SERVICE = The name of the S3 bucket holding the .env files
 # $CF_ENV_SERVICE_KEY = The name of the service key that holds the access credentials
+# $CF_ASSET_SERVICE = The name of the S3 bucket holding asset files
+# $CF_ASSET_SERVICE_KEY = The name of the service key that holds the access credentials
 # $CF_APP_NAME = The name of the main app as stated in the manifest
 # $TRAVIS_BUILD_DIR = The directory of the project.
 # $TRAVIS_COMMIT = The commit hash of the build.
@@ -69,6 +71,19 @@ SQS_PRIMARY_QUEUE_URL=`jq -r '."aws-sqs-queue"[0].credentials.primary_queue_url'
 export SQS_PRIMARY_QUEUE=`echo "$SQS_PRIMARY_QUEUE_URL" | grep -Eo '|[^\/]+$|'`
 SQS_SECONDARY_QUEUE_URL=`jq -r '."aws-sqs-queue"[0].credentials.secondary_queue_url' services.json`
 export SQS_SECONDARY_QUEUE=`echo "$SQS_SECONDARY_QUEUE_URL" | grep -Eo '|[^\/]+$|'`
+
+# S3
+echo -e "${BLUE}Upload the S3 assets${ENDCOLOUR}"
+# Export the AWS S3 access credentials for use by the AWS CLI
+export AWS_ACCESS_KEY_ID=`jq -r '."aws-s3-bucket"[0].credentials.aws_access_key_id' services.json`
+export AWS_DEFAULT_REGION=`jq -r '."aws-s3-bucket"[0].credentials.aws_region' services.json`
+export AWS_SECRET_ACCESS_KEY=`jq -r '."aws-s3-bucket"[0].credentials.aws_secret_access_key' services.json`
+export AWS_BUCKET_NAME=`jq -r '."aws-s3-bucket"[0].credentials.bucket_name' services.json`
+export AWS_DEFAULT_OUTPUT=json
+
+# Add the Elasticsearch files
+aws s3api put-object --bucket ${AWS_BUCKET_NAME} --key 'elasticsearch/stop-words.csv' --body "$PWD/storage/cloud/elasticsearch/stop-words.csv"
+aws s3api put-object --bucket ${AWS_BUCKET_NAME} --key 'elasticsearch/thesaurus.csv' --body "$PWD/storage/cloud/elasticsearch/thesaurus.csv"
 
 # Remove the services file
 rm services.json
