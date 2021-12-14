@@ -18,6 +18,8 @@ class File extends Model implements Responsable
 
     const MIME_TYPE_PNG = 'image/png';
 
+    const MIME_TYPE_JPG = 'image/jpeg';
+
     const MIME_TYPE_TXT = 'text/plain';
 
     const META_TYPE_RESIZED_IMAGE = 'resized_image';
@@ -30,9 +32,9 @@ class File extends Model implements Responsable
 
     const META_PLACEHOLDER_FOR_COLLECTION_PERSONA = 'collection_persona';
 
-    const META_PLACEHOLDER_FOR_LOCATION= 'location';
+    const META_PLACEHOLDER_FOR_LOCATION = 'location';
 
-    const META_PLACEHOLDER_FOR_SERVICE_LOCATION= 'service_location';
+    const META_PLACEHOLDER_FOR_SERVICE_LOCATION = 'service_location';
 
     const PEDNING_ASSIGNMENT_AUTO_DELETE_DAYS = 1;
 
@@ -257,6 +259,7 @@ class File extends Model implements Responsable
     public static function extensionFromMime(string $mimeType, bool $withPeriod = true): string
     {
         $map = [
+            static::MIME_TYPE_JPG => '.jpg',
             static::MIME_TYPE_PNG => '.png',
             static::MIME_TYPE_TXT => '.txt',
         ];
