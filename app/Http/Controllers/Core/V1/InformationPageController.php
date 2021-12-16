@@ -37,9 +37,10 @@ class InformationPageController extends Controller
     {
         $orderByCol = (new InformationPage())->getLftName();
         $baseQuery = InformationPage::query()
+            ->with('parent')
             ->orderBy($orderByCol);
 
-        if (!$request->user() || !$request->user()->isGlobalAdmin()) {
+        if (!$request->user('api') || !$request->user('api')->isGlobalAdmin()) {
             $baseQuery->where('enabled', true);
         }
 
@@ -73,7 +74,7 @@ class InformationPageController extends Controller
                     'content' => sanitize_markdown($request->content),
                     'image_file_id' => $request->image_file_id,
                 ],
-                InformationPage::find($request->parent_id)
+                $request->parent_id ? InformationPage::find($request->parent_id) : null
             );
 
             if ($request->filled('order')) {
@@ -137,9 +138,14 @@ class InformationPageController extends Controller
             sanitize_markdown($request->input('content')) :
             $informationPage->content;
 
-            // Parent
+            // Attach to parent and inherit disabled if set
             if ($request->input('parent_id', $informationPage->parent_id) !== $informationPage->parent_id) {
                 $parent = InformationPage::find($request->input('parent_id'));
+                if (!$parent->enabled) {
+                    $informationPage->enabled = $parent->enabled;
+                    InformationPage::whereIn('id', $informationPage->descendants->pluck('id'))
+                        ->update(['enabled' => $parent->enabled]);
+                }
                 $informationPage->appendToNode($parent);
             }
 
@@ -152,13 +158,13 @@ class InformationPageController extends Controller
                 $informationPage->beforeNode($siblingAtIndex);
             }
 
-            // Enabled
+            // Disable cascades into children, but enable does not
             $enabled = $request->input('enabled', $informationPage->enabled);
-            if ($enabled != $informationPage->enabled) {
-                $informationPage->enabled = $enabled;
+            if (!$enabled && $informationPage->enabled) {
                 InformationPage::whereIn('id', $informationPage->descendants->pluck('id'))
                     ->update(['enabled' => $enabled]);
             }
+            $informationPage->enabled = $enabled;
 
             // Update model so far
             $informationPage->save();
