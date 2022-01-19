@@ -193,8 +193,24 @@ class Page extends Model
                 $currentImage->deleteFromDisk();
                 $currentImage->delete();
             }
-
-            return $this;
         }
+
+        return $this;
+    }
+
+    /**
+     * Update the collections relationship.
+     *
+     * @param array $collectionIds
+     * @param mixed $collections
+     * @return \App\Models\Page
+     */
+    public function updateCollections($collections)
+    {
+        if (is_array($collections)) {
+            $this->collections()->sync($collections);
+        }
+
+        return $this;
     }
 }
