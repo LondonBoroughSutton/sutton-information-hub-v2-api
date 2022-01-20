@@ -36,6 +36,7 @@ class StoreRequest extends FormRequest
             'icon' => ['required', 'string', 'min:1', 'max:255'],
             'order' => ['required', 'integer', 'min:1', 'max:' . (Collection::categories()->count() + 1)],
             'enabled' => ['required', 'boolean'],
+            'homepage' => ['required', 'boolean'],
             'sideboxes' => ['present', 'array', 'max:3'],
             'sideboxes.*' => ['array'],
             'sideboxes.*.title' => ['required_with:sideboxes.*', 'string'],
