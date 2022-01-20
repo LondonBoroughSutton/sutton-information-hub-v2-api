@@ -82,6 +82,7 @@ class CollectionCategoryController extends Controller
                 ],
                 'order' => $request->order,
                 'enabled' => $request->enabled,
+                'homepage' => $request->homepage,
             ]);
 
             // Create all of the pivot records.
@@ -145,6 +146,7 @@ class CollectionCategoryController extends Controller
                 ],
                 'order' => $request->order,
                 'enabled' => $request->enabled,
+                'homepage' => $request->homepage,
             ]);
 
             // Update or create all of the pivot records.

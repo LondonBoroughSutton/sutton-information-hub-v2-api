@@ -24,6 +24,7 @@ class CollectionCategorySchema extends Schema
                 Schema::string('icon'),
                 Schema::integer('order'),
                 Schema::boolean('enabled'),
+                Schema::boolean('homepage'),
                 Schema::array('sideboxes')
                     ->maxItems(3)
                     ->items(
