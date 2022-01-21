@@ -5,7 +5,7 @@ namespace App\Contracts;
 use App\Support\Coordinate;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-interface Search
+interface PageSearch
 {
     const ORDER_RELEVANCE = 'relevance';
 
@@ -13,47 +13,47 @@ interface Search
 
     /**
      * @param string $term
-     * @return \App\Contracts\Search
+     * @return \App\Contracts\PageSearch
      */
-    public function applyQuery(string $term): Search;
+    public function applyQuery(string $term): PageSearch;
 
     /**
      * @param string $category
-     * @return \App\Contracts\Search
+     * @return \App\Contracts\PageSearch
      */
-    public function applyCategory(string $category): Search;
+    public function applyCategory(string $category): PageSearch;
 
     /**
      * @param string $persona
-     * @return \App\Contracts\Search
+     * @return \App\Contracts\PageSearch
      */
-    public function applyPersona(string $persona): Search;
+    public function applyPersona(string $persona): PageSearch;
 
     /**
      * @param string $waitTime
-     * @return \App\Contracts\Search
+     * @return \App\Contracts\PageSearch
      */
-    public function applyWaitTime(string $waitTime): Search;
+    public function applyWaitTime(string $waitTime): PageSearch;
 
     /**
      * @param bool $isFree
-     * @return \App\Contracts\Search
+     * @return \App\Contracts\PageSearch
      */
-    public function applyIsFree(bool $isFree): Search;
+    public function applyIsFree(bool $isFree): PageSearch;
 
     /**
      * @param string $order
      * @param \App\Support\Coordinate|null $location
-     * @return \App\Contracts\Search
+     * @return \App\Contracts\PageSearch
      */
-    public function applyOrder(string $order, Coordinate $location = null): Search;
+    public function applyOrder(string $order, Coordinate $location = null): PageSearch;
 
     /**
      * @param \App\Support\Coordinate $location
      * @param int $radius
-     * @return \App\Contracts\Search
+     * @return \App\Contracts\PageSearch
      */
-    public function applyRadius(Coordinate $location, int $radius): Search;
+    public function applyRadius(Coordinate $location, int $radius): PageSearch;
 
     /**
      * Returns the underlying query. Only intended for use in testing.
@@ -75,5 +75,5 @@ interface Search
      */
     public function get(int $perPage = null): AnonymousResourceCollection;
 
-    public function applyEligibilities(array $eligibilityNames): Search;
+    public function applyEligibilities(array $eligibilityNames): PageSearch;
 }
