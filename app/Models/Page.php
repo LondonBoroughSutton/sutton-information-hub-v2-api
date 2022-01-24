@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\IndexConfigurators\PagesIndexConfigurator;
 use App\Models\Mutators\PageMutators;
 use App\Models\Relationships\PageRelationships;
 use App\Models\Scopes\PageScopes;
 use Kalnoy\Nestedset\NodeTrait;
+use ScoutElastic\Searchable;
 
 class Page extends Model
 {
@@ -13,6 +15,12 @@ class Page extends Model
     use PageMutators;
     use PageScopes;
     use NodeTrait;
+    /**
+     * NodeTrait::usesSoftDelete and Laravel\Scout\Searchable::usesSoftDelete clash.
+     */
+    use Searchable {
+        Searchable::usesSoftDelete insteadof NodeTrait;
+    }
 
     const DISABLED = false;
 
@@ -44,6 +52,87 @@ class Page extends Model
     protected $attributes = [
         'page_type' => self::PAGE_TYPE_INFORMATION,
     ];
+
+    /**
+     * The Elasticsearch index configuration class.
+     *
+     * @var string
+     */
+    protected $indexConfigurator = PagesIndexConfigurator::class;
+
+    /**
+     * Allows you to set different search algorithms.
+     *
+     * @var array
+     */
+    protected $searchRules = [
+        //
+    ];
+
+    /**
+     * The mapping for the fields.
+     *
+     * @var array
+     */
+    protected $mapping = [
+        'properties' => [
+            'id' => ['type' => 'keyword'],
+            'enabled' => ['type' => 'boolean'],
+            'title' => [
+                'type' => 'text',
+                'fields' => [
+                    'keyword' => ['type' => 'keyword'],
+                ],
+            ],
+            'content' => [
+                'properties' => [
+                    'introduction' => [
+                        'properties' => [
+                            'title' => ['type' => 'text'],
+                            'copy' => ['type' => 'text'],
+                        ],
+                    ],
+                    'about' => [
+                        'properties' => [
+                            'title' => ['type' => 'text'],
+                            'copy' => ['type' => 'text'],
+                        ],
+                    ],
+                    'info_pages' => [
+                        'properties' => [
+                            'title' => ['type' => 'text'],
+                            'copy' => ['type' => 'text'],
+                        ],
+                    ],
+                    'collections' => [
+                        'properties' => [
+                            'title' => ['type' => 'text'],
+                            'copy' => ['type' => 'text'],
+                        ],
+                    ],
+                ],
+            ],
+            'collection_categories' => ['type' => 'text'],
+            'collection_personas' => ['type' => 'text'],
+        ],
+    ];
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array
+     */
+    public function toSearchableArray()
+    {
+        return [
+            'id' => $this->id,
+            'enabled' => $this->enabled,
+            'title' => $this->title,
+            'content' => $this->content,
+            'collection_categories' => $this->collections()->where('type', Collection::TYPE_CATEGORY)->pluck('name')->all(),
+            'collection_personas' => $this->collections()->where('type', Collection::TYPE_PERSONA)->pluck('name')->all(),
+        ];
+    }
 
     /**
      * Enable the Page.
@@ -205,10 +294,11 @@ class Page extends Model
      * @param mixed $collections
      * @return \App\Models\Page
      */
-    public function updateCollections($collections)
+    public function updateCollections($collectionIds)
     {
-        if (is_array($collections)) {
-            $this->collections()->sync($collections);
+        if (is_array($collectionIds)) {
+            $this->collections()->sync($collectionIds);
+            $this->save();
         }
 
         return $this;
