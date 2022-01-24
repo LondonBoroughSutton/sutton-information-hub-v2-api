@@ -34,6 +34,7 @@ class ReindexElasticsearchCommand extends Command
     {
         if (Config::get('scout.driver') !== 'elastic') {
             $this->warn('Did not reindex due to not using the [elastic] Scout driver.');
+
             return;
         }
 
