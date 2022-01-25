@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Docs\Paths\Pages;
+namespace App\Docs\Paths\Search;
 
-use App\Docs\Operations\Pages\IndexPageOperation;
-use App\Docs\Operations\Pages\StorePageOperation;
+use App\Docs\Operations\Search\StorePagesSearchOperation;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\PathItem;
 
-class PagesRootPath extends PathItem
+class SearchPagesPath extends PathItem
 {
     /**
      * @param string|null $objectId
@@ -17,10 +16,9 @@ class PagesRootPath extends PathItem
     public static function create(string $objectId = null): BaseObject
     {
         return parent::create($objectId)
-            ->route('/pages')
+            ->route('/search/pages')
             ->operations(
-                IndexPageOperation::create(),
-                StorePageOperation::create()
+                StorePagesSearchOperation::create()
             );
     }
 }
