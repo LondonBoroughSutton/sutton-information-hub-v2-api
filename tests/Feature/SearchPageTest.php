@@ -263,15 +263,17 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response->assertStatus(Response::HTTP_OK);
 
-        $response->assertJsonFragment([
+        $response->assertJsonStructure([
+            "data" => [],
+            "links" => [],
             "meta" => [
-                "current_page" => 1,
-                "from" => 1,
-                "last_page" => 2,
-                "path" => route('core.v1.search.pages'),
-                "per_page" => 25,
-                "to" => 20,
-                "total" => 30,
+                "current_page",
+                "from",
+                "last_page",
+                "path",
+                "per_page",
+                "to",
+                "total",
             ],
 
         ]);
