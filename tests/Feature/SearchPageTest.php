@@ -248,4 +248,34 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
         $response->assertJsonFragment(['id' => $activePage->id]);
         $response->assertJsonMissing(['id' => $inactivePage->id]);
     }
+
+    public function test_query_returns_paginated_result_set()
+    {
+        $pages = factory(Page::class, 30)->create([
+            'title' => 'Testing Page',
+        ]);
+
+        $response = $this->json('POST', '/core/v1/search/pages', [
+            'query' => 'Testing',
+            'page' => 1,
+            'per_page' => 20,
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonStructure([
+            "data" => [],
+            "links" => [],
+            "meta" => [
+                "current_page",
+                "from",
+                "last_page",
+                "path",
+                "per_page",
+                "to",
+                "total",
+            ],
+
+        ]);
+    }
 }
