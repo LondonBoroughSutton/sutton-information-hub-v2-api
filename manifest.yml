@@ -3,22 +3,22 @@ defaults: &defaults
   buildpack: php_buildpack
   services:
   - name: hys-db
-  - name: hys-redis
-  - name: hys-search
-  - name: hys-queue
-  - name: hys-assets
+  - name: sutton-redis
+  - name: sutton-search
+  - name: sutton-queue
+  - name: sutton-assets
     parameters:
       permissions: read-write
 
 applications:
-- name: helpyourselfsutton-api
+- name: sutton-api-((environment))
   <<: *defaults
   memory: 256M
   instances: ((instances))
   routes:
   - route: ((route))
 
-- name: helpyourselfsutton-queue-worker
+- name: sutton-queue-worker
   <<: *defaults
   instances: 1
   memory: 128M
@@ -26,7 +26,7 @@ applications:
   command: php artisan queue:work --queue=((queue1)),((queue2)) --tries=1
   health-check-type: process
 
-- name: helpyourselfsutton-scheduler
+- name: sutton-scheduler
   <<: *defaults
   instances: 1
   memory: 128M

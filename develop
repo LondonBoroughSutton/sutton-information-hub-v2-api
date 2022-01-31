@@ -63,8 +63,8 @@ if [[ $# -gt 0  ]]; then
         store )
             shift 1
             ${DOCKER_COMPOSE} run --rm ${TTY} \
-                -e CF_S3_SERVICE=${CF_S3_SERVICE:-''} \
-                -e CF_S3_SERVICE_KEY=${CF_S3_SERVICE_KEY:-''} \
+                -e CF_ENV_SERVICE=${CF_ENV_SERVICE:-''} \
+                -e CF_ENV_SERVICE_KEY=${CF_ENV_SERVICE_KEY:-''} \
                 -e CF_USERNAME=${CF_USERNAME:-''} \
                 -e CF_PASSWORD=${CF_PASSWORD:-''} \
                 -e CF_ORGANISATION=${CF_ORGANISATION:-''} \

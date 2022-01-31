@@ -8,8 +8,8 @@
 # ================================
 
 # Requires the following environment variables:
-# $CF_S3_SERVICE = The name of the S3 bucket to store the files
-# $CF_S3_SERVICE_KEY = The name of the service key that holds the access credentials
+# $CF_ENV_SERVICE = The name of the S3 bucket to store the files
+# $CF_ENV_SERVICE_KEY = The name of the service key that holds the access credentials
 
 # Can accept the following environment variables
 # $CF_USERNAME = The Cloud Foundry username.
@@ -23,6 +23,10 @@ set -e
 # Set environment variables.
 CF_API='https://api.cloud.service.gov.uk'
 APPROOT=${APPROOT:-'/var/www/html'}
+RED='\e[1;31m'
+BLUE='\e[1;34m'
+GREEN='\e[1;32m'
+ENDCOLOUR='\e[1;m'
 
 # Get the Cloud Foundry details
 if [ -z "$CF_USERNAME" ]; then
@@ -42,16 +46,16 @@ if [ -z "$CF_SPACE" ]; then
     read -p 'Cloudfoundry Space: ' CF_SPACE
 fi
 
-if [ -z "$CF_S3_SERVICE" ]; then
-    read -p 'AWS S3 Bucket name: ' CF_S3_SERVICE
+if [ -z "$CF_ENV_SERVICE" ]; then
+    read -p 'AWS S3 Bucket name: ' CF_ENV_SERVICE
 fi
 
-if [ -z "$CF_S3_SERVICE_KEY" ]; then
-    read -p 'AWS service key for the S3 Bucket: ' CF_S3_SERVICE_KEY
+if [ -z "$CF_ENV_SERVICE_KEY" ]; then
+    read -p 'AWS service key for the S3 Bucket: ' CF_ENV_SERVICE_KEY
 fi
 
 # Install AWS CLI
-echo "Installing AWS CLI..."
+echo -e "${BLUE}Installing AWS CLI...${ENDCOLOUR}"
 rm -Rf ${APPROOT}/aws
 wget -q -O awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
 unzip awscliv2.zip
@@ -60,7 +64,7 @@ aws --version
 rm  awscliv2.zip
 
 # Install CF
-echo "Installing CloudFoundry CLI..."
+echo -e "${BLUE}Installing CloudFoundry CLI...${ENDCOLOUR}"
 apt-get update && apt-get install -y --allow-unauthenticated gnupg
 wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add -
 echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
@@ -70,7 +74,7 @@ apt-get update && apt-get install -y --allow-unauthenticated cf7-cli jq
 cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_SPACE
 
 # Get the .env file from the secret S3 bucket
-cf service-key $CF_S3_SERVICE $CF_S3_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
+cf service-key $CF_ENV_SERVICE $CF_ENV_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
 
 # Export the AWS S3 access credentials for use by the AWS CLI
 export AWS_ACCESS_KEY_ID=`jq -r .aws_access_key_id secret_access.json`
@@ -87,14 +91,14 @@ case $ACTION in
     "L"|"l"|"G"|"g"|"P"|"p"|"D"|"d")
     ;;
     *)
-    echo 'The action should be one of (L)ist, (G)et, (P)ut or (D)elete'
+    echo -e "${RED}The action should be one of (L)ist, (G)et, (P)ut or (D)elete${ENDCOLOUR}"
     exit
     ;;
 esac
 
 if [ "$ACTION" == 'L' ] || [ "$ACTION" == 'l' ]; then
 # List the bucket contents
-    echo "The contents of bucket $AWS_BUCKET_NAME are:"
+    echo -e "${GREEN}The contents of bucket $AWS_BUCKET_NAME are:${ENDCOLOUR}"
     echo `aws s3api list-objects --bucket ${AWS_BUCKET_NAME}`
 fi
 
@@ -110,7 +114,7 @@ if [ "$ACTION" == 'P' ] || [ "$ACTION" == 'p' ]; then
     read -p 'Which environment is to be updated? (staging or production): ' ENVIRONMENT
 
     if [ "$ENVIRONMENT" != 'staging' ] && [ "$ENVIRONMENT" != 'production' ]; then
-        echo 'The environment should be one of staging or production'
+        echo -e "${RED}The environment should be one of staging or production${ENDCOLOUR}"
         exit
     fi
 
@@ -119,7 +123,7 @@ if [ "$ACTION" == 'P' ] || [ "$ACTION" == 'p' ]; then
     read FILE_PATH
 
     if [ ! -e "$APPROOT/$FILE_PATH" ]; then
-        echo 'The file does not exist'
+        echo -e "${RED}The file does not exist${ENDCOLOUR}"
         exit
     fi
 
@@ -134,7 +138,7 @@ if [ "$ACTION" == 'P' ] || [ "$ACTION" == 'p' ]; then
     fi
 
     if [ -z "$FILE_KEY" ]; then
-        echo 'The file does not match the type of file this script is for'
+        echo -e "${RED}The file does not match the type of file this script is for${ENDCOLOUR}"
         exit
     fi
 
@@ -144,7 +148,7 @@ if [ "$ACTION" == 'P' ] || [ "$ACTION" == 'p' ]; then
     PROCEED=${PROCEED:-'Y'}
 
     if [ "$PROCEED" != 'Y' ] && [ "$PROCEED" != 'y' ]; then
-        echo "Aborting file storage"
+        echo -e "${RED}Aborting file storage${ENDCOLOUR}"
         exit
     fi
 
@@ -163,7 +167,7 @@ if [ "$ACTION" == 'D' ] || [ "$ACTION" == 'd' ]; then
     PROCEED=${PROCEED:-'Y'}
 
     if [ "$PROCEED" != 'Y' ] && [ "$PROCEED" != 'y' ]; then
-        echo "Aborting object delete"
+        echo -e "${RED}Aborting object delete${ENDCOLOUR}"
         exit
     fi
     aws s3api delete-object --bucket ${AWS_BUCKET_NAME} --key ${OBJECT_KEY}

@@ -23,6 +23,37 @@ BLUE='\e[1;34m'
 GREEN='\e[1;32m'
 ENDCOLOUR='\e[1;m'
 
+# ================================
+# If this is not a Travis build, the travis.yml scripts will not run, so setup the environment
+# Requires populating .cloudfoundry/environment with relevant Cloud Foundry details
+#
+if [ ${CI:-false} == "false" ] && [ -f "${PWD}/.cloudfoundry/environment" ]; then
+    source ${PWD}/.cloudfoundry/environment
+
+    # Install required packages
+    apt-get update && apt-get install -y --allow-unauthenticated jq sed gnupg npm
+
+    echo -e "${BLUE}Installing AWS CLI...${ENDCOLOUR}"
+    rm -Rf ${PWD}/aws
+    wget -q -O awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    unzip awscliv2.zip
+    ${PWD}/aws/install
+    aws --version
+    rm  awscliv2.zip
+
+    echo -e "${BLUE}Installing CloudFoundry CLI...${ENDCOLOUR}"
+    wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add -
+    echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+    apt-get update && apt-get install -y --allow-unauthenticated cf7-cli
+
+    # Install node_modules
+    curl -o- https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh | bash
+    apt-get update && apt-get install -y --allow-unauthenticated nodejs
+    npm run prod
+fi
+# End Setup section
+# ================================
+
 # Set environment variables.
 echo -e "${BLUE}Setting deployment configuration for ${ENVIRONMENT}...${ENDCOLOUR}"
 export ENV_SECRET_FILE=".env.api.${ENVIRONMENT}"
@@ -67,8 +98,10 @@ cf env ${CF_APP_NAME} | sed '1,/VCAP_SERVICES/d;/VCAP_APPLICATION/,$d' | sed '1 
 echo -e "${BLUE}Update the SQS connection queues${ENDCOLOUR}"
 SQS_PRIMARY_QUEUE_URL=`jq -r '."aws-sqs-queue"[0].credentials.primary_queue_url' services.json`
 export SQS_PRIMARY_QUEUE=`echo "$SQS_PRIMARY_QUEUE_URL" | grep -Eo '|[^\/]+$|'`
+SQS_PRIMARY_QUEUE=${SQS_PRIMARY_QUEUE:-'default'}
 SQS_SECONDARY_QUEUE_URL=`jq -r '."aws-sqs-queue"[0].credentials.secondary_queue_url' services.json`
 export SQS_SECONDARY_QUEUE=`echo "$SQS_SECONDARY_QUEUE_URL" | grep -Eo '|[^\/]+$|'`
+SQS_SECONDARY_QUEUE=${SQS_SECONDARY_QUEUE:-'default'}
 
 # Remove the services file
 rm services.json
@@ -76,11 +109,13 @@ rm services.json
 # Deploy.
 echo -e "${GREEN}Deploy the prepared app${ENDCOLOUR}"
 
+cf push --var environment=$ENVIRONMENT --var instances=$CF_INSTANCES --var route=$CF_ROUTE --var queue1=$SQS_PRIMARY_QUEUE --var queue2=$SQS_SECONDARY_QUEUE
+
 if [ ! -z "$GITHUB_TOKEN" ]; then
     echo -e "${BLUE}Set the GitHub access token${ENDCOLOUR}"
     cf set-env ${CF_APP_NAME} COMPOSER_GITHUB_OAUTH_TOKEN "$GITHUB_TOKEN"
+    cf restage ${CF_APP_NAME}
 fi
-cf push --var instances=$CF_INSTANCES --var route=$CF_ROUTE --var queue1=$SQS_PRIMARY_QUEUE --var queue2=$SQS_SECONDARY_QUEUE
 
 # Remove the AWS client
 rm -Rf ${PWD}/aws
