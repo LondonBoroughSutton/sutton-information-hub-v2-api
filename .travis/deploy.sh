@@ -97,14 +97,10 @@ cf env ${CF_APP_NAME} | sed '1,/VCAP_SERVICES/d;/VCAP_APPLICATION/,$d' | sed '1 
 # SQS
 echo -e "${BLUE}Update the SQS connection queues${ENDCOLOUR}"
 SQS_PRIMARY_QUEUE_URL=`jq -r '."aws-sqs-queue"[0].credentials.primary_queue_url' services.json`
-echo "SQS_PRIMARY_QUEUE_URL: $SQS_PRIMARY_QUEUE_URL"
 export SQS_PRIMARY_QUEUE=`echo "$SQS_PRIMARY_QUEUE_URL" | grep -Eo '|[^\/]+$|'`
-echo "SQS_PRIMARY_QUEUE: $SQS_PRIMARY_QUEUE"
 SQS_PRIMARY_QUEUE=${SQS_PRIMARY_QUEUE:-'default'}
 SQS_SECONDARY_QUEUE_URL=`jq -r '."aws-sqs-queue"[0].credentials.secondary_queue_url' services.json`
-echo "SQS_SECONDARY_QUEUE_URL: $SQS_SECONDARY_QUEUE_URL"
 export SQS_SECONDARY_QUEUE=`echo "$SQS_SECONDARY_QUEUE_URL" | grep -Eo '|[^\/]+$|'`
-echo "SQS_SECONDARY_QUEUE: $SQS_SECONDARY_QUEUE"
 SQS_SECONDARY_QUEUE=${SQS_SECONDARY_QUEUE:-'default'}
 
 # Remove the services file
