@@ -32,6 +32,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
     {
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'test',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -43,6 +45,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => $page->title,
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -57,6 +61,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => $page->content['introduction']['copy'][0],
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -79,6 +85,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'homeless',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -99,6 +107,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'temporary housing',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -120,6 +130,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'Thisisatest',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -151,6 +163,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'Thisisatest',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -161,6 +175,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
         // Fuzzy
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'Thsiisatst',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -187,6 +203,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'Anotherphrase',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -197,6 +215,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
         // Fuzzy
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'Another phrase',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -212,6 +232,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'Thisisatest',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
@@ -242,6 +264,8 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
         $response = $this->json('POST', '/core/v1/search/pages', [
             'query' => 'Testing Page',
+            'page' => 1,
+            'per_page' => 20,
         ]);
 
         $response->assertStatus(Response::HTTP_OK);
