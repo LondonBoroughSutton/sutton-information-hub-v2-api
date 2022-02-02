@@ -8,7 +8,7 @@ defaults: &defaults
   - name: sutton-queue
   - name: sutton-assets
     parameters:
-      permissions: read-write
+      permissions: "read-write"
 
 applications:
 - name: sutton-api-((environment))
