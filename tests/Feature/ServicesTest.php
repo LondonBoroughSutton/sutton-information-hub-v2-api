@@ -14,6 +14,7 @@ use App\Models\ServiceLocation;
 use App\Models\ServiceRefreshToken;
 use App\Models\ServiceTaxonomy;
 use App\Models\SocialMedia;
+use App\Models\Tag;
 use App\Models\Taxonomy;
 use App\Models\UpdateRequest;
 use App\Models\User;
@@ -234,6 +235,49 @@ class ServicesTest extends TestCase
         $response->assertJsonMissing(['id' => $anotherService->id]);
     }
 
+    public function test_guest_can_filter_by_tag()
+    {
+        $tag1 = factory(Tag::class)->create();
+        $tag2 = factory(Tag::class)->create();
+        $tag3 = factory(Tag::class)->create();
+        $service1 = factory(Service::class)
+            ->states('withUsefulInfo', 'withOfferings', 'withSocialMedia', 'withCategoryTaxonomies')
+            ->create();
+        $service1->tags()->attach([
+            $tag1->id,
+            $tag2->id,
+        ]);
+        $service2 = factory(Service::class)
+            ->states('withUsefulInfo', 'withOfferings', 'withSocialMedia', 'withCategoryTaxonomies')
+            ->create();
+        $service2->tags()->attach([
+            $tag2->id,
+            $tag3->id,
+        ]);
+        $service3 = factory(Service::class)
+            ->states('withUsefulInfo', 'withOfferings', 'withSocialMedia', 'withCategoryTaxonomies')
+            ->create();
+        $service3->tags()->attach([
+            $tag1->id,
+            $tag3->id,
+        ]);
+
+        $response = $this->json('GET', "/core/v1/services?filter[tags.slug]={$tag1->slug}");
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment(['id' => $service1->id]);
+        $response->assertJsonFragment(['id' => $service3->id]);
+        $response->assertJsonMissing(['id' => $service2->id]);
+
+        $response = $this->json('GET', "/core/v1/services?filter[tags.slug]={$tag1->slug},{$tag2->slug}");
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonCount(3, 'data');
+        $response->assertJsonFragment(['id' => $service1->id]);
+        $response->assertJsonFragment(['id' => $service2->id]);
+        $response->assertJsonFragment(['id' => $service3->id]);
+    }
+
     public function test_audit_created_when_listed()
     {
         $this->fakeEvents();
@@ -355,7 +399,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [],
             'eligibility_types' => [
@@ -442,7 +486,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
         ];
@@ -505,7 +549,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [],
             'eligibility_types' => [
@@ -591,7 +635,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [],
         ];
@@ -644,7 +688,76 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
+            'tags' => [],
+            'gallery_items' => [],
+            'category_taxonomies' => [],
+        ];
+        $response = $this->json('POST', '/core/v1/services', $payload);
 
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    public function test_organisation_admin_cannot_create_one_with_tags()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $user = factory(User::class)->create()->makeOrganisationAdmin($organisation);
+
+        $tag1 = factory(Tag::class)->create();
+        $tag2 = factory(Tag::class)->create();
+        $tag3 = factory(Tag::class)->create();
+
+        Passport::actingAs($user);
+
+        $payload = [
+            'organisation_id' => $organisation->id,
+            'slug' => 'test-service',
+            'name' => 'Test Service',
+            'type' => Service::TYPE_SERVICE,
+            'status' => Service::STATUS_INACTIVE,
+            'intro' => 'This is a test intro',
+            'description' => 'Lorem ipsum',
+            'wait_time' => null,
+            'is_free' => true,
+            'fees_text' => null,
+            'fees_url' => null,
+            'testimonial' => null,
+            'video_embed' => null,
+            'url' => $this->faker->url,
+            'contact_name' => $this->faker->name,
+            'contact_phone' => random_uk_phone(),
+            'contact_email' => $this->faker->safeEmail,
+            'show_referral_disclaimer' => true,
+            'referral_method' => Service::REFERRAL_METHOD_NONE,
+            'referral_button_text' => null,
+            'referral_email' => null,
+            'referral_url' => null,
+            'useful_infos' => [
+                [
+                    'title' => 'Did you know?',
+                    'description' => 'Lorem ipsum',
+                    'order' => 1,
+                ],
+            ],
+            'offerings' => [
+                [
+                    'offering' => 'Weekly club',
+                    'order' => 1,
+                ],
+            ],
+            'tags' => [
+                [
+                    'slug' => $tag1->slug,
+                    'label' => $tag1->label,
+                ],
+                [
+                    'slug' => $tag2->slug,
+                    'label' => $tag2->label,
+                ],
+                [
+                    'slug' => $tag3->slug,
+                    'label' => $tag3->label,
+                ],
+            ],
             'gallery_items' => [],
             'category_taxonomies' => [],
         ];
@@ -698,7 +811,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [$taxonomy->id],
         ];
@@ -749,7 +862,7 @@ class ServicesTest extends TestCase
             'referral_url' => null,
             'useful_infos' => [],
             'offerings' => [],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
         ];
@@ -803,7 +916,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
         ]);
@@ -858,7 +971,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
         ];
@@ -922,7 +1035,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [$taxonomy->id],
         ];
@@ -984,13 +1097,151 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [],
         ];
         $response = $this->json('POST', '/core/v1/services', $payload);
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    public function test_global_admin_can_create_one_with_tags()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $user = factory(User::class)->create()->makeGlobalAdmin();
+
+        $taxonomy = factory(Taxonomy::class)->create();
+        $tag1 = factory(Tag::class)->create();
+
+        Passport::actingAs($user);
+
+        $payload = [
+            'organisation_id' => $organisation->id,
+            'slug' => 'test-service',
+            'name' => 'Test Service',
+            'type' => Service::TYPE_SERVICE,
+            'status' => Service::STATUS_INACTIVE,
+            'intro' => 'This is a test intro',
+            'description' => 'Lorem ipsum',
+            'wait_time' => null,
+            'is_free' => true,
+            'fees_text' => null,
+            'fees_url' => null,
+            'testimonial' => null,
+            'video_embed' => null,
+            'url' => $this->faker->url,
+            'contact_name' => $this->faker->name,
+            'contact_phone' => random_uk_phone(),
+            'contact_email' => $this->faker->safeEmail,
+            'show_referral_disclaimer' => false,
+            'referral_method' => Service::REFERRAL_METHOD_NONE,
+            'referral_button_text' => null,
+            'referral_email' => null,
+            'referral_url' => null,
+            'useful_infos' => [
+                [
+                    'title' => 'Did you know?',
+                    'description' => 'Lorem ipsum',
+                    'order' => 1,
+                ],
+            ],
+            'offerings' => [
+                [
+                    'offering' => 'Weekly club',
+                    'order' => 1,
+                ],
+            ],
+            'tags' => [
+                [
+                    'slug' => $tag1->slug,
+                    'label' => $tag1->label,
+                ],
+            ],
+            'gallery_items' => [],
+            'category_taxonomies' => [
+                $taxonomy->id
+            ],
+        ];
+        $response = $this->json('POST', '/core/v1/services', $payload);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'slug' => $tag1->slug,
+            'label' => $tag1->label,
+        ]);
+    }
+
+    public function test_global_admin_can_create_tags_when_creating_one()
+    {
+        $organisation = factory(Organisation::class)->create();
+        $user = factory(User::class)->create()->makeGlobalAdmin();
+
+        $taxonomy = factory(Taxonomy::class)->create();
+
+        Passport::actingAs($user);
+
+        $payload = [
+            'organisation_id' => $organisation->id,
+            'slug' => 'test-service',
+            'name' => 'Test Service',
+            'type' => Service::TYPE_SERVICE,
+            'status' => Service::STATUS_INACTIVE,
+            'intro' => 'This is a test intro',
+            'description' => 'Lorem ipsum',
+            'wait_time' => null,
+            'is_free' => true,
+            'fees_text' => null,
+            'fees_url' => null,
+            'testimonial' => null,
+            'video_embed' => null,
+            'url' => $this->faker->url,
+            'contact_name' => $this->faker->name,
+            'contact_phone' => random_uk_phone(),
+            'contact_email' => $this->faker->safeEmail,
+            'show_referral_disclaimer' => false,
+            'referral_method' => Service::REFERRAL_METHOD_NONE,
+            'referral_button_text' => null,
+            'referral_email' => null,
+            'referral_url' => null,
+            'useful_infos' => [
+                [
+                    'title' => 'Did you know?',
+                    'description' => 'Lorem ipsum',
+                    'order' => 1,
+                ],
+            ],
+            'offerings' => [
+                [
+                    'offering' => 'Weekly club',
+                    'order' => 1,
+                ],
+            ],
+            'tags' => [
+                [
+                    'slug' => 'tag-1',
+                    'label' => 'Tag One',
+                ],
+            ],
+            'gallery_items' => [],
+            'category_taxonomies' => [
+                $taxonomy->id
+            ],
+        ];
+        $response = $this->json('POST', '/core/v1/services', $payload);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'slug' => 'tag-1',
+            'label' => 'Tag One',
+        ]);
+
+        $this->assertDatabaseHas('tags', [
+            'slug' => 'tag-1',
+            'label' => 'Tag One',
+        ]);
     }
 
     public function test_super_admin_can_create_one_with_referral_disclaimer_showing()
@@ -1038,7 +1289,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [
                 $taxonomy->id,
@@ -1097,7 +1348,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [$taxonomy->id],
         ];
@@ -1179,6 +1430,8 @@ class ServicesTest extends TestCase
     {
         $service = factory(Service::class)->create();
         $taxonomy = factory(Taxonomy::class)->create();
+        $tag1 = factory(Tag::class)->create();
+
         $service->usefulInfos()->create([
             'title' => 'Did You Know?',
             'description' => 'This is a test description',
@@ -1194,6 +1447,10 @@ class ServicesTest extends TestCase
         ]);
         $service->serviceTaxonomies()->create([
             'taxonomy_id' => $taxonomy->id,
+        ]);
+
+        $service->tags()->attach([
+            $tag1->id,
         ]);
 
         $response = $this->json('GET', "/core/v1/services/{$service->id}");
@@ -1245,6 +1502,15 @@ class ServicesTest extends TestCase
                     'name' => $taxonomy->name,
                     'created_at' => $taxonomy->created_at->format(CarbonImmutable::ISO8601),
                     'updated_at' => $taxonomy->updated_at->format(CarbonImmutable::ISO8601),
+                ],
+            ],
+            'tags' => [
+                [
+                    'id' => $tag1->id,
+                    'slug' => $tag1->slug,
+                    'label' => $tag1->label,
+                    'created_at' => $tag1->created_at->format(CarbonImmutable::ISO8601),
+                    'updated_at' => $tag1->updated_at->format(CarbonImmutable::ISO8601),
                 ],
             ],
             'gallery_items' => [],
@@ -1315,7 +1581,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'category_taxonomies' => [
                 [
                     'id' => $taxonomy->id,
@@ -1512,6 +1778,73 @@ class ServicesTest extends TestCase
         $response->assertJsonFragment(['data' => $payload]);
     }
 
+    public function test_service_admin_cannot_update_one_with_tags()
+    {
+        $service = factory(Service::class)->create([
+            'slug' => 'test-service',
+            'status' => Service::STATUS_ACTIVE,
+        ]);
+        $taxonomy = factory(Taxonomy::class)->create();
+        $service->syncTaxonomyRelationships(new Collection([$taxonomy]));
+        $user = factory(User::class)->create()->makeServiceAdmin($service);
+
+        Passport::actingAs($user);
+
+        $payload = [
+            'slug' => 'test-service',
+            'name' => 'Test Service',
+            'type' => Service::TYPE_SERVICE,
+            'status' => Service::STATUS_ACTIVE,
+            'intro' => 'This is a test intro',
+            'description' => 'Lorem ipsum',
+            'wait_time' => null,
+            'is_free' => true,
+            'fees_text' => null,
+            'fees_url' => null,
+            'testimonial' => null,
+            'video_embed' => null,
+            'url' => $this->faker->url,
+            'contact_name' => $this->faker->name,
+            'contact_phone' => null,
+            'contact_email' => $this->faker->safeEmail,
+            'show_referral_disclaimer' => false,
+            'referral_method' => Service::REFERRAL_METHOD_NONE,
+            'referral_button_text' => null,
+            'referral_email' => null,
+            'referral_url' => null,
+            'useful_infos' => [
+                [
+                    'title' => 'Did you know?',
+                    'description' => 'Lorem ipsum',
+                    'order' => 1,
+                ],
+            ],
+            'offerings' => [
+                [
+                    'offering' => 'Weekly club',
+                    'order' => 1,
+                ],
+            ],
+            'tags' => [
+                [
+                    'slug' => 'tag-1',
+                    'label' => 'Tag One',
+                ],
+            ],
+            'category_taxonomies' => [
+                $taxonomy->id,
+                $taxonomy->parent_id,
+            ],
+            'eligibility_types' => [
+                'custom' => [],
+                'taxonomies' => [],
+            ],
+        ];
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
     public function test_global_admin_can_update_most_fields_for_one()
     {
         $service = factory(Service::class)->create([
@@ -1520,6 +1853,7 @@ class ServicesTest extends TestCase
         ]);
         $taxonomy = factory(Taxonomy::class)->create();
         $service->syncTaxonomyRelationships(new Collection([$taxonomy]));
+        $tag1 = factory(Tag::class)->create();
         $user = factory(User::class)->create()->makeGlobalAdmin();
 
         Passport::actingAs($user);
@@ -1559,7 +1893,12 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [
+                [
+                    'slug' => $tag1->slug,
+                    'label' => $tag1->label,
+                ],
+            ],
             'gallery_items' => [],
             'category_taxonomies' => [
                 $taxonomy->id,
@@ -1995,6 +2334,84 @@ class ServicesTest extends TestCase
         $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
 
         $response->assertStatus(Response::HTTP_OK);
+    }
+
+    public function test_global_admin_can_create_tags_when_updating()
+    {
+        $service = factory(Service::class)->create([
+            'slug' => 'test-service',
+            'status' => Service::STATUS_ACTIVE,
+        ]);
+        $taxonomy = factory(Taxonomy::class)->create();
+        $service->syncTaxonomyRelationships(new Collection([$taxonomy]));
+        $user = factory(User::class)->create()->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $payload = [
+            'slug' => 'test-service',
+            'name' => 'Test Service',
+            'type' => Service::TYPE_SERVICE,
+            'status' => Service::STATUS_ACTIVE,
+            'intro' => 'This is a test intro',
+            'description' => 'Lorem ipsum',
+            'wait_time' => null,
+            'is_free' => true,
+            'fees_text' => null,
+            'fees_url' => null,
+            'testimonial' => null,
+            'video_embed' => null,
+            'url' => $this->faker->url,
+            'contact_name' => $this->faker->name,
+            'contact_phone' => random_uk_phone(),
+            'contact_email' => $this->faker->safeEmail,
+            'show_referral_disclaimer' => false,
+            'referral_method' => $service->referral_method,
+            'referral_button_text' => $service->referral_button_text,
+            'referral_email' => $service->referral_email,
+            'referral_url' => $service->referral_url,
+            'useful_infos' => [
+                [
+                    'title' => 'Did you know?',
+                    'description' => 'Lorem ipsum',
+                    'order' => 1,
+                ],
+            ],
+            'offerings' => [
+                [
+                    'offering' => 'Weekly club',
+                    'order' => 1,
+                ],
+            ],
+            'tags' => [
+                [
+                    'slug' => 'tag-1',
+                    'label' => 'Tag One',
+                ],
+            ],
+            'gallery_items' => [],
+            'category_taxonomies' => [
+                $taxonomy->id,
+            ],
+            'eligibility_types' => [
+                'custom' => [],
+                'taxonomies' => [],
+            ],
+        ];
+        $response = $this->json('PUT', "/core/v1/services/{$service->id}", $payload);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'slug' => 'tag-1',
+            'label' => 'Tag One',
+        ]);
+
+        $this->assertDatabaseHas(table(UpdateRequest::class), ['updateable_id' => $service->id]);
+        $updateRequest = UpdateRequest::where('updateable_id', $service->id)->firstOrFail();
+        $this->assertEquals([[
+            'slug' => 'tag-1',
+            'label' => 'Tag One',
+        ]], $updateRequest->data['tags']);
     }
 
     public function test_referral_email_must_be_provided_when_referral_type_is_internal()
@@ -2867,7 +3284,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [],
             'logo_file_id' => $this->getResponseContent($imageResponse, 'data.id'),
@@ -4231,7 +4648,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
         ];
@@ -4302,7 +4719,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
         ];
@@ -4386,7 +4803,7 @@ class ServicesTest extends TestCase
                     'order' => 1,
                 ],
             ],
-
+            'tags' => [],
             'gallery_items' => [],
             'category_taxonomies' => [Taxonomy::category()->children()->firstOrFail()->id],
         ];
