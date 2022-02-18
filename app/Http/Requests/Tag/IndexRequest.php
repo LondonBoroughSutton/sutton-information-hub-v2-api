@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Search\Pages;
+namespace App\Http\Requests\Tag;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class Request extends FormRequest
+class IndexRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,9 +24,7 @@ class Request extends FormRequest
     public function rules()
     {
         return [
-            'query' => ['required', 'string', 'min:3', 'max:255'],
-            'page' => ['sometimes', 'integer', 'min:1'],
-            'per_page' => ['sometimes', 'integer', 'min:1'],
+            //
         ];
     }
 }
