@@ -92,7 +92,8 @@ class File extends Model implements Responsable
      */
     protected function visibility(): string
     {
-        return $this->is_private ? 'private' : 'public';
+        // Force visibility to be private to work with GovPaaS S3
+        return 'private';
     }
 
     /**
@@ -241,7 +242,7 @@ class File extends Model implements Responsable
                         'max_dimension' => $maxDimension,
                     ],
                 ],
-                'is_private' => false,
+                'is_private' => true,
             ]);
 
             $srcImageContent = Storage::disk('local')->get("/placeholders/$placeholderFor.png");
