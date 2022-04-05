@@ -23,7 +23,7 @@
             <div class="govuk-header__logo">
                 <a href="{{ route('home') }}" class="govuk-header__link govuk-header__link--homepage">
                     <span class="govuk-header__logotype">
-                      <img src="{{ asset('/img/logo.svg') . '?' . filemtime(public_path('img/logo.svg')) }}" class="govuk-header__logotype-crown" alt="Sutton Information Hub logo" title="Sutton Information Hub" />
+                      <img src="{{ asset('/img/logo.png') . '?' . filemtime(public_path('img/logo.png')) }}" class="govuk-header__logotype-crown" alt="Sutton Information Hub logo" title="Sutton Information Hub" />
                     </span>
                 </a>
             </div>
