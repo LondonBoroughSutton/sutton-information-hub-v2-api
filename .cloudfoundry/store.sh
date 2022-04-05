@@ -3,8 +3,12 @@
 # ================================
 # Stores an object in the AWS S3 Secrets Bucket
 # This script will install the AWS CLI and the CF CLI
-# If you don't want these on your system, install using the docker helper script:
-# ./develop bash cloudfoundry/store_env.sh
+# If you don't want these on your system, install using the docker helper script.
+# First, if you have an environment file, set the environment variables:
+# source .cloudfoundry/environment.[environment]
+# export CF_USERNAME CF_PASSWORD CF_ORGANISATION CF_SPACE CF_ENV_SERVICE CF_ENV_SERVICE_KEY
+# Then run the helper script:
+# ./develop store
 # ================================
 
 # Requires the following environment variables:
