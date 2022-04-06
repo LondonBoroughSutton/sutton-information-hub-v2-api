@@ -18,7 +18,7 @@ applications:
   routes:
   - route: ((route))
 
-- name: sutton-queue-worker
+- name: sutton-queue-worker-((environment))
   <<: *defaults
   instances: 1
   memory: 128M
@@ -26,7 +26,7 @@ applications:
   command: php artisan queue:work --queue=((queue1)),((queue2)) --tries=1
   health-check-type: process
 
-- name: sutton-scheduler
+- name: sutton-scheduler-((environment))
   <<: *defaults
   instances: 1
   memory: 128M

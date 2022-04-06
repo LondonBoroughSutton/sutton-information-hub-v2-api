@@ -87,7 +87,7 @@ export AWS_SECRET_ACCESS_KEY=`jq -r .aws_secret_access_key secret_access.json`
 export AWS_BUCKET_NAME=`jq -r .bucket_name secret_access.json`
 export AWS_DEFAULT_OUTPUT=json
 
-rm secret_access.json
+# rm secret_access.json
 
 # Select what operation to perform
 read -p '(L)ist, (G)et, (P)ut or (D)elete an object: ' ACTION
