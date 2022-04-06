@@ -27,7 +27,7 @@ class CloudFoundryServiceProvider extends ServiceProvider
         $redisConfig = $config['redis'][0]['credentials'];
 
         /** @var array $elasticsearchConfig */
-        $elasticsearchConfig = $config['elasticsearch'][0]['credentials'];
+        $elasticsearchConfig = $config['opensearch'][0]['credentials'];
 
         /** @var array $sqsConfig */
         $sqsConfig = $config['aws-sqs-queue'][0]['credentials'];

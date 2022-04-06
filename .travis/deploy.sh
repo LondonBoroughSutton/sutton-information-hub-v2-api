@@ -27,8 +27,8 @@ ENDCOLOUR='\e[1;m'
 # If this is not a Travis build, the travis.yml scripts will not run, so setup the environment
 # Requires populating .cloudfoundry/environment with relevant Cloud Foundry details
 #
-if [ ${CI:-false} == "false" ] && [ -f "${PWD}/.cloudfoundry/environment" ]; then
-    source ${PWD}/.cloudfoundry/environment
+if [ ${CI:-false} == "false" ] && [ -f "${PWD}/.cloudfoundry/environment.$ENVIRONMENT" ]; then
+    source ${PWD}/.cloudfoundry/environment.${ENVIRONMENT}
 
     # Install required packages
     apt-get update && apt-get install -y --allow-unauthenticated jq sed gnupg npm

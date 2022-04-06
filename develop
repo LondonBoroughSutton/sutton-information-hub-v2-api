@@ -77,6 +77,8 @@ if [[ $# -gt 0  ]]; then
         deploy )
             shift 1
             ${DOCKER_COMPOSE} run --rm ${TTY} \
+                -e ENVIRONMENT=${ENVIRONMENT:-'staging'} \
+                -e CI=${CI:-false} \
                 app \
                 bash .travis/deploy.sh
             ;;
