@@ -62,6 +62,13 @@ Route::prefix('/core/v1')
             Route::apiResource('/files', 'FileController')
                 ->only('store');
 
+            // Pages.
+            Route::match(['GET', 'POST'], '/pages/index', 'PageController@index');
+            Route::apiResource('/pages', 'PageController');
+            Route::get('/pages/{page}/image.{suffix}', 'Page\\ImageController')
+                ->where('suffix', 'png|jpg|jpeg|svg')
+                ->name('pages.image');
+
             // Locations.
             Route::match(['GET', 'POST'], '/locations/index', 'LocationController@index');
             Route::apiResource('/locations', 'LocationController');
@@ -106,8 +113,8 @@ Route::prefix('/core/v1')
                 ->name('reports.download');
 
             // Search.
-            Route::post('/search', 'SearchController')
-                ->name('search');
+            Route::post('/search', 'SearchController')->name('search.services');
+            Route::post('/search/pages', 'Search\\PageController')->name('search.pages');
 
             // Service Locations.
             Route::match(['GET', 'POST'], '/service-locations/index', 'ServiceLocationController@index');
@@ -146,6 +153,10 @@ Route::prefix('/core/v1')
                 ->name('stop-words.index');
             Route::put('/stop-words', 'StopWordsController@update')
                 ->name('stop-words.update');
+
+            // Tags.
+            Route::get('/tags', 'TagController@index')
+                ->name('tags.index');
 
             // Taxonomy Categories.
             Route::match(['GET', 'POST'], '/taxonomies/categories/index', 'TaxonomyCategoryController@index');

@@ -11,7 +11,7 @@ return [
     | API, giving you convenient access to each back-end using the same
     | syntax for every one. Here you may define a default connection.
     |
-    */
+     */
 
     'default' => env('QUEUE_DRIVER', 'sync'),
 
@@ -26,7 +26,7 @@ return [
     |
     | Drivers: "sync", "database", "beanstalkd", "sqs", "redis", "null"
     |
-    */
+     */
 
     'connections' => [
 
@@ -51,11 +51,11 @@ return [
 
         'sqs' => [
             'driver' => 'sqs',
-            'key' => env('AWS_ACCESS_KEY_ID', 'your-public-key'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY', 'your-secret-key'),
+            'key' => env('SQS_ACCESS_KEY_ID', 'your-public-key'),
+            'secret' => env('SQS_SECRET_ACCESS_KEY', 'your-secret-key'),
             'prefix' => env('SQS_PREFIX', 'https://sqs.eu-west-1.amazonaws.com/your-account-id'),
             'queue' => env('SQS_QUEUE', 'default'),
-            'region' => env('AWS_DEFAULT_REGION', 'eu-west-1'),
+            'region' => env('SQS_DEFAULT_REGION', 'eu-west-1'),
         ],
 
         'redis' => [
@@ -77,11 +77,23 @@ return [
     | can control which database and table are used to store the jobs that
     | have failed. You may change them to any database / table you wish.
     |
-    */
+     */
 
     'failed' => [
         'database' => env('DB_CONNECTION', 'mysql'),
         'table' => 'failed_jobs',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Defined queues
+    |--------------------------------------------------------------------------
+    |
+    | Queues for specific tasks
+    |
+     */
+
+    'queues' => [
+        'notifications' => env('NOTIFICATIONS_QUEUE', 'default'),
+    ],
 ];

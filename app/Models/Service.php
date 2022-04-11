@@ -25,6 +25,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
+use Illuminate\Support\Str;
 use ScoutElastic\Searchable;
 
 class Service extends Model implements AppliesUpdateRequests, Notifiable, HasTaxonomyRelationships
@@ -40,21 +41,31 @@ class Service extends Model implements AppliesUpdateRequests, Notifiable, HasTax
     use UpdateServiceEligibilityTaxonomyRelationships;
 
     const TYPE_SERVICE = 'service';
+
     const TYPE_ACTIVITY = 'activity';
+
     const TYPE_CLUB = 'club';
+
     const TYPE_GROUP = 'group';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
 
     const WAIT_TIME_ONE_WEEK = 'one_week';
+
     const WAIT_TIME_TWO_WEEKS = 'two_weeks';
+
     const WAIT_TIME_THREE_WEEKS = 'three_weeks';
+
     const WAIT_TIME_MONTH = 'month';
+
     const WAIT_TIME_LONGER = 'longer';
 
     const REFERRAL_METHOD_INTERNAL = 'internal';
+
     const REFERRAL_METHOD_EXTERNAL = 'external';
+
     const REFERRAL_METHOD_NONE = 'none';
 
     /**
@@ -263,6 +274,7 @@ class Service extends Model implements AppliesUpdateRequests, Notifiable, HasTax
             'contact_name' => Arr::get($data, 'contact_name', $this->contact_name),
             'contact_phone' => Arr::get($data, 'contact_phone', $this->contact_phone),
             'contact_email' => Arr::get($data, 'contact_email', $this->contact_email),
+            'cqc_location_id' => Arr::get($data, 'cqc_location_id', $this->cqc_location_id),
             'show_referral_disclaimer' => Arr::get($data, 'show_referral_disclaimer', $this->show_referral_disclaimer),
             'referral_method' => Arr::get($data, 'referral_method', $this->referral_method),
             'referral_button_text' => Arr::get($data, 'referral_button_text', $this->referral_button_text),
@@ -303,6 +315,23 @@ class Service extends Model implements AppliesUpdateRequests, Notifiable, HasTax
                     'order' => $offering['order'],
                 ]);
             }
+        }
+
+        // Update the tag records.
+        if (array_key_exists('tags', $data)) {
+            $tagIds = [];
+            foreach ($data['tags'] as $tagField) {
+                $tag = Tag::where('slug', Str::slug($tagField['slug']))->first();
+                if (null === $tag) {
+                    $tag = new Tag([
+                        'slug' => Str::slug($tagField['slug']),
+                        'label' => $tagField['label'],
+                    ]);
+                    $tag->save();
+                }
+                $tagIds[] = $tag->id;
+            }
+            $this->tags()->sync($tagIds);
         }
 
         // Update the gallery item records.

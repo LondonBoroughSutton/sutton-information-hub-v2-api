@@ -1,5 +1,26 @@
 /.github
 /bootstrap/cache/packages.php
 /bootstrap/cache/services.php
-/node_modules
 /vendor
+
+# Development files
+.cloudfoundry
+.travis
+docker
+tests
+.env.*
+.gitattributes
+.gitignore
+.php_cs_fixer.php
+.php_cs.cache
+.php-cs-fixer.cache
+.phpunit.result.cache
+.travis.yml
+CONTRIBUTING.md
+develop
+docker-compose.yml
+LICENSE.md
+phpunit.xml
+README.md
+server.php
+webpack.mix.js

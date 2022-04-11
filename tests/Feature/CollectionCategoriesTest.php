@@ -34,6 +34,7 @@ class CollectionCategoriesTest extends TestCase
             'icon',
             'order',
             'enabled',
+            'homepage',
             'sideboxes' => [
                 '*' => [
                     'title',
@@ -74,6 +75,7 @@ class CollectionCategoriesTest extends TestCase
                     'icon',
                     'order',
                     'enabled',
+                    'homepage',
                     'sideboxes' => [
                         '*' => [
                             'title',
@@ -250,6 +252,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [
                 [
                     'title' => 'Sidebox title',
@@ -267,6 +270,7 @@ class CollectionCategoriesTest extends TestCase
             'icon',
             'order',
             'enabled',
+            'homepage',
             'sideboxes' => [
                 '*' => [
                     'title',
@@ -291,6 +295,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [
                 [
                     'title' => 'Sidebox title',
@@ -320,6 +325,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => false,
+            'homepage' => false,
             'sideboxes' => [
                 [
                     'title' => 'Sidebox title',
@@ -337,6 +343,52 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => false,
+            'homepage' => false,
+            'sideboxes' => [
+                [
+                    'title' => 'Sidebox title',
+                    'content' => 'Sidebox content',
+                ],
+            ],
+        ]);
+    }
+
+    public function test_super_admin_can_create_a_homepage_one()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeSuperAdmin();
+        $randomCategory = Taxonomy::category()->children()->inRandomOrder()->firstOrFail();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('POST', '/core/v1/collections/categories', [
+            'name' => 'Test Category',
+            'intro' => 'Lorem ipsum',
+            'icon' => 'info',
+            'order' => 1,
+            'enabled' => true,
+            'homepage' => true,
+            'sideboxes' => [
+                [
+                    'title' => 'Sidebox title',
+                    'content' => 'Sidebox content',
+                ],
+            ],
+            'category_taxonomies' => [$randomCategory->id],
+        ]);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'name' => 'Test Category',
+            'intro' => 'Lorem ipsum',
+            'icon' => 'info',
+            'order' => 1,
+            'enabled' => true,
+            'homepage' => true,
             'sideboxes' => [
                 [
                     'title' => 'Sidebox title',
@@ -361,6 +413,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -372,6 +425,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -383,6 +437,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -398,6 +453,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -424,6 +480,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -435,6 +492,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -446,6 +504,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -461,6 +520,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -487,6 +547,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -498,6 +559,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -509,6 +571,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -524,6 +587,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 4,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -554,6 +618,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 0,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -576,6 +641,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -587,6 +653,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -602,6 +669,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 4,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -628,6 +696,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [$randomCategory->id],
         ]);
@@ -657,6 +726,7 @@ class CollectionCategoriesTest extends TestCase
             'icon',
             'order',
             'enabled',
+            'homepage',
             'sideboxes' => [
                 '*' => [
                     'title',
@@ -682,6 +752,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => $collectionCategory->meta['icon'],
             'order' => $collectionCategory->order,
             'enabled' => $collectionCategory->enabled,
+            'homepage' => $collectionCategory->homepage,
             'sideboxes' => $collectionCategory->meta['sideboxes'],
             'created_at' => $collectionCategory->created_at->format(CarbonImmutable::ISO8601),
             'updated_at' => $collectionCategory->updated_at->format(CarbonImmutable::ISO8601),
@@ -787,6 +858,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [$taxonomy->id],
         ]);
@@ -799,6 +871,7 @@ class CollectionCategoriesTest extends TestCase
             'icon',
             'order',
             'enabled',
+            'homepage',
             'sideboxes' => [
                 '*' => [
                     'title',
@@ -823,6 +896,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
         ]);
         $response->assertJsonFragment([
@@ -850,6 +924,7 @@ class CollectionCategoriesTest extends TestCase
             'subtitle' => 'Subtitle here',
             'order' => 1,
             'enabled' => false,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [$taxonomy->id],
         ]);
@@ -877,6 +952,7 @@ class CollectionCategoriesTest extends TestCase
             'subtitle' => 'Subtitle here',
             'order' => 1,
             'enabled' => false,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [$taxonomy->id],
         ]);
@@ -889,6 +965,7 @@ class CollectionCategoriesTest extends TestCase
             'icon',
             'order',
             'enabled',
+            'homepage',
             'sideboxes' => [
                 '*' => [
                     'title',
@@ -920,6 +997,72 @@ class CollectionCategoriesTest extends TestCase
         ]);
     }
 
+    public function test_global_admin_can_update_homepage()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+        $category = Collection::categories()->inRandomOrder()->firstOrFail();
+        $category->addToHomepage()->save();
+        $taxonomy = Taxonomy::category()->children()->inRandomOrder()->firstOrFail();
+
+        Passport::actingAs($user);
+
+        $response = $this->json('PUT', "/core/v1/collections/categories/{$category->id}", [
+            'name' => 'Test Category',
+            'intro' => 'Lorem ipsum',
+            'icon' => 'info',
+            'subtitle' => 'Subtitle here',
+            'order' => 1,
+            'enabled' => true,
+            'homepage' => false,
+            'sideboxes' => [],
+            'category_taxonomies' => [$taxonomy->id],
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonResource([
+            'id',
+            'name',
+            'intro',
+            'icon',
+            'order',
+            'enabled',
+            'homepage',
+            'sideboxes' => [
+                '*' => [
+                    'title',
+                    'content',
+                ],
+            ],
+            'category_taxonomies' => [
+                '*' => [
+                    'id',
+                    'parent_id',
+                    'name',
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+            'created_at',
+            'updated_at',
+        ]);
+        $response->assertJsonFragment([
+            'name' => 'Test Category',
+            'intro' => 'Lorem ipsum',
+            'icon' => 'info',
+            'order' => 1,
+            'enabled' => true,
+            'homepage' => false,
+            'sideboxes' => [],
+        ]);
+        $response->assertJsonFragment([
+            'id' => $taxonomy->id,
+        ]);
+    }
+
     public function test_order_is_updated_when_updated_to_beginning()
     {
         // Delete the existing seeded categories.
@@ -935,6 +1078,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -946,6 +1090,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -957,6 +1102,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -972,6 +1118,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -997,6 +1144,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1008,6 +1156,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1019,6 +1168,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1034,6 +1184,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -1059,6 +1210,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1070,6 +1222,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1081,6 +1234,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1096,6 +1250,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -1121,6 +1276,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1136,6 +1292,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 0,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -1158,6 +1315,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1173,6 +1331,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [],
         ]);
@@ -1200,6 +1359,7 @@ class CollectionCategoriesTest extends TestCase
             'icon' => 'info',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'sideboxes' => [],
             'category_taxonomies' => [$taxonomy->id],
         ]);
@@ -1327,6 +1487,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1338,6 +1499,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1349,6 +1511,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1381,6 +1544,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1392,6 +1556,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1403,6 +1568,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1435,6 +1601,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'First',
             'order' => 1,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1446,6 +1613,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Second',
             'order' => 2,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',
@@ -1457,6 +1625,7 @@ class CollectionCategoriesTest extends TestCase
             'name' => 'Third',
             'order' => 3,
             'enabled' => true,
+            'homepage' => false,
             'meta' => [
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info',

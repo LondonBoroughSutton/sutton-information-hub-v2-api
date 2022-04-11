@@ -42,6 +42,7 @@ class UpdateServiceSchema extends Schema
                 'useful_infos',
                 'offerings',
                 'gallery_items',
+                'tags',
                 'category_taxonomies'
             )
             ->properties(
@@ -81,6 +82,7 @@ class UpdateServiceSchema extends Schema
                 Schema::string('contact_name'),
                 Schema::string('contact_phone'),
                 Schema::string('contact_email'),
+                Schema::string('cqc_location_id'),
                 Schema::boolean('show_referral_disclaimer'),
                 Schema::string('referral_method')
                     ->enum(
@@ -113,6 +115,13 @@ class UpdateServiceSchema extends Schema
                         Schema::object()->properties(
                             Schema::string('file_id')
                                 ->format(Schema::FORMAT_UUID)
+                        )
+                    ),
+                Schema::array('tags')
+                    ->items(
+                        Schema::object()->properties(
+                            Schema::string('slug'),
+                            Schema::string('label')
                         )
                     ),
                 Schema::array('category_taxonomies')

@@ -54,7 +54,7 @@ class SeedDefaultCollectionData extends Migration
         DB::table('collections')->insert([
             'id' => $uuid,
             'type' => 'category',
-            'name' => 'Leisure and Social Activities',
+            'name' => 'Things to do',
             'meta' => json_encode([
                 'intro' => 'Lorem ipsum',
                 'icon' => 'coffee',
@@ -111,7 +111,7 @@ class SeedDefaultCollectionData extends Migration
         DB::table('collections')->insert([
             'id' => $uuid,
             'type' => 'category',
-            'name' => 'Advice and Support Services',
+            'name' => 'Advice Services',
             'meta' => json_encode([
                 'intro' => 'Lorem ipsum',
                 'icon' => 'info-circle',

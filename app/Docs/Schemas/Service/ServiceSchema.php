@@ -2,6 +2,7 @@
 
 namespace App\Docs\Schemas\Service;
 
+use App\Docs\Schemas\Tag\TagSchema;
 use App\Docs\Schemas\Taxonomy\Category\TaxonomyCategorySchema;
 use App\Models\Service;
 use GoldSpecDigital\ObjectOrientedOAS\Objects\BaseObject;
@@ -59,6 +60,8 @@ class ServiceSchema extends Schema
                 Schema::string('contact_name'),
                 Schema::string('contact_phone'),
                 Schema::string('contact_email'),
+                Schema::string('cqc_location_id')
+                    ->nullable(),
                 Schema::boolean('show_referral_disclaimer'),
                 Schema::string('referral_method')
                     ->enum(
@@ -78,6 +81,8 @@ class ServiceSchema extends Schema
                     ->items(OfferingSchema::create()),
                 Schema::array('gallery_items')
                     ->items(GalleryItemSchema::create()),
+                Schema::array('tags')
+                    ->items(TagSchema::create()),
                 Schema::array('category_taxonomies')
                     ->items(TaxonomyCategorySchema::create()),
                 Schema::string('last_modified_at')

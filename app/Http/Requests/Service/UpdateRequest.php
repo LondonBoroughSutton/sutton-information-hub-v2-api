@@ -123,6 +123,7 @@ class UpdateRequest extends FormRequest
             'contact_name' => ['nullable', 'string', 'min:1', 'max:255'],
             'contact_phone' => ['nullable', 'string', 'min:1', 'max:255'],
             'contact_email' => ['nullable', 'email', 'max:255'],
+            'cqc_location_id' => ['nullable', 'string', 'regex:/^\d\-\d+$/'],
             'show_referral_disclaimer' => [
                 'boolean',
                 new UserHasRole(
@@ -252,6 +253,21 @@ class UpdateRequest extends FormRequest
                         ->exists();
                 }),
             ],
+
+            'tags' => [
+                'array',
+                new UserHasRole(
+                    $this->user('api'),
+                    new UserRole([
+                        'user_id' => $this->user('api')->id,
+                        'role_id' => Role::globalAdmin()->id,
+                    ]),
+                    $this->service->tags->only(['slug', 'label'])->all()
+                ),
+            ],
+            'tags.*' => ['array'],
+            'tags.*.slug' => ['required_with:tags.*', 'string', 'min:1', 'max:255', new Slug()],
+            'tags.*.label' => ['required_with:tags.*', 'string', 'min:1', 'max:255'],
 
             'category_taxonomies' => $this->categoryTaxonomiesRules(),
             'category_taxonomies.*' => [

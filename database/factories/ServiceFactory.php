@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
 
 $factory->define(Service::class, function (Faker $faker) {
-    $name = $faker->unique()->company;
+    $name = $faker->unique()->words(3, true) . ' ' . mt_rand(1, 1000);
 
     return [
         'organisation_id' => function () {
             return factory(\App\Models\Organisation::class)->create()->id;
         },
-        'slug' => Str::slug($name) . '-' . mt_rand(1, 1000),
+        'slug' => Str::slug($name),
         'name' => $name,
         'type' => Service::TYPE_SERVICE,
         'status' => Service::STATUS_ACTIVE,
@@ -27,6 +27,7 @@ $factory->define(Service::class, function (Faker $faker) {
         'contact_email' => $faker->safeEmail,
         'show_referral_disclaimer' => false,
         'referral_method' => Service::REFERRAL_METHOD_NONE,
+        'cqc_location_id' => $faker->numerify('#-#########'),
         'last_modified_at' => Date::now(),
     ];
 });
