@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers\Core\V1;
 
-use App\Models\File;
-use App\Models\Taxonomy;
-use App\Models\Collection;
 use App\Events\EndpointHit;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\AllowedFilter;
-use App\Http\Responses\ResourceDeleted;
-use App\Http\Resources\CollectionCategoryResource;
-use App\Http\Requests\CollectionCategory\ShowRequest;
+use App\Http\Requests\CollectionCategory\DestroyRequest;
 use App\Http\Requests\CollectionCategory\IndexRequest;
+use App\Http\Requests\CollectionCategory\ShowRequest;
 use App\Http\Requests\CollectionCategory\StoreRequest;
 use App\Http\Requests\CollectionCategory\UpdateRequest;
-use App\Http\Requests\CollectionCategory\DestroyRequest;
+use App\Http\Resources\CollectionCategoryResource;
+use App\Http\Responses\ResourceDeleted;
+use App\Models\Collection;
+use App\Models\File;
+use App\Models\Taxonomy;
+use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class CollectionCategoryController extends Controller
 {
