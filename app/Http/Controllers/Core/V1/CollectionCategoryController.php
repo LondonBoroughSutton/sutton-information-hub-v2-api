@@ -141,6 +141,10 @@ class CollectionCategoryController extends Controller
                 ];
             }, $request->sideboxes ?? []);
 
+            if ($request->filled('image_file_id') && $request->image_file_id !== ($collection->meta['image_file_id']?? null)) {
+                File::findOrFail($request->image_file_id)->assigned();
+            }
+
             // Update the collection record.
             $collection->update([
                 'name' => $request->name,
@@ -155,10 +159,6 @@ class CollectionCategoryController extends Controller
                 'enabled' => $request->enabled,
                 'homepage' => $request->homepage,
             ]);
-
-            if ($request->filled('image_file_id') && $request->image_file_id !== $collection->meta['image_file_id']) {
-                File::findOrFail($request->image_file_id)->assigned();
-            }
 
             // Update or create all of the pivot records.
             $taxonomies = Taxonomy::whereIn('id', $request->category_taxonomies)->get();

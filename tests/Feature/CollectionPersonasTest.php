@@ -1732,6 +1732,11 @@ class CollectionPersonasTest extends TestCase
         $collectionArray = $this->getResponseContent($response)['data'];
         $content = $this->get("/core/v1/collections/personas/{$collectionArray['id']}/image.png")->content();
         $this->assertEquals($image, $content);
+
+        $this->assertDatabaseHas((new File)->getTable(), [
+            'id' => $this->getResponseContent($imageResponse, 'data.id'),
+            'meta' => null,
+        ]);
     }
 
     /*
