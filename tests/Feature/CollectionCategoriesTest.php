@@ -519,7 +519,7 @@ class CollectionCategoriesTest extends TestCase
         $response->assertStatus(Response::HTTP_CREATED);
 
         $collectionArray = $this->getResponseContent($response)['data'];
-        $content = $this->get("/core/v1/collections/personas/{$collectionArray['id']}/image.png")->content();
+        $content = $this->get("/core/v1/collections/categories/{$collectionArray['id']}/image.png")->content();
         $this->assertEquals(Storage::disk('local')->get('/test-data/image.svg'), $content);
 
         $this->assertEquals($image->id, $collectionArray['image_file_id']);
