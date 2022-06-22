@@ -10,7 +10,9 @@ $factory->define(Collection::class, function (Faker $faker) {
         'meta' => [
             'intro' => $faker->sentence,
             'sideboxes' => [],
-            'icon' => null,
+            'image_file_id' => function () {
+                return factory(File::class)->states('image-svg')->create()->id;
+            },
         ],
         'order' => $faker->numberBetween(1, 5),
         'enabled' => true,

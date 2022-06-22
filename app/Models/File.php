@@ -32,6 +32,8 @@ class File extends Model implements Responsable
 
     const META_PLACEHOLDER_FOR_SERVICE = 'service';
 
+    const META_PLACEHOLDER_FOR_COLLECTION_CATEGORY = 'collection_category';
+
     const META_PLACEHOLDER_FOR_COLLECTION_PERSONA = 'collection_persona';
 
     const META_PLACEHOLDER_FOR_LOCATION = 'location';
@@ -211,6 +213,7 @@ class File extends Model implements Responsable
         $validPlaceholdersFor = [
             static::META_PLACEHOLDER_FOR_ORGANISATION,
             static::META_PLACEHOLDER_FOR_SERVICE,
+            static::META_PLACEHOLDER_FOR_COLLECTION_CATEGORY,
             static::META_PLACEHOLDER_FOR_COLLECTION_PERSONA,
             static::META_PLACEHOLDER_FOR_LOCATION,
             static::META_PLACEHOLDER_FOR_SERVICE_LOCATION,
@@ -265,6 +268,7 @@ class File extends Model implements Responsable
             static::MIME_TYPE_JPG => '.jpg',
             static::MIME_TYPE_PNG => '.png',
             static::MIME_TYPE_TXT => '.txt',
+            static::MIME_TYPE_SVG => '.svg',
         ];
 
         if (!array_key_exists($mimeType, $map)) {
