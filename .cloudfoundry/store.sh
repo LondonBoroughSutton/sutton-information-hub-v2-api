@@ -78,6 +78,7 @@ apt-get update && apt-get install -y --allow-unauthenticated cf7-cli jq
 cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_SPACE
 
 # Get the .env file from the secret S3 bucket
+rm -f secret_access.json
 cf service-key $CF_S3_SERVICE $CF_S3_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
 
 # Export the AWS S3 access credentials for use by the AWS CLI
@@ -182,6 +183,9 @@ fi
 
 if [ "$ACTION" == 'M' ] || [ "$ACTION" == 'm' ]; then
     # Migrate a bucket
+    # Ensure a service key has been set on the recipient service:
+    # cf create-service-key SERVICE_NAME SERVICE_KEY -c '{"allow_external_access": true}'
+
     echo -e "${GREEN}Migrating the contents of bucket $AWS_BUCKET_NAME${ENDCOLOUR}"
     read -p "Is the recipent S3 service in the same space? (Y/n): " AGREE
 
@@ -207,9 +211,11 @@ if [ "$ACTION" == 'M' ] || [ "$ACTION" == 'm' ]; then
 
     aws s3api list-objects --bucket ${AWS_BUCKET_NAME} | jq . > bucket_objects.json
 
-    jq -r '.Contents | length' bucket_objects.json
-
     OBJECT_KEYS=(`jq '.Contents[] | select(. .Key|startswith("files/public/")) | .Key' bucket_objects.json | tr -d '"'`)
+
+    rm bucket_objects.json
+
+    rm -Rf ${PWD}/migration_tmp
 
     mkdir ${PWD}/migration_tmp
 
