@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Route;
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
 |
-*/
+ */
 
-Route::namespace('Auth')->group(function () {
+Route::namespace ('Auth')->group(function () {
     // Authentication Routes.
     Route::get('login', 'LoginController@showLoginForm')->name('login');
     Route::post('login', 'LoginController@login');
@@ -35,3 +35,5 @@ Route::get('/docs', 'DocsController@index')
 
 Route::get('/docs/openapi.json', 'DocsController@show')
     ->name('docs.show');
+
+Route::get('/sitemap', 'SitemapController')->name('sitemap');
