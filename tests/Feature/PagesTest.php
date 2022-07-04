@@ -533,6 +533,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent' => [
                 'id',
                 'title',
@@ -585,6 +586,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children' => [
                 '*' => [
@@ -601,6 +603,81 @@ class PagesTest extends TestCase
             ],
             'created_at',
             'updated_at',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function getEnabledInformationPageWithLandingPageAncestorAsGuest200()
+    {
+        $page = factory(Page::class)->states('withImage', 'withChildren')->create();
+        $parent = factory(Page::class)->create();
+        $parent->appendNode($page);
+        $landingPage = factory(Page::class)->states('landingPage')->create();
+        $landingPage->appendNode($parent);
+
+        $response = $this->json('GET', '/core/v1/pages/' . $page->id);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonResource([
+            'id',
+            'title',
+            'excerpt',
+            'content',
+            'order',
+            'enabled',
+            'page_type',
+            'image' => [
+                'id',
+                'mime_type',
+                'created_at',
+                'updated_at',
+            ],
+            'landing_page' => [
+                'id',
+                'title',
+                'image',
+                'content',
+                'order',
+                'enabled',
+                'page_type',
+                'created_at',
+                'updated_at',
+            ],
+            'parent' => [
+                'id',
+                'title',
+                'image',
+                'content',
+                'order',
+                'enabled',
+                'page_type',
+                'created_at',
+                'updated_at',
+            ],
+            'children' => [
+                '*' => [
+                    'id',
+                    'title',
+                    'image',
+                    'content',
+                    'order',
+                    'enabled',
+                    'page_type',
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+            'created_at',
+            'updated_at',
+        ]);
+
+        $response->assertJson([
+            'data' => [
+                'landing_page' => [
+                    'id' => $landingPage->id,
+                ],
+            ],
         ]);
     }
 
@@ -668,6 +745,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent' => [
                 'id',
                 'title',
@@ -862,6 +940,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1112,6 +1191,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent' => [
                 'id',
                 'title',
@@ -1208,6 +1288,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1285,6 +1366,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1448,6 +1530,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1516,6 +1599,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1584,6 +1668,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1692,6 +1777,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1769,6 +1855,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1921,6 +2008,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1979,6 +2067,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -2051,6 +2140,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -2363,6 +2453,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -2426,6 +2517,7 @@ class PagesTest extends TestCase
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
