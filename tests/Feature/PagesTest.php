@@ -43,6 +43,7 @@ class PagesTest extends TestCase
             'data' => [
                 [
                     'id',
+                    'slug',
                     'title',
                     'content',
                     'order',
@@ -511,6 +512,10 @@ class PagesTest extends TestCase
     }
 
     /**
+     * Get a single page
+     */
+
+    /**
      * @test
      */
     public function getEnabledInformationPageAsGuest200()
@@ -521,6 +526,7 @@ class PagesTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonResource([
             'id',
+            'slug',
             'title',
             'excerpt',
             'content',
@@ -536,6 +542,7 @@ class PagesTest extends TestCase
             'landing_page',
             'parent' => [
                 'id',
+                'slug',
                 'title',
                 'image',
                 'content',
@@ -548,6 +555,7 @@ class PagesTest extends TestCase
             'children' => [
                 '*' => [
                     'id',
+                    'slug',
                     'title',
                     'image',
                     'content',
@@ -574,6 +582,7 @@ class PagesTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonResource([
             'id',
+            'slug',
             'title',
             'excerpt',
             'content',
@@ -591,6 +600,8 @@ class PagesTest extends TestCase
             'children' => [
                 '*' => [
                     'id',
+                    'slug',
+                    'slug',
                     'title',
                     'image',
                     'content',
@@ -603,6 +614,20 @@ class PagesTest extends TestCase
             ],
             'created_at',
             'updated_at',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function getEnabledInformationPageBySlugAsGuest200()
+    {
+        $page = factory(Page::class)->states('withImage', 'withParent', 'withChildren')->create();
+
+        $response = $this->json('GET', '/core/v1/pages/' . $page->slug);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'id' => $page->id,
         ]);
     }
 
@@ -733,6 +758,7 @@ class PagesTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonResource([
             'id',
+            'slug',
             'title',
             'excerpt',
             'content',
@@ -748,6 +774,7 @@ class PagesTest extends TestCase
             'landing_page',
             'parent' => [
                 'id',
+                'slug',
                 'title',
                 'image',
                 'content',
@@ -760,6 +787,7 @@ class PagesTest extends TestCase
             'children' => [
                 '*' => [
                     'id',
+                    'slug',
                     'title',
                     'image',
                     'content',
@@ -1806,6 +1834,111 @@ class PagesTest extends TestCase
     /**
      * @test
      */
+    public function createPageWithSameTitleAsExistingPageIncrementsSlugAsAdmin201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        factory(Page::class)
+            ->states('withImage', 'withParent', 'withChildren', 'disabled')
+            ->create([
+                'title' => 'Test Page Title',
+                'slug' => 'test-page-title',
+            ]);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => 'Test Page Title',
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'copy' => [
+                        $this->faker->realText(),
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+        ];
+
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'slug' => 'test-page-title-1',
+        ]);
+
+        $this->assertDatabaseHas((new Page())->getTable(), [
+            'parent_uuid' => $parentPage->id,
+            'slug' => 'test-page-title-1',
+        ]);
+
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'slug' => 'test-page-title-2',
+        ]);
+
+        $this->assertDatabaseHas((new Page())->getTable(), [
+            'parent_uuid' => $parentPage->id,
+            'slug' => 'test-page-title-2',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function createPageWithSlugAsAdmin201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => 'Test Page Title',
+            'slug' => 'different-slug',
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'copy' => [
+                        $this->faker->realText(),
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+        ];
+
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'slug' => 'different-slug',
+        ]);
+
+        $this->assertDatabaseHas((new Page())->getTable(), [
+            'parent_uuid' => $parentPage->id,
+            'slug' => 'different-slug',
+        ]);
+    }
+
+    /**
+     * @test
+     */
     public function updatePageAsGuest403()
     {
         $page = factory(Page::class)
@@ -2544,6 +2677,70 @@ class PagesTest extends TestCase
         $response->assertJsonMissing([
             'id' => $pageCollectionIds->get(2),
         ]);
+    }
+
+    /**
+     * @test
+     */
+    public function updatePageUpdateSlugAsAdmin200()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $page = factory(Page::class)
+            ->states('withImage', 'withParent', 'withChildren', 'disabled')
+            ->create([
+                'title' => 'Test Page Title',
+                'slug' => 'test-page-title',
+            ]);
+
+        $data = [
+            'title' => 'New Title',
+        ];
+
+        $response = $this->json('PUT', '/core/v1/pages/' . $page->id, $data);
+
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment([
+            'title' => 'New Title',
+        ]);
+
+        $response->assertJsonFragment([
+            'slug' => 'test-page-title',
+        ]);
+
+        $data = [
+            'slug' => 'new-title',
+        ];
+
+        $response = $this->json('PUT', '/core/v1/pages/' . $page->id, $data);
+
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment([
+            'slug' => 'new-title',
+        ]);
+
+        factory(Page::class)
+            ->states('withImage', 'withParent', 'withChildren', 'disabled')
+            ->create([
+                'title' => 'Existing Page',
+                'slug' => 'existing-page',
+            ]);
+
+        $data = [
+            'slug' => 'existing-page',
+        ];
+
+        $response = $this->json('PUT', '/core/v1/pages/' . $page->id, $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
     /**
