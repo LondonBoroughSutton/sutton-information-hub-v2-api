@@ -25,6 +25,9 @@ class PageResource extends JsonResource
             'enabled' => $this->enabled,
             'page_type' => $this->page_type,
             'image' => new FileResource($this->image),
+            'landing_page' => new static($this->whenLoaded('landingPageAncestors', function () {
+                return $this->landingPage;
+            })),
             'parent' => new static($this->whenLoaded('parent')),
             'children' => static::collection($this->whenLoaded('children')),
             'collection_categories' => CollectionCategoryResource::collection($this->whenLoaded('collectionCategories')),

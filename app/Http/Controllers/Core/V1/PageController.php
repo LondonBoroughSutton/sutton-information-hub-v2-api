@@ -45,7 +45,9 @@ class PageController extends Controller
         }
 
         $pages = QueryBuilder::for($baseQuery)
+            ->allowedIncludes(['parent', 'children', 'landingPageAncestors'])
             ->allowedFilters([
+                AllowedFilter::scope('landing_page', 'pageDescendants'),
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('parent_id', 'parent_uuid'),
                 AllowedFilter::exact('page_type'),
@@ -91,7 +93,7 @@ class PageController extends Controller
             // Update model so far
             $page->save();
 
-            $page->load('parent', 'children', 'collectionCategories', 'collectionPersonas');
+            $page->load('landingPageAncestors', 'parent', 'children', 'collectionCategories', 'collectionPersonas');
 
             event(EndpointHit::onCreate($request, "Created page [{$page->id}]", $page));
 
@@ -109,7 +111,7 @@ class PageController extends Controller
     public function show(ShowRequest $request, Page $page)
     {
         $baseQuery = Page::query()
-            ->with(['parent', 'children', 'collectionCategories', 'collectionPersonas'])
+            ->with(['landingPageAncestors', 'parent', 'children', 'collectionCategories', 'collectionPersonas'])
             ->where('id', $page->id);
 
         $page = QueryBuilder::for($baseQuery)
@@ -151,7 +153,7 @@ class PageController extends Controller
 
             event(EndpointHit::onUpdate($request, "Updated page [{$page->id}]", $page));
 
-            return new pageResource($page->fresh(['parent', 'children', 'collectionCategories', 'collectionPersonas']));
+            return new pageResource($page->fresh(['landingPageAncestors', 'parent', 'children', 'collectionCategories', 'collectionPersonas']));
         });
     }
 
