@@ -1072,8 +1072,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1105,8 +1108,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1158,8 +1164,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1188,81 +1197,105 @@ class PagesTest extends TestCase
 
         Passport::actingAs($user);
 
+        // Missing content
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Missing title
         $this->json('POST', '/core/v1/pages', [
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Empty title and content
         $this->json('POST', '/core/v1/pages', [
             'title' => '',
             'content' => '',
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Content not an array
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'content' => $this->faker->realText(),
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Content an empty array
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [],
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Invalid structure for 'copy' content type
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'excerpt' => str_pad($this->faker->paragraph(2), 151, 'words '),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'copy' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Invalid parent id
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
             'parent_id' => 1,
         ])->assertStatus(Response::HTTP_NOT_FOUND);
 
+        // Unknown parent id
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
             'parent_id' => $this->faker->uuid(),
         ])->assertStatus(Response::HTTP_NOT_FOUND);
 
+        // Invalid content stucture for landing page
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1271,13 +1304,17 @@ class PagesTest extends TestCase
 
         $parentPage = factory(Page::class)->states('withChildren')->create();
 
+        // Invalid order
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1285,13 +1322,17 @@ class PagesTest extends TestCase
             'order' => $parentPage->children->count() + 1,
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Invalid order
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1299,13 +1340,17 @@ class PagesTest extends TestCase
             'order' => -1,
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Landing page cannot have parent
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1313,9 +1358,7 @@ class PagesTest extends TestCase
             'page_type' => 'landing',
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        /**
-         * Assigned Images not allowed
-         */
+        // Assigned Images not allowed
         $image = factory(File::class)->create([
             'filename' => Str::random() . '.png',
             'mime_type' => 'image/png',
@@ -1326,8 +1369,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1357,8 +1403,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1417,8 +1466,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1454,8 +1506,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1514,26 +1569,41 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'about' => [
-                    'copy' => [
-                        $this->faker->realText(),
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'info_pages' => [
                     'title' => $this->faker->sentence(),
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'collections' => [
                     'title' => $this->faker->sentence(),
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1596,8 +1666,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1639,8 +1712,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1690,8 +1766,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1759,8 +1838,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1828,8 +1910,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1890,8 +1975,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1924,26 +2012,41 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'about' => [
-                    'copy' => [
-                        $this->faker->realText(),
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'info_pages' => [
                     'title' => $this->faker->sentence(),
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'collections' => [
                     'title' => $this->faker->sentence(),
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1992,6 +2095,257 @@ class PagesTest extends TestCase
     /**
      * @test
      */
+    public function createInformationPageWithCallToAction422()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => '',
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => null,
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => null,
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => 'foo',
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /**
+     * @test
+     */
+    public function createInformationPageWithCallToAction201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
+    /**
+     * @test
+     */
+    public function createLandingPageWithCallToActions201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+                'about' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+                'info_pages' => [
+                    'title' => $this->faker->sentence(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+                'collections' => [
+                    'title' => $this->faker->sentence(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+            ],
+            'page_type' => 'landing',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
+    /**
+     * @test
+     */
     public function createPageWithSameTitleAsExistingPageIncrementsSlugAsAdmin201()
     {
         /**
@@ -2016,8 +2370,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -2072,8 +2429,11 @@ class PagesTest extends TestCase
             'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],

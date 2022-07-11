@@ -57,10 +57,10 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
 
     public function test_query_matches_page_content()
     {
-        $page = factory(Page::class)->create();
+        $page = factory(Page::class)->states('landingPage')->create();
 
         $response = $this->json('POST', '/core/v1/search/pages', [
-            'query' => $page->content['introduction']['copy'][0],
+            'query' => $page->content['introduction']['content'][0]['value'],
             'page' => 1,
             'per_page' => 20,
         ]);
@@ -69,6 +69,49 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
         $response->assertJsonFragment([
             'id' => $page->id,
         ]);
+
+        $page = factory(Page::class)->states('landingPage')->create([
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response = $this->json('POST', '/core/v1/search/pages', [
+            'query' => $page->content['introduction']['content'][1]['title'],
+            'page' => 1,
+            'per_page' => 20,
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'id' => $page->id,
+        ]);
+
+        $response = $this->json('POST', '/core/v1/search/pages', [
+            'query' => $page->content['introduction']['content'][1]['description'],
+            'page' => 1,
+            'per_page' => 20,
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'id' => $page->id,
+        ]);
+
     }
 
     public function test_query_matches_single_word_from_page_content()
@@ -76,8 +119,11 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
         $page = factory(Page::class)->create([
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        'This is a page that helps to homeless find temporary housing.',
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => 'This is a page that helps to homeless find temporary housing.',
+                        ],
                     ],
                 ],
             ],
@@ -98,8 +144,11 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
         $page = factory(Page::class)->create([
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        'This is a page that helps to homeless find temporary housing.',
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => 'This is a page that helps to homeless find temporary housing.',
+                        ],
                     ],
                 ],
             ],
@@ -121,8 +170,11 @@ class SearchPageTest extends TestCase implements UsesElasticsearch
         $page2 = factory(Page::class)->create([
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        'Thisisatest',
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => 'Thisisatest',
+                        ],
                     ],
                 ],
             ],
