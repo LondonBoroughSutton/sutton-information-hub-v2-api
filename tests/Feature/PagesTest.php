@@ -43,6 +43,7 @@ class PagesTest extends TestCase
             'data' => [
                 [
                     'id',
+                    'slug',
                     'title',
                     'content',
                     'order',
@@ -513,6 +514,168 @@ class PagesTest extends TestCase
     /**
      * @test
      */
+    public function listEnabledPagesAsGuestIncludeParent200()
+    {
+        factory(Page::class)->states('withParent', 'withChildren')->create();
+
+        $response = $this->json('GET', '/core/v1/pages/index?include=parent');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonStructure([
+            'data' => [
+                [
+                    'id',
+                    'slug',
+                    'title',
+                    'content',
+                    'order',
+                    'enabled',
+                    'page_type',
+                    'image',
+                    'parent',
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function listEnabledPagesAsGuestIncludeLandingPage200()
+    {
+        factory(Page::class)->states('withParent', 'withChildren')->create();
+
+        $response = $this->json('GET', '/core/v1/pages/index?include=landing-page-ancestors');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonStructure([
+            'data' => [
+                [
+                    'id',
+                    'slug',
+                    'title',
+                    'content',
+                    'order',
+                    'enabled',
+                    'page_type',
+                    'image',
+                    'landing_page',
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function listEnabledPagesAsGuestIncludeChildren200()
+    {
+        factory(Page::class)->states('withParent', 'withChildren')->create();
+
+        $response = $this->json('GET', '/core/v1/pages/index?include=children');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonStructure([
+            'data' => [
+                [
+                    'id',
+                    'slug',
+                    'title',
+                    'content',
+                    'order',
+                    'enabled',
+                    'page_type',
+                    'image',
+                    'children' => [
+                        '*' => [
+                            'id',
+                            'slug',
+                            'title',
+                            'image',
+                            'content',
+                            'order',
+                            'enabled',
+                            'page_type',
+                            'created_at',
+                            'updated_at',
+                        ],
+                    ],
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function listLandingPageDescendantsAsGuestIncludeParent200()
+    {
+        $page = factory(Page::class)->states('withImage', 'withChildren')->create();
+        $parent = factory(Page::class)->create();
+        $parent->appendNode($page);
+        $landingPage1 = factory(Page::class)->states('landingPage')->create();
+        $landingPage1->appendNode($parent);
+        $landingPage2 = factory(Page::class)->states('landingPage', 'withChildren')->create();
+
+        $response = $this->json('GET', '/core/v1/pages/index?filter[landing_page]=' . $landingPage1->id . '&include=parent');
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonStructure([
+            'data' => [
+                [
+                    'id',
+                    'slug',
+                    'title',
+                    'content',
+                    'order',
+                    'enabled',
+                    'page_type',
+                    'image',
+                    'parent',
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+        ]);
+
+        $response->assertJsonFragment([
+            'id' => $parent->id,
+        ]);
+
+        $response->assertJsonFragment([
+            'id' => $page->id,
+        ]);
+
+        foreach ($page->children as $child) {
+            $response->assertJsonFragment([
+                'id' => $child->id,
+            ]);
+        }
+
+        $response->assertJsonFragment([
+            'id' => $landingPage1->id,
+        ]);
+
+        $response->assertJsonMissing([
+            'id' => $landingPage2->id,
+        ]);
+
+        foreach ($landingPage2->children as $child) {
+            $response->assertJsonMissing([
+                'id' => $child->id,
+            ]);
+        }
+    }
+
+    /**
+     * Get a single page
+     */
+
+    /**
+     * @test
+     */
     public function getEnabledInformationPageAsGuest200()
     {
         $page = factory(Page::class)->states('withImage', 'withParent', 'withChildren')->create();
@@ -521,7 +684,9 @@ class PagesTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonResource([
             'id',
+            'slug',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
@@ -529,6 +694,136 @@ class PagesTest extends TestCase
             'image' => [
                 'id',
                 'mime_type',
+                'created_at',
+                'updated_at',
+            ],
+            'landing_page',
+            'parent' => [
+                'id',
+                'slug',
+                'title',
+                'image',
+                'content',
+                'order',
+                'enabled',
+                'page_type',
+                'created_at',
+                'updated_at',
+            ],
+            'children' => [
+                '*' => [
+                    'id',
+                    'slug',
+                    'title',
+                    'image',
+                    'content',
+                    'order',
+                    'enabled',
+                    'page_type',
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+            'created_at',
+            'updated_at',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function getEnabledLandingPageAsGuest200()
+    {
+        $page = factory(Page::class)->states('withImage', 'landingPage', 'withChildren')->create();
+
+        $response = $this->json('GET', '/core/v1/pages/' . $page->id);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonResource([
+            'id',
+            'slug',
+            'title',
+            'excerpt',
+            'content',
+            'order',
+            'enabled',
+            'page_type',
+            'image' => [
+                'id',
+                'mime_type',
+                'created_at',
+                'updated_at',
+            ],
+            'landing_page',
+            'parent',
+            'children' => [
+                '*' => [
+                    'id',
+                    'slug',
+                    'slug',
+                    'title',
+                    'image',
+                    'content',
+                    'order',
+                    'enabled',
+                    'page_type',
+                    'created_at',
+                    'updated_at',
+                ],
+            ],
+            'created_at',
+            'updated_at',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function getInformationPageBySlugAsGuest200()
+    {
+        $page = factory(Page::class)->states('withImage', 'withParent', 'withChildren')->create();
+
+        $response = $this->json('GET', '/core/v1/pages/' . $page->slug);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonFragment([
+            'id' => $page->id,
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function getEnabledInformationPageWithLandingPageAncestorAsGuest200()
+    {
+        $page = factory(Page::class)->states('withImage', 'withChildren')->create();
+        $parent = factory(Page::class)->create();
+        $parent->appendNode($page);
+        $landingPage = factory(Page::class)->states('landingPage')->create();
+        $landingPage->appendNode($parent);
+
+        $response = $this->json('GET', '/core/v1/pages/' . $page->id);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJsonResource([
+            'id',
+            'title',
+            'excerpt',
+            'content',
+            'order',
+            'enabled',
+            'page_type',
+            'image' => [
+                'id',
+                'mime_type',
+                'created_at',
+                'updated_at',
+            ],
+            'landing_page' => [
+                'id',
+                'title',
+                'image',
+                'content',
+                'order',
+                'enabled',
+                'page_type',
                 'created_at',
                 'updated_at',
             ],
@@ -559,46 +854,13 @@ class PagesTest extends TestCase
             'created_at',
             'updated_at',
         ]);
-    }
 
-    /**
-     * @test
-     */
-    public function getEnabledLandingPageAsGuest200()
-    {
-        $page = factory(Page::class)->states('withImage', 'landingPage', 'withChildren')->create();
-
-        $response = $this->json('GET', '/core/v1/pages/' . $page->id);
-        $response->assertStatus(Response::HTTP_OK);
-        $response->assertJsonResource([
-            'id',
-            'title',
-            'content',
-            'order',
-            'enabled',
-            'page_type',
-            'image' => [
-                'id',
-                'mime_type',
-                'created_at',
-                'updated_at',
-            ],
-            'parent',
-            'children' => [
-                '*' => [
-                    'id',
-                    'title',
-                    'image',
-                    'content',
-                    'order',
-                    'enabled',
-                    'page_type',
-                    'created_at',
-                    'updated_at',
+        $response->assertJson([
+            'data' => [
+                'landing_page' => [
+                    'id' => $landingPage->id,
                 ],
             ],
-            'created_at',
-            'updated_at',
         ]);
     }
 
@@ -654,7 +916,9 @@ class PagesTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJsonResource([
             'id',
+            'slug',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
@@ -665,8 +929,10 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent' => [
                 'id',
+                'slug',
                 'title',
                 'image',
                 'content',
@@ -679,6 +945,7 @@ class PagesTest extends TestCase
             'children' => [
                 '*' => [
                     'id',
+                    'slug',
                     'title',
                     'image',
                     'content',
@@ -802,10 +1069,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -834,10 +1105,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -851,11 +1126,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -863,6 +1140,74 @@ class PagesTest extends TestCase
             'created_at',
             'updated_at',
         ]);
+    }
+
+    /**
+     * @test
+     */
+    public function createPageWithMinimalDataAsAdmin201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'parent_id' => $parentPage->id,
+        ];
+
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonResource([
+            'id',
+            'title',
+            'excerpt',
+            'content',
+            'order',
+            'enabled',
+            'page_type',
+            'image',
+            'landing_page',
+            'parent',
+            'children',
+            'collection_categories',
+            'collection_personas',
+            'created_at',
+            'updated_at',
+        ]);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+                'info_pages' => [
+                    'title' => $this->faker->sentence(),
+                ],
+                'collections' => [
+                    'title' => $this->faker->sentence(),
+                ],
+            ],
+            'page_type' => 'landing',
+        ];
+
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
     }
 
     /**
@@ -884,10 +1229,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -916,65 +1265,93 @@ class PagesTest extends TestCase
 
         Passport::actingAs($user);
 
-        $this->json('POST', '/core/v1/pages', [
-            'title' => $this->faker->sentence(),
-        ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
-
+        // Missing title
         $this->json('POST', '/core/v1/pages', [
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Empty title and content
         $this->json('POST', '/core/v1/pages', [
             'title' => '',
             'content' => '',
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Content not an array
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
             'content' => $this->faker->realText(),
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Invalid structure for 'copy' content type
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
-            'content' => [],
-        ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
-
-        $this->json('POST', '/core/v1/pages', [
-            'title' => $this->faker->sentence(),
+            'excerpt' => str_pad($this->faker->paragraph(2), 151, 'words '),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'copy' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+            ],
+        ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        // Invalid parent id
+        $this->json('POST', '/core/v1/pages', [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
             'parent_id' => 1,
         ])->assertStatus(Response::HTTP_NOT_FOUND);
 
+        // Unknown parent id
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
             'parent_id' => $this->faker->uuid(),
         ])->assertStatus(Response::HTTP_NOT_FOUND);
 
+        // Invalid content stucture for landing page
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -983,12 +1360,17 @@ class PagesTest extends TestCase
 
         $parentPage = factory(Page::class)->states('withChildren')->create();
 
+        // Invalid order
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -996,12 +1378,17 @@ class PagesTest extends TestCase
             'order' => $parentPage->children->count() + 1,
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Invalid order
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1009,12 +1396,17 @@ class PagesTest extends TestCase
             'order' => -1,
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Landing page cannot have parent
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1022,9 +1414,7 @@ class PagesTest extends TestCase
             'page_type' => 'landing',
         ])->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        /**
-         * Assigned Images not allowed
-         */
+        // Assigned Images not allowed
         $image = factory(File::class)->create([
             'filename' => Str::random() . '.png',
             'mime_type' => 'image/png',
@@ -1032,10 +1422,14 @@ class PagesTest extends TestCase
 
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1062,10 +1456,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1078,11 +1476,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent' => [
                 'id',
                 'title',
@@ -1119,10 +1519,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1155,10 +1559,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1171,11 +1579,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1212,28 +1622,44 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'about' => [
-                    'copy' => [
-                        $this->faker->realText(),
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'info_pages' => [
                     'title' => $this->faker->sentence(),
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'collections' => [
                     'title' => $this->faker->sentence(),
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1246,11 +1672,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1291,10 +1719,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1333,10 +1765,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1383,10 +1819,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1400,6 +1840,7 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
@@ -1410,6 +1851,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1449,10 +1891,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1466,6 +1912,7 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
@@ -1476,6 +1923,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1515,10 +1963,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1532,6 +1984,7 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
@@ -1542,6 +1995,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1574,10 +2028,14 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1607,28 +2065,44 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
             'content' => [
                 'introduction' => [
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'about' => [
-                    'copy' => [
-                        $this->faker->realText(),
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'info_pages' => [
                     'title' => $this->faker->sentence(),
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
                 'collections' => [
                     'title' => $this->faker->sentence(),
-                    'copy' => [
-                        $this->faker->realText(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
                     ],
                 ],
             ],
@@ -1642,11 +2116,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1669,6 +2145,368 @@ class PagesTest extends TestCase
         ]);
         $response->assertJsonFragment([
             'id' => $collections->get(4)->id,
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function createInformationPageWithCallToAction422()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => '',
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => null,
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => null,
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => 'foo',
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /**
+     * @test
+     */
+    public function createInformationPageWithCallToAction201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
+    /**
+     * @test
+     */
+    public function createLandingPageWithCallToActions201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+                'about' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+                'info_pages' => [
+                    'title' => $this->faker->sentence(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence,
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                    ],
+                ],
+                'collections' => [
+                    'title' => $this->faker->sentence(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+            ],
+            'page_type' => 'landing',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+    }
+
+    /**
+     * @test
+     */
+    public function createPageWithSameTitleAsExistingPageIncrementsSlugAsAdmin201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        factory(Page::class)
+            ->states('withImage', 'withParent', 'withChildren', 'disabled')
+            ->create([
+                'title' => 'Test Page Title',
+                'slug' => 'test-page-title',
+            ]);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => 'Test Page Title',
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+        ];
+
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'slug' => 'test-page-title-1',
+        ]);
+
+        $this->assertDatabaseHas((new Page())->getTable(), [
+            'parent_uuid' => $parentPage->id,
+            'slug' => 'test-page-title-1',
+        ]);
+
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'slug' => 'test-page-title-2',
+        ]);
+
+        $this->assertDatabaseHas((new Page())->getTable(), [
+            'parent_uuid' => $parentPage->id,
+            'slug' => 'test-page-title-2',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function createPageWithSlugAsAdmin201()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $parentPage = factory(Page::class)->create();
+
+        $data = [
+            'title' => 'Test Page Title',
+            'slug' => 'different-slug',
+            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+        ];
+
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_CREATED);
+
+        $response->assertJsonFragment([
+            'slug' => 'different-slug',
+        ]);
+
+        $this->assertDatabaseHas((new Page())->getTable(), [
+            'parent_uuid' => $parentPage->id,
+            'slug' => 'different-slug',
         ]);
     }
 
@@ -1718,11 +2556,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1864,6 +2704,7 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
@@ -1874,6 +2715,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1926,11 +2768,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -1992,6 +2836,7 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
@@ -2002,6 +2847,7 @@ class PagesTest extends TestCase
                 'created_at',
                 'updated_at',
             ],
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -2308,11 +3154,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -2370,11 +3218,13 @@ class PagesTest extends TestCase
         $response->assertJsonResource([
             'id',
             'title',
+            'excerpt',
             'content',
             'order',
             'enabled',
             'page_type',
             'image',
+            'landing_page',
             'parent',
             'children',
             'collection_categories',
@@ -2401,6 +3251,70 @@ class PagesTest extends TestCase
         $response->assertJsonMissing([
             'id' => $pageCollectionIds->get(2),
         ]);
+    }
+
+    /**
+     * @test
+     */
+    public function updatePageUpdateSlugAsAdmin200()
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = factory(User::class)->create();
+        $user->makeGlobalAdmin();
+
+        Passport::actingAs($user);
+
+        $page = factory(Page::class)
+            ->states('withImage', 'withParent', 'withChildren', 'disabled')
+            ->create([
+                'title' => 'Test Page Title',
+                'slug' => 'test-page-title',
+            ]);
+
+        $data = [
+            'title' => 'New Title',
+        ];
+
+        $response = $this->json('PUT', '/core/v1/pages/' . $page->id, $data);
+
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment([
+            'title' => 'New Title',
+        ]);
+
+        $response->assertJsonFragment([
+            'slug' => 'test-page-title',
+        ]);
+
+        $data = [
+            'slug' => 'new-title',
+        ];
+
+        $response = $this->json('PUT', '/core/v1/pages/' . $page->id, $data);
+
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment([
+            'slug' => 'new-title',
+        ]);
+
+        factory(Page::class)
+            ->states('withImage', 'withParent', 'withChildren', 'disabled')
+            ->create([
+                'title' => 'Existing Page',
+                'slug' => 'existing-page',
+            ]);
+
+        $data = [
+            'slug' => 'existing-page',
+        ];
+
+        $response = $this->json('PUT', '/core/v1/pages/' . $page->id, $data);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
     /**

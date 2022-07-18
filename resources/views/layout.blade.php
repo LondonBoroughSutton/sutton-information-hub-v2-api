@@ -33,8 +33,10 @@
                     {{ config('app.name') }}
                 </a>
             </div>
-
         </div>
+        @if (config('app.env') === 'staging')
+            @include('partials.environment-warning')
+        @endif
     </header>
 
     <div class="govuk-width-container">

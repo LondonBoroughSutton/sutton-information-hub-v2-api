@@ -6,14 +6,14 @@
 # If you don't want these on your system, install using the docker helper script.
 # First, if you have an environment file, set the environment variables:
 # source .cloudfoundry/environment.[environment]
-# export CF_USERNAME CF_PASSWORD CF_ORGANISATION CF_SPACE CF_ENV_SERVICE CF_ENV_SERVICE_KEY
+# export CF_USERNAME CF_PASSWORD CF_ORGANISATION CF_SPACE CF_S3_SERVICE CF_S3_SERVICE_KEY
 # Then run the helper script:
 # ./develop store
 # ================================
 
 # Requires the following environment variables:
-# $CF_ENV_SERVICE = The name of the S3 bucket to store the files
-# $CF_ENV_SERVICE_KEY = The name of the service key that holds the access credentials
+# $CF_S3_SERVICE = The name of the S3 bucket to store the files
+# $CF_S3_SERVICE_KEY = The name of the service key that holds the access credentials
 
 # Can accept the following environment variables
 # $CF_USERNAME = The Cloud Foundry username.
@@ -50,12 +50,12 @@ if [ -z "$CF_SPACE" ]; then
     read -p 'Cloudfoundry Space: ' CF_SPACE
 fi
 
-if [ -z "$CF_ENV_SERVICE" ]; then
-    read -p 'AWS S3 Bucket name: ' CF_ENV_SERVICE
+if [ -z "$CF_S3_SERVICE" ]; then
+    read -p 'AWS S3 Bucket name: ' CF_S3_SERVICE
 fi
 
-if [ -z "$CF_ENV_SERVICE_KEY" ]; then
-    read -p 'AWS service key for the S3 Bucket: ' CF_ENV_SERVICE_KEY
+if [ -z "$CF_S3_SERVICE_KEY" ]; then
+    read -p "AWS service key for S3 Bucket $CF_S3_SERVICE: " CF_S3_SERVICE_KEY
 fi
 
 # Install AWS CLI
@@ -78,7 +78,8 @@ apt-get update && apt-get install -y --allow-unauthenticated cf7-cli jq
 cf login -a $CF_API -u $CF_USERNAME -p $CF_PASSWORD -o $CF_ORGANISATION -s $CF_SPACE
 
 # Get the .env file from the secret S3 bucket
-cf service-key $CF_ENV_SERVICE $CF_ENV_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
+rm -f secret_access.json
+cf service-key $CF_S3_SERVICE $CF_S3_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
 
 # Export the AWS S3 access credentials for use by the AWS CLI
 export AWS_ACCESS_KEY_ID=`jq -r .aws_access_key_id secret_access.json`
@@ -87,15 +88,15 @@ export AWS_SECRET_ACCESS_KEY=`jq -r .aws_secret_access_key secret_access.json`
 export AWS_BUCKET_NAME=`jq -r .bucket_name secret_access.json`
 export AWS_DEFAULT_OUTPUT=json
 
-# rm secret_access.json
+rm secret_access.json
 
 # Select what operation to perform
-read -p '(L)ist, (G)et, (P)ut or (D)elete an object: ' ACTION
+read -p '(L)ist, (G)et, (P)ut or (D)elete an object, or (M)igrate a bucket: ' ACTION
 case $ACTION in
-    "L"|"l"|"G"|"g"|"P"|"p"|"D"|"d")
+    "L"|"l"|"G"|"g"|"P"|"p"|"D"|"d"|"M"|"m")
     ;;
     *)
-    echo -e "${RED}The action should be one of (L)ist, (G)et, (P)ut or (D)elete${ENDCOLOUR}"
+    echo -e "${RED}The action should be one of (L)ist, (G)et, (P)ut, (D)elete or (M)igrate${ENDCOLOUR}"
     exit
     ;;
 esac
@@ -103,14 +104,17 @@ esac
 if [ "$ACTION" == 'L' ] || [ "$ACTION" == 'l' ]; then
 # List the bucket contents
     echo -e "${GREEN}The contents of bucket $AWS_BUCKET_NAME are:${ENDCOLOUR}"
-    echo `aws s3api list-objects --bucket ${AWS_BUCKET_NAME}`
+    aws s3api list-objects --bucket ${AWS_BUCKET_NAME}
 fi
 
 if [ "$ACTION" == 'G' ] || [ "$ACTION" == 'g' ]; then
     # Download a bucket object
     read -p 'What is the key of the object to download?' OBJECT_KEY
-    echo "Downloading $OBJECT_KEY from bucket $AWS_BUCKET_NAME to ${PWD}/${OBJECT_KEY}"
-    aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${OBJECT_KEY} ${PWD}/${OBJECT_KEY}
+
+    FILENAME="${OBJECT_KEY##*/}"
+
+    echo "Downloading $OBJECT_KEY from bucket $AWS_BUCKET_NAME to ${PWD}/${FILENAME}"
+    aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key ${OBJECT_KEY} ${PWD}/${FILENAME}
 fi
 
 if [ "$ACTION" == 'P' ] || [ "$ACTION" == 'p' ]; then
@@ -175,6 +179,73 @@ if [ "$ACTION" == 'D' ] || [ "$ACTION" == 'd' ]; then
         exit
     fi
     aws s3api delete-object --bucket ${AWS_BUCKET_NAME} --key ${OBJECT_KEY}
+fi
+
+if [ "$ACTION" == 'M' ] || [ "$ACTION" == 'm' ]; then
+    # Migrate a bucket
+    # Ensure a service key has been set on the recipient service:
+    # cf create-service-key SERVICE_NAME SERVICE_KEY -c '{"allow_external_access": true}'
+
+    echo -e "${GREEN}Migrating the contents of bucket $AWS_BUCKET_NAME${ENDCOLOUR}"
+    read -p "Is the recipent S3 service in the same space? (Y/n): " AGREE
+
+    AGREE=${AGREE:-'Y'}
+
+    if [ "$AGREE" != 'Y' ] && [ "$AGREE" != 'y' ]; then
+        read -p 'What is the space the recipient S3 service is in: ' CF_RECIPIENT_SPACE
+    fi
+
+    CF_RECIPIENT_SPACE=${CF_RECIPIENT_SPACE:-$CF_SPACE}
+
+    read -p 'What is the name of the S3 service to migrate the content to: ' CF_RECIPIENT_SERVICE
+    read -p "What is the service key for $CF_RECIPIENT_SERVICE: " CF_RECIPIENT_SERVICE_KEY
+
+    read -p "Migrating all objects from $AWS_BUCKET_NAME to service $CF_RECIPIENT_SERVICE in space $CF_RECIPIENT_SPACE Proceed? (Y/n): " PROCEED
+
+    PROCEED=${PROCEED:-'Y'}
+
+    if [ "$PROCEED" != 'Y' ] && [ "$PROCEED" != 'y' ]; then
+        echo -e "${RED}Aborting bucket migration${ENDCOLOUR}"
+        exit
+    fi
+
+    aws s3api list-objects --bucket ${AWS_BUCKET_NAME} | jq . > bucket_objects.json
+
+    OBJECT_KEYS=(`jq '.Contents[] | select(. .Key|startswith("files/public/")) | .Key' bucket_objects.json | tr -d '"'`)
+
+    rm bucket_objects.json
+
+    rm -Rf ${PWD}/migration_tmp
+
+    mkdir ${PWD}/migration_tmp
+
+    for OBJECT_KEY in "${OBJECT_KEYS[@]}"
+    do
+        FILENAME=${OBJECT_KEY##*/}
+        aws s3api get-object --bucket ${AWS_BUCKET_NAME} --key "$OBJECT_KEY" "$PWD/migration_tmp/$FILENAME"
+    done
+
+    cf target -s ${CF_RECIPIENT_SPACE}
+
+    # Get the .env file from the recipient S3 bucket
+    cf service-key $CF_RECIPIENT_SERVICE $CF_RECIPIENT_SERVICE_KEY | sed -n '/{/,/}/p' | jq . > secret_access.json
+
+    # Export the recipient S3 access credentials for use by the AWS CLI
+    export AWS_ACCESS_KEY_ID=`jq -r .aws_access_key_id secret_access.json`
+    export AWS_DEFAULT_REGION=`jq -r .aws_region secret_access.json`
+    export AWS_SECRET_ACCESS_KEY=`jq -r .aws_secret_access_key secret_access.json`
+    export AWS_BUCKET_NAME=`jq -r .bucket_name secret_access.json`
+    export AWS_DEFAULT_OUTPUT=json
+
+    rm secret_access.json
+
+    for OBJECT_KEY in "${OBJECT_KEYS[@]}"
+    do
+        FILENAME=${OBJECT_KEY##*/}
+        aws s3api put-object --bucket ${AWS_BUCKET_NAME} --key "$OBJECT_KEY" --body "$PWD/migration_tmp/$FILENAME"
+    done
+
+    rm -R ${PWD}/migration_tmp
 fi
 
 # Remove the AWS client

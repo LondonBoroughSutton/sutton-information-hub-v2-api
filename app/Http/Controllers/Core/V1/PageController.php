@@ -13,6 +13,7 @@ use App\Http\Resources\PageResource;
 use App\Http\Responses\ResourceDeleted;
 use App\Models\Page;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -44,7 +45,9 @@ class PageController extends Controller
         }
 
         $pages = QueryBuilder::for($baseQuery)
+            ->allowedIncludes(['parent', 'children', 'landingPageAncestors'])
             ->allowedFilters([
+                AllowedFilter::scope('landing_page', 'pageDescendants'),
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('parent_id', 'parent_uuid'),
                 AllowedFilter::exact('page_type'),
@@ -72,7 +75,9 @@ class PageController extends Controller
             $page = Page::make(
                 [
                     'title' => $request->input('title'),
-                    'content' => $request->input('content'),
+                    'slug' => $this->uniqueSlug($request->input('slug', Str::slug($request->input('title')))),
+                    'excerpt' => $request->input('excerpt'),
+                    'content' => $request->input('content', []),
                     'page_type' => $request->input('page_type', Page::PAGE_TYPE_INFORMATION),
                 ],
                 $parent
@@ -88,7 +93,7 @@ class PageController extends Controller
             // Update model so far
             $page->save();
 
-            $page->load('parent', 'children', 'collectionCategories', 'collectionPersonas');
+            $page->load('landingPageAncestors', 'parent', 'children', 'collectionCategories', 'collectionPersonas');
 
             event(EndpointHit::onCreate($request, "Created page [{$page->id}]", $page));
 
@@ -106,7 +111,7 @@ class PageController extends Controller
     public function show(ShowRequest $request, Page $page)
     {
         $baseQuery = Page::query()
-            ->with(['parent', 'children', 'collectionCategories', 'collectionPersonas'])
+            ->with(['landingPageAncestors', 'parent', 'children', 'collectionCategories', 'collectionPersonas'])
             ->where('id', $page->id);
 
         $page = QueryBuilder::for($baseQuery)
@@ -129,6 +134,8 @@ class PageController extends Controller
         return DB::transaction(function () use ($request, $page) {
             // Core fields
             $page->title = $request->input('title', $page->title);
+            $page->slug = $request->has('slug') && $request->slug !== $page->slug ? $this->uniqueSlug($request->slug) : $page->slug;
+            $page->excerpt = $request->input('excerpt', $page->excerpt);
             $page->page_type = $request->input('page_type', $page->page_type);
             if ($request->filled('content')) {
                 $page->content = $request->input('content', $page->content);
@@ -146,7 +153,7 @@ class PageController extends Controller
 
             event(EndpointHit::onUpdate($request, "Updated page [{$page->id}]", $page));
 
-            return new pageResource($page->fresh(['parent', 'children', 'collectionCategories', 'collectionPersonas']));
+            return new pageResource($page->fresh(['landingPageAncestors', 'parent', 'children', 'collectionCategories', 'collectionPersonas']));
         });
     }
 
@@ -166,5 +173,26 @@ class PageController extends Controller
 
             return new ResourceDeleted('page');
         });
+    }
+
+    /**
+     * Return a unique version of the proposed slug.
+     *
+     * @param string $slug
+     * @return string
+     */
+    public function uniqueSlug($slug)
+    {
+        $uniqueSlug = $baseSlug = preg_replace('|\-\d$|', '', $slug);
+        $suffix = 1;
+        do {
+            $exists = DB::table((new Page())->getTable())->where('slug', $uniqueSlug)->exists();
+            if ($exists) {
+                $uniqueSlug = $baseSlug . '-' . $suffix;
+            }
+            $suffix++;
+        } while ($exists);
+
+        return $uniqueSlug;
     }
 }

@@ -21,8 +21,10 @@ class PageSchema extends Schema
             ->type(static::TYPE_OBJECT)
             ->properties(
                 Schema::string('id')
-                    ->format(Schema::TYPE_OBJECT),
+                    ->format(Schema::FORMAT_UUID),
+                Schema::string('slug'),
                 Schema::string('title'),
+                Schema::string('excerpt'),
                 Schema::string('content'),
                 Schema::integer('order'),
                 Schema::boolean('enabled'),
@@ -32,6 +34,7 @@ class PageSchema extends Schema
                         Page::PAGE_TYPE_LANDING
                     ),
                 FileSchema::create('image'),
+                PageListItemSchema::create('landing_page'),
                 PageListItemSchema::create('parent'),
                 Schema::array('children')
                     ->items(PageListItemSchema::create()),

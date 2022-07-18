@@ -8,6 +8,8 @@ use App\Rules\FileIsMimeType;
 use App\Rules\FileIsPendingAssignment;
 use App\Rules\InformationPageCannotHaveCollection;
 use App\Rules\LandingPageCannotHaveParent;
+use App\Rules\PageContent;
+use App\Rules\Slug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -40,9 +42,10 @@ class StoreRequest extends FormRequest
 
         return [
             'title' => ['required', 'string', 'min:1', 'max:255'],
-            'content' => ['required', 'array'],
-            'content.introduction.copy' => ['required', 'array'],
-            'content.introduction.copy.*' => ['required', 'string', 'min:1'],
+            'slug' => ['string', 'min:1', 'max:255', new Slug()],
+            'excerpt' => ['sometimes', 'nullable', 'string', 'min:1', 'max:150'],
+            'content' => ['required_if:page_type,landing', 'array'],
+            'content.introduction.content' => ['required_if:page_type,landing', 'array'],
             'content.info_pages.title' => [
                 'required_if:page_type,landing',
                 'string',
@@ -54,8 +57,8 @@ class StoreRequest extends FormRequest
                 'min:1',
             ],
             'content.*.title' => ['sometimes', 'string'],
-            'content.*.copy' => ['sometimes', 'array'],
-            'content.*.copy.*' => ['sometimes', 'string'],
+            'content.*.content' => ['sometimes', 'array'],
+            'content.*.content.*' => [new PageContent($this->page_type)],
             'order' => [
                 'integer',
                 'min:0',
