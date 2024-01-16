@@ -703,7 +703,7 @@ class PagesTest extends TestCase
         $data = [
             'title' => 'A New Page',
             'slug' => 'a-new-page',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -736,7 +736,7 @@ class PagesTest extends TestCase
         $data = [
             'title' => 'A New Page',
             'slug' => 'a-new-page',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -769,7 +769,7 @@ class PagesTest extends TestCase
         $data = [
             'title' => 'A New Page',
             'slug' => 'a-new-page',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -802,7 +802,7 @@ class PagesTest extends TestCase
         $data = [
             'title' => 'A New Page',
             'slug' => 'a-new-page',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -834,7 +834,7 @@ class PagesTest extends TestCase
         $data = [
             'title' => 'A New Page',
             'slug' => 'a-new-page',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -870,7 +870,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => 'A New Page',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -931,7 +931,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => 'A New Page',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1098,7 +1098,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1179,7 +1179,7 @@ class PagesTest extends TestCase
         // Invalid parent id
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1196,7 +1196,7 @@ class PagesTest extends TestCase
         // Unknown parent id
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1213,7 +1213,7 @@ class PagesTest extends TestCase
         // Invalid content stucture for landing page
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1232,7 +1232,7 @@ class PagesTest extends TestCase
         // Invalid order
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1250,7 +1250,7 @@ class PagesTest extends TestCase
         // Invalid order
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1268,7 +1268,7 @@ class PagesTest extends TestCase
         // Landing page cannot have parent
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1291,7 +1291,7 @@ class PagesTest extends TestCase
 
         $this->json('POST', '/core/v1/pages', [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1325,7 +1325,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1384,7 +1384,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1443,7 +1443,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1504,7 +1504,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1600,7 +1600,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1662,7 +1662,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1732,7 +1732,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1803,7 +1803,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1939,7 +1939,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -1976,7 +1976,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2084,9 +2084,10 @@ class PagesTest extends TestCase
 
         $parentPage = Page::factory()->create();
 
+        // Missing title
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2111,9 +2112,10 @@ class PagesTest extends TestCase
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Missing description
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2138,9 +2140,10 @@ class PagesTest extends TestCase
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Missing button text
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2165,9 +2168,10 @@ class PagesTest extends TestCase
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
+        // Invalid URL
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2210,7 +2214,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2239,6 +2243,49 @@ class PagesTest extends TestCase
     /**
      * @test
      */
+    public function createInformationPageWithVideoAsContentAdmin200(): void
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = User::factory()->create();
+        $user->makeContentAdmin();
+
+        Passport::actingAs($user);
+
+        $parentPage = Page::factory()->create();
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'video',
+                            'title' => $this->faker->sentence(),
+                            'url' => 'https://www.youtube.com/watch?v=dummy_id',
+                        ],
+                    ],
+                ],
+            ],
+            'parent_id' => $parentPage->id,
+            'page_type' => 'information',
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment($data);
+    }
+
+    /**
+     * @test
+     */
     public function createLandingPageWithCallToActionsAsContentAdmin200(): void
     {
         /**
@@ -2251,7 +2298,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => $this->faker->sentence(),
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2323,6 +2370,86 @@ class PagesTest extends TestCase
     /**
      * @test
      */
+    public function createLandingPageWithVideosAsContentAdmin200(): void
+    {
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = User::factory()->create();
+        $user->makeContentAdmin();
+
+        Passport::actingAs($user);
+
+        $data = [
+            'title' => $this->faker->sentence(),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'video',
+                            'title' => $this->faker->sentence(),
+                            'url' => 'https://www.youtube.com/watch?v=dummy_id',
+                        ],
+                    ],
+                ],
+                'about' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'video',
+                            'title' => $this->faker->sentence(),
+                            'url' => 'https://www.youtube.com/watch?v=dummy_id',
+                        ],
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+                'info_pages' => [
+                    'title' => $this->faker->sentence(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'video',
+                            'title' => $this->faker->sentence(),
+                            'url' => 'https://www.youtube.com/watch?v=dummy_id',
+                        ],
+                    ],
+                ],
+                'collections' => [
+                    'title' => $this->faker->sentence(),
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                    ],
+                ],
+            ],
+            'page_type' => Page::PAGE_TYPE_LANDING,
+        ];
+        $response = $this->json('POST', '/core/v1/pages', $data);
+
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response->assertJsonFragment($data);
+    }
+
+    /**
+     * @test
+     */
     public function createPageWithSameTitleAsExistingPageIncrementsSlugAsContentAdmin200(): void
     {
         /**
@@ -2343,7 +2470,7 @@ class PagesTest extends TestCase
 
         $data = [
             'title' => 'Test Page Title',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2412,7 +2539,7 @@ class PagesTest extends TestCase
         $data = [
             'title' => 'Test Page Title',
             'slug' => 'different-slug',
-            'excerpt' => substr($this->faker->paragraph(2), 0, 149),
+            'excerpt' => trim(substr($this->faker->paragraph(2), 0, 149)),
             'content' => [
                 'introduction' => [
                     'content' => [
@@ -2904,6 +3031,28 @@ class PagesTest extends TestCase
         $data = [
             'title' => 'New Title',
             'enabled' => true,
+            'content' => [
+                'introduction' => [
+                    'content' => [
+                        [
+                            'type' => 'copy',
+                            'value' => $this->faker->realText(),
+                        ],
+                        [
+                            'type' => 'cta',
+                            'title' => $this->faker->sentence(),
+                            'description' => $this->faker->realText(),
+                            'url' => $this->faker->url(),
+                            'buttonText' => $this->faker->words(3, true),
+                        ],
+                        [
+                            'type' => 'video',
+                            'title' => $this->faker->sentence(),
+                            'url' => 'https://www.youtube.com/watch?v=dummy_id',
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         $response = $this->json('PUT', '/core/v1/pages/' . $page->id, $data);
@@ -2938,6 +3087,10 @@ class PagesTest extends TestCase
             'title' => 'New Title',
             'enabled' => true,
         ]);
+
+        $response = $this->json('GET', '/core/v1/pages/' . $page->id);
+
+        $response->assertJsonFragment($data);
     }
 
     /**
